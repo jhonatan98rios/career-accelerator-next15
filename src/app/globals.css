@@ -19,8 +19,26 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes float {
+  0%,100% { transform: translateY(0) }
+  50% { transform: translateY(-10px) }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px) }
+  100% { opacity: 1; transform: translateY(0) }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-fadeInUp { animation: fadeInUp 1s ease-out forwards; }
+
