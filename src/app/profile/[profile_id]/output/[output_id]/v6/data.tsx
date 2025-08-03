@@ -1,4 +1,4 @@
-export type DataType = {
+export type InsightType = {
   hero: {
     title: string
     subtitle: string
@@ -53,7 +53,7 @@ export type DataType = {
   }
 }
 
-export const data: DataType = {
+export const data: InsightType = {
   "hero": {
     "title": "Become a Python Backend Pro",
     "subtitle": "Deep expertise • Top demand • Global & Remote • High pay",

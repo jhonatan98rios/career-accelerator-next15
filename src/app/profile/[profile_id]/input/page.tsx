@@ -2,21 +2,21 @@
 
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { useFormContext } from '@/store/FormContext';
 
 function generateStaticParams() {}
  
 export default function Page() {
 
-  const [manualDescription, setManualDescription] = useState('');
-  const [uploadedFileName, setUploadedFileName] = useState('');
-  const [answers, setAnswers] = useState({
-    currentRole: '',
-    dreamJob: '',
-    softSkills: '',
-    hardSkills: '',
-    blockers: '',
-    goals: '',
-  });
+  const {
+    manualDescription,
+    uploadedFileName,
+    answers,
+    setManualDescription,
+    setUploadedFileName,
+    setAnswers
+  } = useFormContext();
+
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -26,7 +26,7 @@ export default function Page() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setAnswers(prev => ({ ...prev, [name]: value }));
+    setAnswers({ ...answers, [name]: value });
   };
 
   return (
@@ -129,7 +129,7 @@ export default function Page() {
 
       {/* Submit Button */}
       <div className="text-center">
-        <Link href="/profile/1234/output/abcd" className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+        <Link href={"/profile/1234/output/abcd/v6"} className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
           Generate My Roadmap
         </Link>
       </div>

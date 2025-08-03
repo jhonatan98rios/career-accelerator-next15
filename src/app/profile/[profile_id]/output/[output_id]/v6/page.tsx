@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useFormContext } from '@/store/FormContext';
+import { InsightType } from './data';
 
-import { data } from './data'
 
 interface PageProps {
   output_id: string
@@ -13,13 +14,20 @@ interface PageProps {
 
 export default function Page() {
 
+  const router = useRouter();
+
   const params = useParams()
   const { output_id, profile_id } = params as unknown as PageProps
+
+  const { answers, manualDescription, uploadedFileName } = useFormContext();
+
+  const [loading, setLoading] = useState(false);
+  const [insight, setInsight] = useState<InsightType>();
 
   useEffect(() => {
 
     document.querySelector('header')?.scrollIntoView({ behavior: 'instant', block: 'start' })
-    document.querySelector("html")?.style.setProperty("overflow", "hidden")
+    //document.querySelector("html")?.style.setProperty("overflow", "hidden")
 
     // Select the element to animate
     const targetElement = document.querySelectorAll('.animate-fadeInUp-target');
@@ -47,15 +55,48 @@ export default function Page() {
     }
   }, [])
 
+  useEffect(() => {
+
+    if (!answers || !manualDescription) {
+      router.push(`/profile/${profile_id}/input`);
+      return
+    }
+
+    submit().then((data) => {
+      console.log('Roadmap generated:', data);
+    })
+
+  }, [])
+
+  const submit = async () => {
+    setLoading(true);
+    const res = await fetch('/api/roadmap', {
+      method: 'POST',
+      body: JSON.stringify({ answers, manualDescription, uploadedFileName, output_id, profile_id }),
+    });
+    const { data } = await res.json();
+    setInsight(data);
+    setLoading(false);
+    return data;
+  };
+
+  if (!insight?.hero ) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <header className="relative h-screen flex items-center justify-center bg-gradient-to-br from-purple-800 to-indigo-600 overflow-hidden">
         <div className="absolute top-10 left-1/4 w-64 h-64 bg-purple-700 rounded-full opacity-30 animate-float"></div>
         <div className="absolute bottom-16 right-1/5 w-72 h-72 bg-indigo-700 rounded-full opacity-30 animate-float"></div>
         <div className="z-10 text-center px-4">
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-4 animate-fadeInUp-target" {...applyAnimationDelay(300)}>{ data.hero.title }</h1>
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-4 animate-fadeInUp-target" {...applyAnimationDelay(300)}>{ insight.hero.title }</h1>
           <p className="text-xl md:text-2xl mb-8 animate-fadeInUp-target text-gray-200 bo" {...applyAnimationDelay(600)}>
-            { data.hero.subtitle }
+            { insight.hero.subtitle }
           </p>
           <button
             onClick={() => {
@@ -77,7 +118,7 @@ export default function Page() {
               <h2 className="text-3xl font-bold text-purple-400">Real Demand, Real Numbers</h2>
               <ul className="space-y-4">
                 {
-                  data.marketSnapshot.items.map((item, index) => (
+                  insight.marketSnapshot.items.map((item, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-purple-500 text-2xl mr-3">{item.icon}</span>
                       <p className='font-bold text-gray-700'> {item.description} </p>
@@ -99,7 +140,7 @@ export default function Page() {
           <h2 className="text-3xl font-bold text-indigo-300 mb-6 text-center animate-fadeInUp-target">Compensation & Benefits</h2>
           <div className="grid md:grid-cols-3 gap-8 animate-fadeInUp-target text-gray-200" {...applyAnimationDelay(200)}>
             {
-              data.compensation.items.map((item, index) => (
+              insight.compensation.items.map((item, index) => (
                 <div key={index} className="p-6 bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition">
                   <h3 className="text-xl font-semibold mb-2 text-white">{item.label}</h3>
                   <p><strong> {item.value} </strong></p>
@@ -111,13 +152,13 @@ export default function Page() {
 
         <section id="global" className="bg-gray-800 py-24">
           <div className="container mx-auto px-6 text-center space-y-8">
-            <h2 className="text-4xl font-bold text-indigo-300 animate-fadeInUp-target"> {data.globalOpportunities.title} </h2>
+            <h2 className="text-4xl font-bold text-indigo-300 animate-fadeInUp-target"> {insight.globalOpportunities.title} </h2>
             <p className="text-lg max-w-2xl mx-auto animate-fadeInUp-target text-white" {...applyAnimationDelay(100)}>
-              { data.globalOpportunities.subtitle }
+              { insight.globalOpportunities.subtitle }
             </p>
             <div className="flex flex-wrap justify-center gap-6 mt-8 text-gray-200">
               {
-                data.globalOpportunities.cards.map((card, index) => (
+                insight.globalOpportunities.cards.map((card, index) => (
                   <div key={index} className={`max-w-xs p-6 ${card.bgColor} rounded-2xl shadow-lg hover:-translate-y-2 transition animate-fadeInUp-target`} {...applyAnimationDelay(index * 200)}>
                     <h3 className="text-2xl font-semibold mb-2">{card.title}</h3>
                     <p>{card.description}</p>
@@ -129,10 +170,10 @@ export default function Page() {
         </section>
 
         <section id="bigtech" className="container mx-auto px-6 py-24">
-          <h2 className="text-3xl font-bold text-purple-400 mb-6 text-center animate-fadeInUp-target"> {data.bigTechHiring.title} </h2>
+          <h2 className="text-3xl font-bold text-purple-400 mb-6 text-center animate-fadeInUp-target"> {insight.bigTechHiring.title} </h2>
           <div className="grid md:grid-cols-2 gap-8 animate-fadeInUp-target text-gray-200" {...applyAnimationDelay(100)}>
             {
-              data.bigTechHiring.items.map((item, index) => (
+              insight.bigTechHiring.items.map((item, index) => (
                 <div key={index} className="p-6 bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition">
                   <h3 className="text-2xl font-semibold mb-2 text-white">{item.company}</h3>
                   <p>{item.details}</p>
@@ -144,12 +185,12 @@ export default function Page() {
 
         <section id="roadmap" className="container mx-auto px-6 py-24">
           <div className="text-center mb-12 animate-fadeInUp-target">
-            <h2 className="text-4xl font-bold text-purple-400"> {data.roadmap.title} </h2>
-            <p className="text-lg mt-2"> {data.roadmap.subtitle} </p>
+            <h2 className="text-4xl font-bold text-purple-400"> {insight.roadmap.title} </h2>
+            <p className="text-lg mt-2"> {insight.roadmap.subtitle} </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {
-              data.roadmap.steps.slice(0,3).map((step, index) => (
+              insight.roadmap.steps.slice(0,3).map((step, index) => (
                 <div key={index} className="relative p-8 bg-gradient-to-br from-purple-600 to-indigo-600 text-gray-200 rounded-3xl shadow-2xl hover:scale-105 transition animate-fadeInUp-target" {...applyAnimationDelay(index * 200)}>
                   <span className="absolute -top-6 right-6 text-6xl opacity-20">{step.step}</span>
                   <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
@@ -160,7 +201,7 @@ export default function Page() {
           </div>
           <div className="grid md:grid-cols-2 gap-8 mt-12">
             {
-              data.roadmap.steps.slice(3).map((step, index) => (
+              insight.roadmap.steps.slice(3).map((step, index) => (
                 <div key={index} className="p-8 bg-gradient-to-br from-indigo-600 to-purple-600 text-gray-200 rounded-3xl shadow-2xl hover:scale-105 transition animate-fadeInUp-target" {...applyAnimationDelay((index + 3) * 200)}>
                   <span className="absolute -top-6 right-6 text-6xl opacity-20">{step.step}</span>
                   <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
@@ -174,20 +215,20 @@ export default function Page() {
         <section className="relative py-24 bg-gradient-to-tr from-indigo-700 to-purple-800 text-center overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
           <div className="relative z-10 space-y-6 animate-fadeInUp-target">
-            <h2 className="text-4xl font-extrabold text-white"> {data.finalCta.title} </h2>
-            <p className="text-lg max-w-2xl mx-auto text-gray-200"> {data.finalCta.subtitle} </p>
+            <h2 className="text-4xl font-extrabold text-white"> {insight.finalCta.title} </h2>
+            <p className="text-lg max-w-2xl mx-auto text-gray-200"> {insight.finalCta.subtitle} </p>
             <Link 
-              href={data.finalCta.cta.href}
+              href={insight.finalCta.cta.href}
               target='_blank'
               className="inline-block bg-white text-indigo-700 font-bold px-10 py-4 rounded-full shadow-xl transform hover:scale-110 transition"
             >
-              {data.finalCta.cta.text}
+              {insight.finalCta.cta.text}
             </Link>
           </div>
         </section>
 
         <footer className="py-12 text-center text-sm text-gray-500">
-          <p>{data.footer.text}</p>
+          <p>{insight.footer.text}</p>
         </footer>
       </main>
     </div>
