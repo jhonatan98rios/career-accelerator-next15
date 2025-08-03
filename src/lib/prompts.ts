@@ -1,64 +1,13 @@
-export type InsightType = {
-  hero: {
-    title: string
-    subtitle: string
-  },
-  marketSnapshot: {
-    items: {
-      icon: string
-      description: string
-    }[]
-  },
-  compensation: {
-    items: {
-      label: string
-      value: string
-    }[]
-  },
-  globalOpportunities: {
-    title: string
-    subtitle: string
-    cards: {
-      title: string
-      description: string
-      bgColor: string
-    }[]
-  },
-  bigTechHiring: {
-    title: string
-    items: {
-      company: string
-      details: string
-    }[]
-  },
-  roadmap: {
-    title: string
-    subtitle: string
-    steps: {
-      step: number
-      title: string
-      description: string
-    }[]
-  },
-  finalCta: {
-    title: string
-    subtitle: string
-    cta: {
-      text: string
-      href: string
-    }
-  },
-  footer: {
-    text: string
-  }
-}
+import { InsightType } from "@/types/data";
 
-export const data: InsightType = {
+const example: InsightType = {
   "hero": {
     "title": "Become a Python Backend Pro",
     "subtitle": "Deep expertise • Top demand • Global & Remote • High pay",
+    "anchor": "Start Your Journey"
   },
   "marketSnapshot": {
+    "title": "Real Demand, Real Numbers",
     "items": [
       {
         "icon": "🔥",
@@ -75,6 +24,7 @@ export const data: InsightType = {
     ]
   },
   "compensation": {
+    "title": "Compensation & Benefits",
     "items": [
       {
         "label": "US Average Salary",
@@ -175,3 +125,20 @@ export const data: InsightType = {
     "text": "Data as of August 3, 2025 • LinkedIn • Glassdoor • Indeed • Remote-OK"
   }
 }
+
+export const getSystemPrompt = () => `
+  You are an API that work as expert career coach.
+  Your task is open job sites (indeed, LinkedIn, remote.ok, etc) and look how many open positions are available for the given profile.
+  Then, use the following received data to generate a personalized career insight for a user based on their profile and answers.
+  The insight should be a single json (as a API) following this structure (you cannot change the structure, because the frontend will not work):
+
+  ${JSON.stringify(example)}
+`
+
+export const getUserPrompt = (answers: Record<string, string>, manualDescription: string) => `
+  Generate a personalized and translated career insight based on the following data and language:
+  - Answers: ${JSON.stringify(answers)}
+  - Manual Description: ${manualDescription}
+
+  Use the latest job market data and trends to provide a comprehensive overview of opportunities, challenges, and recommendations for the user.
+`

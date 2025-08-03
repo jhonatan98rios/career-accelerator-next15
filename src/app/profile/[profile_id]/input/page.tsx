@@ -13,16 +13,16 @@ export default function Page() {
     uploadedFileName,
     answers,
     setManualDescription,
-    setUploadedFileName,
+    // setUploadedFileName,
     setAnswers
   } = useFormContext();
 
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setUploadedFileName(file.name);
-    // TODO: Handle file parsing or uploading logic
-  };
+  // const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) setUploadedFileName(file.name);
+  //   // TODO: Handle file parsing or uploading logic
+  // };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -44,14 +44,14 @@ export default function Page() {
           onChange={(e) => setManualDescription(e.target.value)}
         />
 
-        <label className="block font-semibold">Or Upload a File (PDF, DOCX)</label>
+        {/* <label className="block font-semibold">Or Upload a File (PDF, DOCX)</label>
         <input
           type="file"
           accept=".pdf,.docx"
           onChange={handleFileUpload}
           className="block"
         />
-        {uploadedFileName && <p className="text-sm text-green-600">Uploaded: {uploadedFileName}</p>}
+        {uploadedFileName && <p className="text-sm text-green-600">Uploaded: {uploadedFileName}</p>} */}
       </section>
 
       {/* Guided Questions */}
@@ -129,7 +129,7 @@ export default function Page() {
 
       {/* Submit Button */}
       <div className="text-center">
-        <Link href={"/profile/1234/output/abcd/v6"} className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+        <Link href={"/profile/1234/output/abcd/v3"} className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
           Generate My Roadmap
         </Link>
       </div>
