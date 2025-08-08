@@ -1,24 +1,36 @@
-import Link from 'next/link'
-
-function generateStaticParams() {}
+import { getUserFromCookie } from '@/lib/auth';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{
     profile_id: string
   }>
 }
- 
-export default async function Page({ params }: PageProps) {
+
+export default async function ProfilePage({ params }: PageProps) {
+  const user = await getUserFromCookie();
 
   const { profile_id } = await params
 
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (user.id !== profile_id) {
+    // Optional: deny access to other users' profiles
+    redirect('/not-authorized');
+  }
+
   return (
-    <div className='flex flex-col items-center w-full justify-center h-screen'>
-      <h1>Hello user {profile_id}, Profile Page!</h1>
-      <div className='flex flex-col gap-4 mt-8 text-center'>
-        <Link href="/profile/1234/input"> Get new insights about career </Link>
-        <Link href="/profile/1234/history"> See the last results about your profile </Link>
-      </div>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-2">Welcome to your profile</h1>
+      <p>User ID: {user.id}</p>
+      <p>Email: {user.email}</p>
+
+      <Link href={`/profile/${user.id}/input`} className="text-blue-500 hover:underline">
+        Generate a new professional insight
+      </Link>
     </div>
-  )
+  );
 }
