@@ -79,12 +79,12 @@ export default function LoginForm() {
           </a>
         </p>
 
-        <p className="mt-4 text-sm text-gray-600">
+        {/* <p className="mt-4 text-sm text-gray-600">
           Esqueceu a senha?{' '}
           <a href="/password-recovery" className="text-purple-500 hover:underline">
             Recuperar a senha
           </a>
-        </p>
+        </p> */}
 
         {message && (
           <p className="mt-4 text-center text-sm text-gray-600">{message}</p>
