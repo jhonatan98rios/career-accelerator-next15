@@ -55,7 +55,7 @@ export default function Page() {
         </label>
 
         <label className="block mb-4">
-          <span className="text-sm">Password</span>
+          <span className="text-sm">Senha</span>
           <input
             type="password"
             required
@@ -67,10 +67,24 @@ export default function Page() {
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+          className="w-full cursor-pointer px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform"
         >
-          Login
+          Entrar
         </button>
+
+        <p className="mt-4 text-sm text-gray-600">
+          Não tem uma conta ainda?{' '}
+          <a href="/signup" className="text-purple-500 hover:underline">
+            Criar conta
+          </a>
+        </p>
+
+        <p className="mt-4 text-sm text-gray-600">
+          Esqueceu a senha?{' '}
+          <a href="/password-recovery" className="text-purple-500 hover:underline">
+            Recuperar a senha
+          </a>
+        </p>
 
         {message && (
           <p className="mt-4 text-center text-sm text-gray-600">{message}</p>

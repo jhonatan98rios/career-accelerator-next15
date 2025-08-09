@@ -1,70 +1,126 @@
 'use client';
 
-import { useState } from 'react';
+import { Plan } from '@/lib/enums';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-export default function Page() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+export default function SignupPage() {
+  const searchParams = useSearchParams()
+  const [plan, setPlan] = useState('')
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const selectedPlan = searchParams.get('plan');
+    if (selectedPlan) {
+      setPlan(selectedPlan);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log({ plan });
 
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const { name, email, password } = Object.fromEntries(formData.entries());
+    
     const res = await fetch('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ name, email, password, plan }),
       headers: { 'Content-Type': 'application/json' },
     });
 
     const data = await res.json();
     if (res.ok) {
-      setMessage('User registered successfully');
+      setMessage('Conta criada com sucesso. Aguarde o link de ativação por e-mail.');
     } else {
       setMessage(data.error || 'Error registering');
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm"
-      >
-        <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+    <main className="bg-gray-50 min-h-screen flex items-center justify-center px-6">
+      <div className="bg-white rounded-xl shadow-lg max-w-lg w-full p-8">
+        <h1 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+          Crie sua conta
+        </h1>
+        <p className="text-center text-gray-500 mt-2">
+          Comece agora sua jornada com IA para acelerar sua carreira
+        </p>
 
-        <label className="block mb-2">
-          <span className="text-sm">Email</span>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full p-2 border border-gray-300 rounded"
-          />
-        </label>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {/* Nome */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">Nome</label>
+            <input
+              type="text"
+              name="name"
+              required
+              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              placeholder="Seu nome"
+            />
+          </div>
 
-        <label className="block mb-4">
-          <span className="text-sm">Password</span>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full p-2 border border-gray-300 rounded"
-          />
-        </label>
+          {/* Email */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">E-mail</label>
+            <input
+              type="email"
+              name="email"
+              required
+              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              placeholder="seu@email.com"
+            />
+          </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        >
-          Create Account
-        </button>
+          {/* Senha */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">Senha</label>
+            <input
+              type="password"
+              name="password"
+              required
+              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              placeholder="••••••••"
+            />
+          </div>
 
-        {message && (
-          <p className="mt-4 text-center text-sm text-gray-600">{message}</p>
-        )}
-      </form>
-    </div>
+          {/* Plano */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">Escolha seu plano</label>
+            <select
+              value={plan}
+              onChange={(e) => setPlan(e.target.value)}
+              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            >
+              <option value="">Selecione um plano</option>
+              <option value={Plan.BASIC}>Básico - R$4,99/mês</option>
+              <option value={Plan.INTERMEDIARY}>Intermediário - R$9,99/mês</option>
+              <option value={Plan.PREMIUM} disabled>Premium (em breve)</option>
+            </select>
+          </div>
+
+          {/* Botão */}
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform"
+          >
+            Criar conta
+          </button>
+
+          <p className="text-sm text-gray-600">
+            Já tem uma conta?{' '}
+            <a href="/signup" className="text-purple-500 hover:underline">
+              Fazer login
+            </a>
+          </p>
+
+          <div>
+            <p>
+              {message}
+            </p>
+          </div>
+        </form>
+      </div>
+    </main>
   );
 }
