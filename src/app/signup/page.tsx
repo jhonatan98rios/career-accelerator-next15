@@ -95,7 +95,7 @@ export default function SignupPage() {
               <option value="">Selecione um plano</option>
               <option value={Plan.BASIC}>Básico - R$4,99/mês</option>
               <option value={Plan.INTERMEDIARY}>Intermediário - R$9,99/mês</option>
-              <option value={Plan.PREMIUM} disabled>Premium (em breve)</option>
+              <option disabled>Premium (em breve)</option>
             </select>
           </div>
 
