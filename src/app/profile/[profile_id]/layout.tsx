@@ -28,7 +28,7 @@ export default async function ProfileLayout({
       <SideBar user={user} tokens={25} />
 
       {/* Main content */}
-      <main className="flex-1 md:ml-64 p-8 space-y-10">{children}</main>
+      <main className="flex-1 md:ml-64 space-y-10">{children}</main>
     </div>
   );
 }
