@@ -27,7 +27,7 @@ export async function getUserFromCookie(): Promise<User|null> {
   if (!token) return null;
 
   try {
-    return verifyToken(token) as { id: string; email: string };
+    return verifyToken(token) as { id: string; email: string, name: string };
   } catch (err) {
     return null;
   }
