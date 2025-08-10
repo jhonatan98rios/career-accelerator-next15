@@ -1,6 +1,5 @@
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
-import { ISubscription, Subscription } from '@/models/Subscription';
 import { hashPassword } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { Plan, UserStatus } from '@/lib/enums';
@@ -40,14 +39,13 @@ export async function POST(req: Request) {
 
   // Then run the user, subscription creation and email sending in parallel
   const promises = [
-    // User.create({ 
-    //   name,
-    //   email,
-    //   plan,
-    //   password: hashedPassword,
-    //   status: UserStatus.INACTIVE,
-    // }),
-    // Subscription.create(subscription),
+    User.create({ 
+      name,
+      email,
+      plan,
+      password: hashedPassword,
+      status: UserStatus.INACTIVE,
+    }),
     sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.init_point }),
   ]
 

@@ -1,9 +1,11 @@
 import { MERCADO_PAGO_SUBSCRIPTION_API_URL } from "@/lib/constants";
+import { UserStatus } from "@/lib/enums";
+import { ISubscription, Subscription } from "@/models/Subscription";
+import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 
 enum WebhookType {
   SUBSCRIPTION_PREAPPROVAL = "subscription_preapproval",
-  SUBSCRIPTION = "subscription",
 }
 
 type WebhookBody = {
@@ -19,21 +21,6 @@ type WebhookBody = {
   version: number
 }
 
-type SubscriptionData = {
-  id: string;
-  status: string;
-  reason: string;
-  external_reference: string;
-  payer_email: string;
-  auto_recurring: {
-    frequency: number;
-    frequency_type: string;
-    transaction_amount: number;
-    currency_id: string;
-  };
-};
-
-
 export async function POST(request: NextRequest) {
   try {
     const body: WebhookBody = await request.json();
@@ -43,8 +30,6 @@ export async function POST(request: NextRequest) {
 
     if (type === WebhookType.SUBSCRIPTION_PREAPPROVAL) {
 
-      // Herewe need to query the Mercado Pago API to get the subscription details like external_reference (user), status, plan, etc.
-      // https://api.mercadopago.com/preapproval/{data.id}
       const response = await fetch(`${MERCADO_PAGO_SUBSCRIPTION_API_URL!}/${data.id}`, {
         method: 'GET',
         headers: {
@@ -53,11 +38,22 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      const subscriptionData: SubscriptionData = await response.json();
+      const subscription: ISubscription = await response.json();
 
-      console.log('Subscription Data:', subscriptionData);
+      await Subscription.create(subscription)
+
+      console.log('Subscription Data:', subscription);
+
+      // Here we need to update the user status in the database
+      User.findOneAndUpdate(
+        { email: subscription.external_reference },
+        {
+          status: UserStatus.ACTIVE,
+          mercadoPagoSubscriptionId: data.id,
+          subscriptionId: subscription.id,
+        }
+      )
     }
-    
 
     // Responda com 200 OK para Mercado Pago saber que recebeu
     return NextResponse.json({ received: true }, { status: 200 });

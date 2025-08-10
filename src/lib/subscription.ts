@@ -1,3 +1,4 @@
+import { ISubscription } from "@/models/Subscription";
 import { BACK_URL, MERCADO_PAGO_SUBSCRIPTION_API_URL } from "./constants";
 import { Plan } from "./enums";
 
@@ -50,7 +51,7 @@ function createSubscriptionRequest({ email, plan }: CreateSubscriptionParams): S
   };
 }
 
-export async function createSubscription({ email, plan }: CreateSubscriptionParams) {
+export async function createSubscription({ email, plan }: CreateSubscriptionParams): Promise<ISubscription> {
   try {
     const subscriptionRequest = createSubscriptionRequest({ email, plan });
 

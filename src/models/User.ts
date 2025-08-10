@@ -6,6 +6,8 @@ export interface IUser extends Document {
   password: string;
   plan: string;
   status: string;
+  subscriptionId?: string;
+  mercadoPagoSubscriptionId?: string;
   createdAt: Date;
 }
 
@@ -15,6 +17,8 @@ const UserSchema = new Schema<IUser>({
   name: { type: String, required: true },
   plan: { type: String, required: true },
   status: { type: String, default: 'inactive' },
+  subscriptionId: { type: String, default: null },
+  mercadoPagoSubscriptionId: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
 });
 
