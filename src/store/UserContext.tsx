@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 export type User = {
   id: string
   email: string
+  name: string
 }
 
 type UserContextType = {

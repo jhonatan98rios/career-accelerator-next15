@@ -13,10 +13,10 @@ export default async function Page() {
 
   return (
     <div className='flex flex-col items-center w-full justify-center h-screen'>
-      <h1>Hello user {user?.email} to the History Page!</h1>
+      <h1>Hello user {user?.name} to the History Page!</h1>
 
       <div className='flex flex-col gap-4 mt-8 text-center'>
-        <Link href="/profile/1234/output/abcd"> Get new insights about career </Link>
+        <Link href={`/profile/${user.id}/output/abcd`}> Get new insights about career </Link>
       </div>
     </div>
   )

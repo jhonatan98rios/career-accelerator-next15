@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useUserContext } from '@/store/UserContext'
 import { useState } from 'react'
+import { UserStatus } from '@/lib/enums'
 
 export default function LoginForm() {
 
@@ -25,10 +26,14 @@ export default function LoginForm() {
 
     const data = await res.json()
     if (res.ok) {
+
+      if (data.status == UserStatus.INACTIVE) {
+        setMessage('Sua conta consta como inativa devido a problemas no pagamento.')
+      }
     
-      setMessage('Logged in successfully!')
-      setUser({ id: data.userId, email })
-      router.push(`/profile/${data.userId}/`) // Redirect to dashboard or another page
+      setMessage('Login realizado com sucesso')
+      setUser({ id: data.userId, email, name: data.name })
+      router.push(`/profile/${data.userId}/`)
 
     } else {
       setMessage(data.error || 'Login failed')

@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
 
-  const token = generateToken({ id: user._id, email: user.email });
+  const token = generateToken({ id: user._id, email: user.email, name: user.name });
 
   // Set secure cookie (HttpOnly)
   const cookieStore = await cookies();
@@ -31,5 +31,10 @@ export async function POST(req: Request) {
     sameSite: 'strict',
   });
 
-  return NextResponse.json({ message: 'Logged in', userId: user._id });
+  return NextResponse.json({ 
+    message: 'Logged in', 
+    userId: user._id, 
+    name: user.name,
+    status: user.status
+  });
 }

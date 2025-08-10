@@ -1,5 +1,3 @@
-function generateStaticParams() {}
- 
 interface PageProps {
   params: Promise<{
     output_id: string
