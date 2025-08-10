@@ -18,7 +18,6 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ plan });
 
     const formData = new FormData(e.currentTarget as HTMLFormElement);
     const { name, email, password } = Object.fromEntries(formData.entries());
@@ -29,11 +28,10 @@ export default function SignupPage() {
       headers: { 'Content-Type': 'application/json' },
     });
 
-    const data = await res.json();
     if (res.ok) {
       setMessage('Conta criada com sucesso. Aguarde o link de ativação por e-mail.');
     } else {
-      setMessage(data.error || 'Error registering');
+      setMessage('Error registering');
     }
   };
 
@@ -93,8 +91,8 @@ export default function SignupPage() {
               className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
             >
               <option value="">Selecione um plano</option>
-              <option value={Plan.BASIC}>Básico - R$4,99/mês</option>
-              <option value={Plan.INTERMEDIARY}>Intermediário - R$9,99/mês</option>
+              <option value={Plan.BASIC}>Básico - R$9,99/mês</option>
+              <option value={Plan.INTERMEDIARY}>Intermediário - R$19,99/mês</option>
               <option disabled>Premium (em breve)</option>
             </select>
           </div>
@@ -102,7 +100,7 @@ export default function SignupPage() {
           {/* Botão */}
           <button
             type="submit"
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform"
+            className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform cursor-pointer"
           >
             Criar conta
           </button>

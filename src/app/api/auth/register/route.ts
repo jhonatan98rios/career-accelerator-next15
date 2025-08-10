@@ -1,13 +1,11 @@
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
+import { ISubscription, Subscription } from '@/models/Subscription';
 import { hashPassword } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { Plan, UserStatus } from '@/lib/enums';
 import { sendPaymentEmail } from "@/lib/emailService";
-
-const MERCADO_PAGO_SUBSCRIPTION_BASE_URL = process.env.MERCADO_PAGO_SUBSCRIPTION_BASE_URL!;
-const MERCADO_PAGO_BASIC_PLAN_ID = process.env.MERCADO_PAGO_BASIC_PLAN_ID!;
-const MERCADO_PAGO_INTERMEDIARY_PLAN_ID = process.env.MERCADO_PAGO_INTERMEDIARY_PLAN_ID!;
+import { createSubscription } from '@/lib/subscription';
 
 type RegisterBody = {
   name: string;
@@ -31,24 +29,54 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
   }
 
-  const hashedPassword = await hashPassword(password);
-  await User.create({ 
-    name, 
-    email, 
-    plan,
-    password: hashedPassword,
-    status: UserStatus.INACTIVE,
-  });
+  // Hash password and create subscription in parallel
+  const [hashedPassword, subscription] = await Promise.all([
+    hashPassword(password),
+    createSubscription({
+      plan,
+      email,
+    }),
+  ]);
 
-  const preapproval_plan_ids = {
-    [Plan.BASIC]: MERCADO_PAGO_BASIC_PLAN_ID,
-    [Plan.INTERMEDIARY]: MERCADO_PAGO_INTERMEDIARY_PLAN_ID,
-    // [Plan.PREMIUM]: 'premium_plan_id_placeholder',
-  }
+  // Then run the user, subscription creation and email sending in parallel
+  const promises = [
+    // User.create({ 
+    //   name,
+    //   email,
+    //   plan,
+    //   password: hashedPassword,
+    //   status: UserStatus.INACTIVE,
+    // }),
+    // Subscription.create(subscription),
+    sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.init_point }),
+  ]
 
-  const paymentLink = MERCADO_PAGO_SUBSCRIPTION_BASE_URL + preapproval_plan_ids[plan]!
+  await Promise.all(promises)
+  .catch(error => {
+    console.error('Error during user registration:', error);
+    return NextResponse.json({ error: 'Failed to create user and subscription' }, { status: 500 });
+  })
 
-  await sendPaymentEmail(email, name, plan, paymentLink);
+  // // Run password hashing and create subscription in parallel
+  // const hashedPassword = await hashPassword(password);
+  // const subscription: ISubscription = await createSubscription({
+  //   // planId: preapproval_plan_ids[plan]!,
+  //   plan,
+  //   email,
+  // })
+
+  // // Then run the user, subscription creation and email sending in parallel
+  // await User.create({ 
+  //   name,
+  //   email,
+  //   plan,
+  //   password: hashedPassword,
+  //   status: UserStatus.INACTIVE,
+  // });
+
+  // await Subscription.create(subscription)
+
+  // await sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.init_point });
 
   return NextResponse.json({ message: 'User created' }, { status: 201 });
 }
