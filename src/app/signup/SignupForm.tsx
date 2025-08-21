@@ -10,7 +10,7 @@ export default function SignupPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    const selectedPlan = searchParams.get('plan');
+    const selectedPlan = searchParams ? searchParams.get('plan') : null;
     if (selectedPlan) {
       setPlan(selectedPlan);
     }
