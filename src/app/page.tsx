@@ -3,6 +3,13 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main className="bg-gray-50 text-gray-900">
+
+      <div className="w-full h-10 flex justify-end pr-6 py-2">
+        <Link href="/login" className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+          Login
+        </Link>
+      </div>
+
       {/* Hero */}
       <section className="container mx-auto px-6 py-20 text-center">
         <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">

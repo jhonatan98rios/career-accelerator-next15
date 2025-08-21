@@ -5,7 +5,6 @@ export type InsightRequestInput = {
   answers: Record<string, string>
   manualDescription: string
   // uploadedFileName: string
-  output_id: string
   profile_id: string
 }
 
@@ -13,7 +12,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const generateInsight = async ({ answers, manualDescription, output_id, profile_id }: InsightRequestInput) => {
+export const generateInsight = async ({ answers, manualDescription }: InsightRequestInput) => {
   const res = await openai.chat.completions.create({
     model: 'gpt-4.1',
     messages: [

@@ -132,7 +132,7 @@ export default function InsightForm(user: User) {
     {/* Botão de envio */}
     <div className="text-center">
       <Link
-        href={`/profile/${user.id}/output/abcd/v3`}
+        href={`/profile/${user.id}/loading`}
         className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
       >
         Gerar meu roadmap
