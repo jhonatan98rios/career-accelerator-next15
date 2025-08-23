@@ -30,8 +30,6 @@ export default function LoginForm() {
       if (data.status == UserStatus.INACTIVE) {
         setMessage('Sua conta consta como inativa devido a problemas no pagamento. Te enviamos um novo link de pagamento por email')
 
-        
-
         return 
       }
     

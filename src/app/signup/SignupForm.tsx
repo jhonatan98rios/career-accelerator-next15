@@ -100,8 +100,12 @@ export default function SignupPage() {
           {/* Botão */}
           <button
             type="submit"
-            disabled={!!plan}
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform cursor-pointer"
+            disabled={!plan}
+            className={
+              `w-full py-3 rounded-lg bg-gradient-to-r text-white font-bold transition-transform
+              ${!!plan ? " from-purple-500 to-indigo-500 hover:scale-105 cursor-pointer" : "from-gray-400 to-gray-500" }
+              `
+            }
           >
             Criar conta
           </button>

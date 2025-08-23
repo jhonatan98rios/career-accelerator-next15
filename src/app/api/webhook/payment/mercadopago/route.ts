@@ -12,6 +12,11 @@ enum WebhookStatus {
   PENDING = "pending"
 }
 
+enum WebhookAction {
+  CREATED = "created",
+  UPDATED = "updated"
+}
+
 type WebhookBody = {
   action: string,
   application_id: string,
@@ -29,10 +34,10 @@ export async function POST(request: NextRequest) {
   try {
     const body: WebhookBody = await request.json();
 
-    console.log(body);
-    const { type, data } = body;
+    console.log("Body Data: ", body);
+    const { action, type, data } = body;
 
-    if (type === WebhookType.SUBSCRIPTION_PREAPPROVAL ) {
+    if (type === WebhookType.SUBSCRIPTION_PREAPPROVAL && action == WebhookAction.UPDATED) {
 
       const response = await fetch(`${MERCADO_PAGO_SUBSCRIPTION_API_URL!}/${data.id}`, {
         method: 'GET',
@@ -43,12 +48,11 @@ export async function POST(request: NextRequest) {
       })
 
       const subscription: ISubscription = await response.json();
-
+      console.log('Subscription Data:', subscription);
+      
       if (subscription.status == WebhookStatus.PENDING) {
         console.log("Creating subscription...")
-        console.log('Subscription Data:', subscription);
         await Subscription.create(subscription)
-
         return NextResponse.json({ received: true }, { status: 200 });
       }
 
