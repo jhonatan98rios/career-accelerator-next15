@@ -9,7 +9,7 @@ export default async function Header() {
   const avatar = "https://images.icon-icons.com/1736/PNG/512/4043233-anime-away-face-no-nobody-spirited_113254.png"
 
   return (
-    <header className="w-full fixed z-50 flex justify-between items-center px-6 bg-white shadow-sm  overflow-x-scroll">
+    <header className="w-full fixed z-50 flex justify-between items-center px-6 bg-white shadow-sm  overflow-x-scroll md:overflow-hidden">
       <h1 className="p-6 text-2xl font-extrabold whitespace-nowrap">🚀 MinhaCarreira</h1>
 
       <Link

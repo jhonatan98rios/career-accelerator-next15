@@ -17,13 +17,6 @@ export default function InsightForm(user: User) {
     setAnswers,
   } = useFormContext();
 
-  // optional double check on client
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
-  }, [user]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setAnswers({ ...answers, [name]: value });
