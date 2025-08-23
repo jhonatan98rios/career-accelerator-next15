@@ -87,9 +87,10 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      await Subscription.findOneAndUpdate({ id: subscription.id }, subscription)
+      // Replace by subscription_id to avoid conflicts
+      await Subscription.findOneAndUpdate({ subscription_id: subscription.id }, subscription)
     }
-    
+
 
     // Responda com 200 OK para Mercado Pago saber que recebeu
     return NextResponse.json({ received: true }, { status: 200 });
