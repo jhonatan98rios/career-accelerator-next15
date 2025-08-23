@@ -28,8 +28,8 @@ type CreateSubscriptionParams = {
 function createSubscriptionRequest({ email, plan }: CreateSubscriptionParams): SubscriptionRequest {
   
   const values_by_plan = {
-    [Plan.BASIC]: 9.99,
-    [Plan.INTERMEDIARY]: 19.99,
+    [Plan.BASIC]: 14.99,
+    [Plan.INTERMEDIARY]: 29.99,
     // [Plan.PREMIUM]: 'premium_plan_id_placeholder',
   }
   
@@ -37,7 +37,6 @@ function createSubscriptionRequest({ email, plan }: CreateSubscriptionParams): S
     reason: `Assinatura do plano: Career Accelerator ${plan} - ${email}`,
     external_reference: email,
     payer_email: email,
-    // preapproval_plan_id: planId,
     back_url: BACK_URL,
     status: 'pending',
     auto_recurring: {

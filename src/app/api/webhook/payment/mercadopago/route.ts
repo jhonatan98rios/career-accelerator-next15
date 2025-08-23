@@ -40,12 +40,13 @@ export async function POST(request: NextRequest) {
 
       const subscription: ISubscription = await response.json();
 
+      console.log("Saving subscription...")
+      console.log('Subscription Data:', subscription);
       await Subscription.create(subscription)
 
-      console.log('Subscription Data:', subscription);
-
       // Here we need to update the user status in the database
-      User.findOneAndUpdate(
+      console.log("Updating user...")
+      await User.findOneAndUpdate(
         { email: subscription.external_reference },
         {
           status: UserStatus.ACTIVE,

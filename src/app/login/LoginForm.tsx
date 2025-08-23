@@ -28,12 +28,16 @@ export default function LoginForm() {
     if (res.ok) {
 
       if (data.status == UserStatus.INACTIVE) {
-        setMessage('Sua conta consta como inativa devido a problemas no pagamento.')
+        setMessage('Sua conta consta como inativa devido a problemas no pagamento. Te enviamos um novo link de pagamento por email')
+
+        
+
+        return 
       }
     
       setMessage('Login realizado com sucesso')
       setUser({ id: data.userId, email, name: data.name })
-      router.push(`/profile/${data.userId}/`)
+      //router.push(`/profile/${data.userId}/`)
 
     } else {
       setMessage(data.error || 'Login failed')
