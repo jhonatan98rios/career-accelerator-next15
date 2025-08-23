@@ -9,7 +9,9 @@ enum WebhookType {
 }
 
 enum WebhookStatus {
-  PENDING = "pending"
+  PENDING = "pending",
+  CANCELLED = "cancelled",
+  AUTHORIZED = "authorized"
 }
 
 enum WebhookAction {
@@ -20,7 +22,7 @@ enum WebhookAction {
 type WebhookBody = {
   action: string,
   application_id: string,
-  data: { 
+  data: {
     id: string
   },
   date: string,
@@ -37,40 +39,63 @@ export async function POST(request: NextRequest) {
     console.log("Body Data: ", body);
     const { action, type, data } = body;
 
-    if (type === WebhookType.SUBSCRIPTION_PREAPPROVAL && action == WebhookAction.UPDATED) {
+    if (type !== WebhookType.SUBSCRIPTION_PREAPPROVAL) return NextResponse.json({ error: "Erro interno" }, { status: 500 });
 
-      const response = await fetch(`${MERCADO_PAGO_SUBSCRIPTION_API_URL!}/${data.id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': "Bearer " + process.env.MERCADO_PAGO_ACCESS_TOKEN,
-          'Content-Type': 'application/json',
-        }
-      })
 
-      const subscription: ISubscription = await response.json();
-      console.log('Subscription Data:', subscription);
+    const response = await fetch(`${MERCADO_PAGO_SUBSCRIPTION_API_URL!}/${data.id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': "Bearer " + process.env.MERCADO_PAGO_ACCESS_TOKEN,
+        'Content-Type': 'application/json',
+      }
+    })
+
+    const subscription: ISubscription = await response.json();
+    console.log('Subscription Data:', subscription);
+
+    // CREATED
+    if (action == WebhookAction.CREATED) {
+      console.log("Creating subscription...")
+      await Subscription.create(subscription)
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
+
+
+    // UPDATED
+    if (action == WebhookAction.UPDATED) {
       
-      if (subscription.status == WebhookStatus.PENDING) {
-        console.log("Creating subscription...")
-        await Subscription.create(subscription)
-        return NextResponse.json({ received: true }, { status: 200 });
+      console.log("Updating user...")
+
+      if (subscription.status == WebhookStatus.CANCELLED) {
+        await User.findOneAndUpdate(
+          { email: subscription.external_reference },
+          {
+            status: UserStatus.INACTIVE,
+            mercadoPagoSubscriptionId: data.id,
+            subscriptionId: subscription.id,
+          }
+        )
       }
 
+      if (subscription.status == WebhookStatus.AUTHORIZED) {
+        await User.findOneAndUpdate(
+          { email: subscription.external_reference },
+          {
+            status: UserStatus.ACTIVE,
+            mercadoPagoSubscriptionId: data.id,
+            subscriptionId: subscription.id,
+          }
+        )
+      }
 
-      // Here we need to update the user status in the database
-      console.log("Updating user...")
-      await User.findOneAndUpdate(
-        { email: subscription.external_reference },
-        {
-          status: UserStatus.ACTIVE,
-          mercadoPagoSubscriptionId: data.id,
-          subscriptionId: subscription.id,
-        }
-      )
+      await Subscription.findByIdAndUpdate({ id: subscription.id }, subscription)
+
+      return NextResponse.json({ received: true }, { status: 200 }); 
     }
 
     // Responda com 200 OK para Mercado Pago saber que recebeu
     return NextResponse.json({ received: true }, { status: 200 });
+
   } catch (error) {
     console.error("Erro no webhook Mercado Pago:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });

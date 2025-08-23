@@ -28,10 +28,13 @@ export default function SignupPage() {
       headers: { 'Content-Type': 'application/json' },
     });
 
+    const data = await res.json()
+
     if (res.ok) {
       setMessage('Conta criada com sucesso. Aguarde o link de ativação por e-mail.');
     } else {
-      setMessage('Error registering');
+      console.log(data)
+      setMessage('Erro ao criar conta');
     }
   };
 
