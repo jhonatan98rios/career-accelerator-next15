@@ -35,7 +35,7 @@ export default function LoginForm() {
     
       setMessage('Login realizado com sucesso')
       setUser({ id: data.userId, email, name: data.name })
-      //router.push(`/profile/${data.userId}/`)
+      router.push(`/profile/${data.userId}/`)
 
     } else {
       setMessage(data.error || 'Login failed')

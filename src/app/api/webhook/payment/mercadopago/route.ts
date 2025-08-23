@@ -62,10 +62,9 @@ export async function POST(request: NextRequest) {
 
     // UPDATED
     if (action == WebhookAction.UPDATED) {
-      
-      console.log("Updating user...")
 
       if (subscription.status == WebhookStatus.CANCELLED) {
+        console.log("Cancelling user...")
         await User.findOneAndUpdate(
           { email: subscription.external_reference },
           {
@@ -77,6 +76,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (subscription.status == WebhookStatus.AUTHORIZED) {
+        console.log("Authorizing user...")
         await User.findOneAndUpdate(
           { email: subscription.external_reference },
           {
@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Replace by subscription_id to avoid conflicts
+      console.log("Updating subscription")
       await Subscription.findOneAndUpdate({ subscription_id: subscription.id }, subscription)
     }
 
