@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
     if (action == WebhookAction.CREATED) {
       console.log("Creating subscription...")
       await Subscription.create(subscription)
-      return NextResponse.json({ received: true }, { status: 200 });
     }
 
 
@@ -88,10 +87,9 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      await Subscription.findByIdAndUpdate({ id: subscription.id }, subscription)
-
-      return NextResponse.json({ received: true }, { status: 200 }); 
+      await Subscription.findOneAndUpdate({ id: subscription.id }, subscription)
     }
+    
 
     // Responda com 200 OK para Mercado Pago saber que recebeu
     return NextResponse.json({ received: true }, { status: 200 });
