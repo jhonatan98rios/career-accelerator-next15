@@ -46,27 +46,31 @@ export default function LoginForm() {
         onSubmit={handleLogin}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm"
       >
-        <h1 className="text-2xl font-bold mb-4">Login</h1>
+        <h1 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Login</h1>
 
-        <label className="block mb-2">
-          <span className="text-sm">Email</span>
+        <label className="block text-gray-700 mb-4">
+          <span className="block text-sm font-semibold mb-2">Email</span>
           <input
             type="email"
+            name="email"
+            placeholder="seu@email.com"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full p-2 border border-gray-300 rounded"
+            className="mt-1 w-full placeholder-gray-400 p-2 border border-gray-300 rounded"
           />
         </label>
 
-        <label className="block mb-4">
-          <span className="text-sm">Senha</span>
+        <label className="block text-gray-700 mb-4">
+          <span className="block text-sm font-semibold mb-2">Senha</span>
           <input
             type="password"
+            name="password"
             required
             value={password}
+            placeholder="••••••••"
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full p-2 border border-gray-300 rounded"
+            className="mt-1 w-full placeholder-gray-400 p-2 border border-gray-300 rounded"
           />
         </label>
 

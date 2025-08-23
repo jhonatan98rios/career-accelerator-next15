@@ -47,40 +47,40 @@ export default function SignupPage() {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {/* Nome */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">Nome</label>
+          <label className="block text-gray-700 mb-4">
+            <span className="block text-sm font-semibold mb-2">Nome</span>
             <input
               type="text"
               name="name"
               required
-              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full p-3 placeholder-gray-400 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
               placeholder="Seu nome"
             />
-          </div>
+          </label>
 
           {/* Email */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">E-mail</label>
+          <label className="block text-gray-700 mb-4">
+            <span className="block text-sm font-semibold mb-2">Email</span>
             <input
               type="email"
               name="email"
               required
-              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full p-3 placeholder-gray-400 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
               placeholder="seu@email.com"
             />
-          </div>
+          </label>
 
           {/* Senha */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">Senha</label>
+          <label className="block text-gray-700 mb-4">
+            <span className="block text-sm font-semibold mb-2">Senha</span>
             <input
               type="password"
               name="password"
               required
-              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full p-3 placeholder-gray-400 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
               placeholder="••••••••"
             />
-          </div>
+          </label>
 
           {/* Plano */}
           <div>
@@ -88,10 +88,10 @@ export default function SignupPage() {
             <select
               value={plan}
               onChange={(e) => setPlan(e.target.value)}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
             >
               <option value="">Selecione um plano</option>
-              <option value={Plan.BASIC}>Básico - R$9,99/mês</option>
+              <option value={Plan.BASIC}>Básico - R$14,99/mês - 7 dias grátis</option>
               <option disabled>Intermediário (em breve)</option>
               <option disabled>Premium (em breve)</option>
             </select>
