@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export enum WebhookStatus {
+  PENDING = "pending",
+  CANCELLED = "cancelled",
+  AUTHORIZED = "authorized"
+}
+
 export interface ISubscription extends Document {
   id: string;
 	payer_id: number;
@@ -7,7 +13,7 @@ export interface ISubscription extends Document {
 	back_url: string;
 	collector_id: number;
 	application_id: number;
-	status: string;
+	status: WebhookStatus;
 	reason: string;
 	external_reference: string;
 	date_created: string;

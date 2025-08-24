@@ -37,7 +37,8 @@ export async function POST(req: Request) {
     }),
   ]);
 
-  // Then run the user, subscription creation and email sending in parallel
+  // Create the user and send the email in parallel
+  console.log("Creating a new user...")
   const promises = [
     User.create({ 
       name,
@@ -54,27 +55,6 @@ export async function POST(req: Request) {
     console.error('Error during user registration:', error);
     return NextResponse.json({ error: 'Failed to create user and subscription' }, { status: 500 });
   })
-
-  // // Run password hashing and create subscription in parallel
-  // const hashedPassword = await hashPassword(password);
-  // const subscription: ISubscription = await createSubscription({
-  //   // planId: preapproval_plan_ids[plan]!,
-  //   plan,
-  //   email,
-  // })
-
-  // // Then run the user, subscription creation and email sending in parallel
-  // await User.create({ 
-  //   name,
-  //   email,
-  //   plan,
-  //   password: hashedPassword,
-  //   status: UserStatus.INACTIVE,
-  // });
-
-  // await Subscription.create(subscription)
-
-  // await sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.init_point });
 
   return NextResponse.json({ message: 'User created' }, { status: 201 });
 }

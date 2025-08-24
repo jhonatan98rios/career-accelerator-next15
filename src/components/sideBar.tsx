@@ -28,6 +28,12 @@ export default function SideBar({ user, tokens }: SideBarProps) {
             Novo Plano de Carreira
           </Link>
           <Link
+            href={`/profile/${user.id}/roadmaps`}
+            className="hover:bg-purple-600 p-2 rounded-lg"
+          >
+            Acompanhe seu Progresso
+          </Link>
+          <Link
             href={`/profile/${user.id}/config`}
             className="hover:bg-purple-600 p-2 rounded-lg"
           >

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { generateInsight, InsightRequestInput } from '@/lib/openai';
 import { connectDB } from "@/lib/db";
 import { CareerInsight } from '@/models/CarrerInsight';
+import { CareerRoadmap } from '@/models/CareerRoadmap';
+import { RoadmapStatus } from '@/lib/enums';
 
 export async function POST(req: Request) {
 
@@ -24,10 +26,24 @@ export async function POST(req: Request) {
     
     await connectDB();
     
+    console.log("Creating career insight...")
     const newInsight = await CareerInsight.create({
       user_id: profile_id,
       ...data,
     });
+
+    console.log("Creating roadmap...")
+    await CareerRoadmap.create({
+      user_id: profile_id,
+      insight_id: newInsight._id,
+      title: newInsight.roadmap.title,
+      steps: newInsight.roadmap.steps.map((step: { step: string; title: string; description: string; }) => ({
+        step: step.step,
+        title: step.title,
+        description: step.description,
+        status: RoadmapStatus.PENDING
+      }))
+    })
     
     return NextResponse.json({ data: newInsight }, {status: 201});
 

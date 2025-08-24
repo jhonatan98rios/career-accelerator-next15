@@ -36,13 +36,13 @@ function InsightsListRender({ insights, user }: { insights: ICareerInsight[], us
   return (
     <ul>
       {insights.map((insight, index) => (
-        <InsighListItem insight={insight} user={user} key={index} />
+        <InsightListItem insight={insight} user={user} key={index} />
       ))}
     </ul>
   )
 }
 
-function InsighListItem({ insight, user }: { insight: ICareerInsight; user: User }) {
+function InsightListItem({ insight, user }: { insight: ICareerInsight; user: User }) {
   return (
     <li className="border border-purple-500 rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow mb-4">
       <Link href={`/profile/${user.id}/output/${insight.id}`}>

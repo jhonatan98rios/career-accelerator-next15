@@ -8,3 +8,8 @@ export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
 }
+
+export enum RoadmapStatus {
+  PENDING = 'pending',
+  DONE = 'done'
+}
