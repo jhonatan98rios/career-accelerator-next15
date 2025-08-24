@@ -21,7 +21,7 @@ export default async function Page() {
   );
 
   return (
-    <div className="flex flex-col items-center w-full h-96">
+    <div className="flex flex-col items-center w-full min-h-96">
       <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Insights de carreira</h1>
       {
         insights.length > 0
@@ -44,8 +44,8 @@ function InsightsListRender({ insights, user }: { insights: ICareerInsight[], us
 
 function InsighListItem({ insight, user }: { insight: ICareerInsight; user: User }) {
   return (
-    <li className="border border-purple-500 rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow">
-      <Link href={`/profile/${user.id}/output/${insight.id}/v4`}>
+    <li className="border border-purple-500 rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow mb-4">
+      <Link href={`/profile/${user.id}/output/${insight.id}`}>
         <h4 className="text-lg font-semibold text-purple-500">{insight.hero.title}</h4>
       </Link>
       <p className="text-gray-700 mt-1">{insight.hero.subtitle}</p>

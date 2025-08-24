@@ -25,13 +25,13 @@ export default async function ProfileLayout({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
+    <div className="flex flex-col min-h-screen h-full bg-gray-50 text-gray-900">
       <Header />
       <div className="flex">
         <SideBar user={user} tokens={25} />
 
         {/* Main content */}
-        <main className="flex-1 mx-8 md:ml-96 md:mr-20 mt-60 md:mt-30 space-y-10">
+        <main className="flex-1 mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-60 md:mt-30 mb-20 space-y-10">
           {children}
         </main>
       </div>

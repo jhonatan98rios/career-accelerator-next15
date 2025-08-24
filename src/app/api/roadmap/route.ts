@@ -1,5 +1,3 @@
-
-
 import { NextResponse } from 'next/server';
 import { generateInsight, InsightRequestInput } from '@/lib/openai';
 import { connectDB } from "@/lib/db";
@@ -8,17 +6,11 @@ import { CareerInsight } from '@/models/CarrerInsight';
 export async function POST(req: Request) {
 
   try {
-
     const payload = await req.json();
-    console.log('Received payload:', payload);
     const { answers, manualDescription, profile_id } = payload as InsightRequestInput;
 
-    if (!answers || !manualDescription || !profile_id) {
-
-      console.log({
-        answers, manualDescription,
-      })
-
+    if (!answers || !profile_id) {
+      console.log("Missing required fields:")
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -29,7 +21,6 @@ export async function POST(req: Request) {
     }
     
     const data = JSON.parse(json);
-
     
     await connectDB();
     
@@ -38,7 +29,6 @@ export async function POST(req: Request) {
       ...data,
     });
     
-    console.log(newInsight)
     return NextResponse.json({ data: newInsight }, {status: 201});
 
   } catch (err: any) {

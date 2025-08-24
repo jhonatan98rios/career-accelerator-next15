@@ -4,11 +4,15 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface Answers {
   currentRole: string;
+  experience: string;
+  education: string;
   dreamJob: string;
   softSkills: string;
   hardSkills: string;
   blockers: string;
-  goals: string;
+  "1-year-goals": string,
+  "5-years-goals": string,
+  "10-years-goals": string;
 }
 
 interface FormContextProps {
@@ -33,11 +37,15 @@ export const FormProvider = ({ children }: { children: ReactNode }) => {
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [answers, setAnswers] = useState<Answers>({
     currentRole: '',
+    experience: '',
+    education: '',
     dreamJob: '',
     softSkills: '',
     hardSkills: '',
     blockers: '',
-    goals: '',
+    "1-year-goals": '',
+    "5-years-goals": '',
+    "10-years-goals": '',
   });
 
   return (

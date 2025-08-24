@@ -31,6 +31,14 @@ const example: InsightType = {
         "value": "$126,600 / year"
       },
       {
+        "label": "Europe Average Salary",
+        "value": "€83,000 / year"
+      },
+      {
+        "label": "Asian Average Salary",
+        "value": "$137,980 / year"
+      },
+      {
         "label": "Remote Roles Avg",
         "value": "$112,700 / year"
       },
@@ -58,7 +66,18 @@ const example: InsightType = {
         "title": "Visa Sponsorship",
         "description": "Roles in Canada, UK, UAE, and more",
         "bgColor": "bg-indigo-700"
-      }
+      },
+      {
+        "title": "Networking",
+        "description": "Work from anywhere with the best professionals in the world",
+        "bgColor": "bg-purple-700"
+      },
+      {
+        "title": "Best Salaries",
+        "description": "Find the highest salaries and get paid in globally valued currencies",
+        "bgColor": "bg-indigo-700"
+      },
+
     ]
   },
   "bigTechHiring": {
@@ -89,27 +108,47 @@ const example: InsightType = {
       {
         "step": 1,
         "title": "Core & Frameworks",
-        "description": "Python syntax, Flask/Django, FastAPI async."
+        "description": "Master Python syntax and its main frameworks (Flask, Django, FastAPI). These are the tools companies expect you to know for building APIs and scalable services, and strong fundamentals here will make you productive from day one."
       },
       {
         "step": 2,
-        "title": "DB & ORM",
-        "description": "PostgreSQL, Redis, SQLAlchemy/Django ORM."
+        "title": "Paradigms & Architectures",
+        "description": "Understand OOP, functional programming, and design patterns. Explore Event-Driven and Clean Architecture. This knowledge allows you to design software that is robust, maintainable, and trusted in large-scale systems."
       },
       {
         "step": 3,
-        "title": "Docker & Cloud",
-        "description": "Docker, AWS (EC2, ECS, Lambda), S3, IAM."
+        "title": "Databases & ORM",
+        "description": "Work with PostgreSQL, Redis, and ORMs like SQLAlchemy or Django ORM. Knowing how to model, query, and optimize data makes you invaluable for building real-world applications with reliable performance."
       },
       {
         "step": 4,
-        "title": "CI/CD & Infra",
-        "description": "GitHub Actions, GitLab CI, Terraform basics."
+        "title": "Docker & Cloud",
+        "description": "Learn Docker and cloud services (AWS EC2, ECS, Lambda, S3, IAM, Kubernetes). These skills make you capable of deploying and managing modern applications in production environments, a highly demanded ability in the job market."
       },
       {
         "step": 5,
-        "title": "Observability & Security",
-        "description": "Prometheus/Grafana, structured logs, security fundamentals."
+        "title": "CI/CD & Infrastructure",
+        "description": "Get hands-on with GitHub Actions, GitLab CI, and Terraform. Automating deployments and infrastructure proves that you can deliver software quickly and safely — a must-have for engineering teams today."
+      },
+      {
+        "step": 6,
+        "title": "Observability",
+        "description": "Use Prometheus, Grafana, and structured logging to monitor applications. Observability is critical: it shows you can keep systems reliable under real-world conditions and resolve issues before they impact users."
+      },
+      {
+        "step": 7,
+        "title": "Cyber Security",
+        "description": "Learn the fundamentals of application security. Understanding vulnerabilities and safe coding practices sets you apart, as security is no longer optional in today’s technology landscape."
+      },
+      {
+        "step": 8,
+        "title": "Performance",
+        "description": "Dive into parallel computing and Async I/O. Optimizing performance is a skill that distinguishes senior engineers, allowing you to build systems that scale efficiently under heavy loads."
+      },
+      {
+        "step": 9,
+        "title": "Real-time Systems",
+        "description": "Work with WebSockets, RPC, WebRTC, and Kafka. Real-time communication powers modern products — from chat apps to trading platforms — and mastering these technologies makes you stand out immediately."
       }
     ]
   },
@@ -118,7 +157,7 @@ const example: InsightType = {
     "subtitle": "Master Python backend, unlock global roles & life-changing opportunities.",
     "cta": {
       "text": "Dive In Today",
-      "href": "https://docs.python.org/3/tutorial/"
+      "href": "https://www.udemy.com/courses/search/?src=ukw&q=python&sort=relevance&ratings=4.5&lang=en"
     }
   },
   "footer": {

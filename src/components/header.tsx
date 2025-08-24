@@ -10,7 +10,7 @@ export default async function Header() {
 
   return (
     <header className="w-full fixed z-50 flex justify-between items-center px-6 bg-white shadow-sm  overflow-x-scroll md:overflow-hidden">
-      <h1 className="p-6 text-2xl font-extrabold whitespace-nowrap">🚀 MinhaCarreira</h1>
+      <h1 className="p-6 text-2xl font-extrabold whitespace-nowrap">🚀 AcelerAi</h1>
 
       <Link
         href={`/profile/${user?.id}/info`}
@@ -23,7 +23,7 @@ export default async function Header() {
           height={40}
           className="rounded-full"
         />
-        <span className="font-medium text-gray-700">{user?.name}</span>
+        <span className="font-medium text-gray-700 whitespace-nowrap">{user?.name}</span>
       </Link>
     </header>
   );

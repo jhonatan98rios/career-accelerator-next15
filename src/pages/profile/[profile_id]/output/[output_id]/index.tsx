@@ -71,13 +71,13 @@ export default function Page({ insight }: InferGetStaticPropsType<typeof getStat
         <section id="snapshot" className="container mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="space-y-6 order-2 md:order-1 animate-fadeInUp-target">
-              <h2 className="text-3xl font-bold text-purple-400"> {insight!.marketSnapshot.title} </h2>
+              <h2 className="text-3xl font-bold text-purple-400 mt-8"> {insight!.marketSnapshot.title} </h2>
               <ul className="space-y-4">
                 {
                   insight!.marketSnapshot.items.map((item, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-purple-500 text-2xl mr-3">{item.icon}</span>
-                      <p className='font-bold text-gray-700'> {item.description} </p>
+                      <p className='font-bold text-gray-300'> {item.description} </p>
                     </li>
                   ))
                 }
@@ -94,17 +94,21 @@ export default function Page({ insight }: InferGetStaticPropsType<typeof getStat
 
         <section id="compensation" className="container mx-auto px-6">
           <h2 className="text-3xl font-bold text-indigo-300 mb-6 text-center animate-fadeInUp-target"> {insight!.compensation.title} </h2>
-          <div className="grid md:grid-cols-3 gap-8 animate-fadeInUp-target text-gray-200" {...applyAnimationDelay(200)}>
-            {
-              insight!.compensation.items.map((item, index) => (
-                <div key={index} className="p-6 bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition">
-                  <h3 className="text-xl font-semibold mb-2 text-white">{item.label}</h3>
-                  <p><strong> {item.value} </strong></p>
-                </div>
-              ))
-            }
+          <div className="flex flex-wrap justify-center gap-8 animate-fadeInUp-target text-gray-200" {...applyAnimationDelay(200)}>
+            {insight!.compensation.items.map((item, index) => (
+              <div
+                key={index}
+                className="w-full sm:w-[calc(33.333%-2rem)] p-6 bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition"
+              >
+                <h3 className="text-xl font-semibold mb-2 text-white">{item.label}</h3>
+                <p>
+                  <strong>{item.value}</strong>
+                </p>
+              </div>
+            ))}
           </div>
         </section>
+
 
         <section id="global" className="bg-gray-800 py-24">
           <div className="container mx-auto px-6 text-center space-y-8">
@@ -115,7 +119,7 @@ export default function Page({ insight }: InferGetStaticPropsType<typeof getStat
             <div className="flex flex-wrap justify-center gap-6 mt-8 text-gray-200">
               {
                 insight!.globalOpportunities.cards.map((card, index) => (
-                  <div key={index} className={`max-w-xs p-6 ${card.bgColor} rounded-2xl shadow-lg hover:-translate-y-2 transition animate-fadeInUp-target`} {...applyAnimationDelay(index * 200)}>
+                  <div key={index} className={`w-full sm:w-[calc(33.333%-2rem)] p-6 ${card.bgColor} rounded-2xl shadow-lg hover:-translate-y-2 transition animate-fadeInUp-target`} {...applyAnimationDelay(index * 200)}>
                     <h3 className="text-2xl font-semibold mb-2">{card.title}</h3>
                     <p>{card.description}</p>
                   </div>
@@ -146,19 +150,8 @@ export default function Page({ insight }: InferGetStaticPropsType<typeof getStat
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {
-              insight!.roadmap.steps.slice(0, 3).map((step, index) => (
+              insight!.roadmap.steps.map((step, index) => (
                 <div key={index} className="relative p-8 bg-gradient-to-br from-purple-600 to-indigo-600 text-gray-200 rounded-3xl shadow-2xl hover:scale-105 transition animate-fadeInUp-target" {...applyAnimationDelay(index * 200)}>
-                  <span className="absolute -top-6 right-6 text-6xl opacity-20">{step.step}</span>
-                  <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
-                  <p>{step.description}</p>
-                </div>
-              ))
-            }
-          </div>
-          <div className="grid md:grid-cols-2 gap-8 mt-12">
-            {
-              insight!.roadmap.steps.slice(3).map((step, index) => (
-                <div key={index} className="p-8 bg-gradient-to-br from-indigo-600 to-purple-600 text-gray-200 rounded-3xl shadow-2xl hover:scale-105 transition animate-fadeInUp-target" {...applyAnimationDelay((index + 3) * 200)}>
                   <span className="absolute -top-6 right-6 text-6xl opacity-20">{step.step}</span>
                   <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
                   <p>{step.description}</p>

@@ -4,7 +4,6 @@ import { getUserPrompt, getSystemPrompt } from './prompts';
 export type InsightRequestInput = {
   answers: Record<string, string>
   manualDescription: string
-  // uploadedFileName: string
   profile_id: string
 }
 
@@ -14,7 +13,7 @@ const openai = new OpenAI({
 
 export const generateInsight = async ({ answers, manualDescription }: InsightRequestInput) => {
   const res = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5-nano-2025-08-07',
     messages: [
       {
         role: 'system',
