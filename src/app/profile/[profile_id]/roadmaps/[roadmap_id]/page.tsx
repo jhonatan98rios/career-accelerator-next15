@@ -7,23 +7,31 @@ import { RoadmapStatus } from "@/lib/enums";
 import { RoadmapStepCheckbox } from "@/components/roadmapStepCheckbox";
 
 
+interface PageProps {
+  params: Promise<{
+    profile_id: string;
+    roadmap_id: string;
+  }> ;
+}
 
-export default async function Page({ params }: { params: { roadmap_id: string } }) {
+export default async function Page({ params }: PageProps) {
   const user = await getUserFromCookie();
 
   if (!user) {
     redirect("/login");
   }
 
+  const { roadmap_id } = await params
+
   await connectDB();
 
   // @ts-ignore
   const roadmapDoc : ICareerRoadmap = await CareerRoadmap.findOne(
-    { _id: params.roadmap_id }, 
+    { _id: roadmap_id }, 
     { "title": 1, "_id": 1, "steps": 1, "createdAt": 1, "updatedAt": 1 }
   ).lean();
 
-  console.log("params.roadmap_id: ", params.roadmap_id)
+  console.log("params.roadmap_id: ", roadmap_id)
 
   if (!roadmapDoc) {
     redirect(`/profile/${user.id}/roadmaps`);
