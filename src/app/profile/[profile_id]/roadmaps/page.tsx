@@ -41,8 +41,6 @@ export default async function Page() {
     progress: roadmap.steps.filter(step => step.status == RoadmapStatus.DONE).length,
   }))
 
-  console.log(serializedRoadmaps)
-
   return (
     <div className="flex flex-col items-center w-full min-h-96">
       <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Roadmaps de carreira</h1>

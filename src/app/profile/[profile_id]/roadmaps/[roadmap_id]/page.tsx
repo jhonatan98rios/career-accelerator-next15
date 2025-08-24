@@ -4,13 +4,11 @@ import { getUserFromCookie } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
 import { RoadmapStatus } from "@/lib/enums";
-import { toggleStepStatus } from "@/app/actions/carrer_roadmap";
-import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
 import { RoadmapStepCheckbox } from "@/components/roadmapStepCheckbox";
 
 
 
-export default async function Page() {
+export default async function Page({ params }: { params: { roadmap_id: string } }) {
   const user = await getUserFromCookie();
 
   if (!user) {
@@ -21,9 +19,15 @@ export default async function Page() {
 
   // @ts-ignore
   const roadmapDoc : ICareerRoadmap = await CareerRoadmap.findOne(
-    { user_id: user.id },
+    { _id: params.roadmap_id }, 
     { "title": 1, "_id": 1, "steps": 1, "createdAt": 1, "updatedAt": 1 }
   ).lean();
+
+  console.log("params.roadmap_id: ", params.roadmap_id)
+
+  if (!roadmapDoc) {
+    redirect(`/profile/${user.id}/roadmaps`);
+  }
 
   const roadmap = JSON.parse(JSON.stringify(roadmapDoc));
 
