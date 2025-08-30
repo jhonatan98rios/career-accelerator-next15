@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { FormProvider } from '@/store/FormContext';
 import { UserContextProvider } from "@/store/UserContext";
+import { Auth0Provider } from '@auth0/nextjs-auth0';
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,11 +20,13 @@ export default function RootLayout({
       <body
         className={`antialiased`}
       >
-        <UserContextProvider>
-          <FormProvider>
-            {children}
-          </FormProvider>
-        </UserContextProvider>
+        <Auth0Provider>
+          <UserContextProvider>
+            <FormProvider>
+              {children}
+            </FormProvider>
+          </UserContextProvider>
+        </Auth0Provider>
       </body>
     </html>
   );
