@@ -5,8 +5,8 @@ export default function Home() {
     <main className="bg-gray-50 text-gray-900">
 
       <div className="w-full h-10 flex justify-end pr-6 py-2">
-        <Link href="/login" className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
-          Login
+        <Link href="/auth/login?returnTo=/gateway" className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+          Log in
         </Link>
       </div>
 

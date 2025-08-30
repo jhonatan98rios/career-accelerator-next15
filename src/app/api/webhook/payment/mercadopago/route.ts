@@ -1,8 +1,9 @@
 import { MERCADO_PAGO_SUBSCRIPTION_API_URL } from "@/lib/constants";
 import { connectDB } from "@/lib/db";
 import { UserStatus } from "@/lib/enums";
-import { ISubscription, Subscription, WebhookStatus } from "@/models/Subscription";
-import { User } from "@/models/User";
+import { Profile } from "@/models/Profile";
+import { ISubscription, Subscription, SubscriptionStatus } from "@/models/Subscription";
+import { HttpStatus } from "@/types/httpStatus";
 import { NextRequest, NextResponse } from "next/server";
 
 enum WebhookType {
@@ -15,7 +16,7 @@ enum WebhookAction {
 }
 
 type WebhookBody = {
-  action: string,
+  action: WebhookAction,
   application_id: string,
   data: {
     id: string
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     console.log("Body Data: ", body);
     const { action, type, data } = body;
 
-    if (type !== WebhookType.SUBSCRIPTION_PREAPPROVAL) return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    if (type !== WebhookType.SUBSCRIPTION_PREAPPROVAL) return NextResponse.json({ error: "Erro interno" }, { status: HttpStatus.BAD_REQUEST });
 
     await connectDB();
 
@@ -49,19 +50,36 @@ export async function POST(request: NextRequest) {
     const subscription: ISubscription = await response.json();
     console.log('Subscription Data:', subscription);
 
+
+    const userBeforeProcessing = await Profile.find({
+      email: subscription.external_reference
+    })
+
+    console.log("User before processing...", userBeforeProcessing)
+
+
     // CREATED
     if (action == WebhookAction.CREATED) {
       console.log("Creating subscription...")
+
+      // Validate if the subscription already exists (to avoid duplicates)
+      const existing = await Subscription.findOne({ subscription_id: subscription.subscription_id });
+
+      if (existing) {
+        console.log("Subscription already exists, skipping creation.");
+        return NextResponse.json(null, { status: HttpStatus.OK });
+      }
+
       await Subscription.create(subscription)
     }
 
 
     // UPDATED
-    if (action == WebhookAction.UPDATED && [WebhookStatus.CANCELLED, WebhookStatus.AUTHORIZED].includes(subscription.status)) {
+    if (action == WebhookAction.UPDATED && [SubscriptionStatus.CANCELLED, SubscriptionStatus.AUTHORIZED].includes(subscription.status)) {
 
-      if (subscription.status == WebhookStatus.CANCELLED) {
+      if (subscription.status == SubscriptionStatus.CANCELLED) {
         console.log("Cancelling user...")
-        await User.findOneAndUpdate(
+        await Profile.findOneAndUpdate(
           { email: subscription.external_reference },
           {
             status: UserStatus.INACTIVE,
@@ -69,29 +87,38 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      if (subscription.status == WebhookStatus.AUTHORIZED) {
-        console.log("Authorizing user...")
-        await User.findOneAndUpdate(
+      if (subscription.status == SubscriptionStatus.AUTHORIZED) {
+        console.log("Authorizing user: ", subscription.external_reference)
+        const profile = await Profile.findOneAndUpdate(
           { email: subscription.external_reference },
           {
             status: UserStatus.ACTIVE,
-            mercadoPagoSubscriptionId: data.id,
-            subscriptionId: subscription.id,
+            subscriptionId: subscription.subscription_id,
           }
         )
+
+        console.log("Profile updated: ", profile)
       }
 
-      // Replace by subscription_id to avoid conflicts
       console.log("Updating subscription...")
-      await Subscription.findOneAndUpdate({ subscription_id: subscription.id }, subscription)
+      await Subscription.findOneAndUpdate(
+        { subscription_id: subscription.subscription_id }, 
+        subscription
+      )
     }
+
+    const justToBeSure = await Profile.find({
+      email: subscription.external_reference
+    })
+
+    console.log("Just to be sure...", justToBeSure)
 
 
     // Responda com 200 OK para Mercado Pago saber que recebeu
-    return NextResponse.json({ received: true }, { status: 200 });
+    return NextResponse.json(null, { status: HttpStatus.OK });
 
   } catch (error) {
     console.error("Erro no webhook Mercado Pago:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno" }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
   }
 }
