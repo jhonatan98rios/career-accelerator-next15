@@ -51,6 +51,13 @@ export async function POST(request: NextRequest) {
     console.log('Subscription Data:', subscription);
 
 
+    const userBeforeProcessing = await Profile.find({
+      email: subscription.external_reference
+    })
+
+    console.log("User before processing...", userBeforeProcessing)
+
+
     // CREATED
     if (action == WebhookAction.CREATED) {
       console.log("Creating subscription...")
@@ -81,20 +88,30 @@ export async function POST(request: NextRequest) {
       }
 
       if (subscription.status == SubscriptionStatus.AUTHORIZED) {
-        console.log("Authorizing user...")
-        await Profile.findOneAndUpdate(
+        console.log("Authorizing user: ", subscription.external_reference)
+        const profile = await Profile.findOneAndUpdate(
           { email: subscription.external_reference },
           {
             status: UserStatus.ACTIVE,
-            subscriptionId: subscription.id,
+            subscriptionId: subscription.subscription_id,
           }
         )
+
+        console.log("Profile updated: ", profile)
       }
 
-      // Replace by subscription_id to avoid conflicts
       console.log("Updating subscription...")
-      await Subscription.findOneAndUpdate({ subscription_id: subscription.id }, subscription)
+      await Subscription.findOneAndUpdate(
+        { subscription_id: subscription.subscription_id }, 
+        subscription
+      )
     }
+
+    const justToBeSure = await Profile.find({
+      email: subscription.external_reference
+    })
+
+    console.log("Just to be sure...", justToBeSure)
 
 
     // Responda com 200 OK para Mercado Pago saber que recebeu
