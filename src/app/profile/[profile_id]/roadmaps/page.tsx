@@ -6,6 +6,8 @@ import Link from "next/link";
 import { User } from "@/store/UserContext";
 import { CareerRoadmap, ICareerRoadmap } from "@/models/CareerRoadmap";
 import { RoadmapStatus } from "@/lib/enums";
+import { Profile } from "@/models/Profile";
+import { auth0 } from "@/lib/auth0";
 
 type SerializedRoadmap = {
   id: string
@@ -21,13 +23,16 @@ type SerializedRoadmap = {
 }
 
 export default async function Page() {
-  const user = await getUserFromCookie();
+  const session = await auth0.getSession();
 
-  if (!user) {
-    redirect("/login");
+  if (!session) {
+    redirect("/auth/login?returnTo=/gateway");
   }
 
+  // Check if the user exists on MongoDB
   await connectDB();
+
+  const user = await Profile.findOne({ email: session.user.email });
 
   // @ts-ignore
   const roadmaps: ICareerRoadmap[] = await CareerRoadmap.find(

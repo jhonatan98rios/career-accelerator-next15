@@ -1,7 +1,9 @@
-import { getUserFromCookie } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import SideBar from "@/components/sideBar";
 import Header from "@/components/header";
+import { auth0 } from '@/lib/auth0';
+import { connectDB } from "@/lib/db";
+import { Profile } from "@/models/Profile";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -12,23 +14,27 @@ export default async function ProfileLayout({
   children,
   params
 }: LayoutProps) {
-  // Server-side auth check
-  const user = await getUserFromCookie();
-
-  // Get profile_id from url
+  const session = await auth0.getSession();
   const { profile_id } = await params;
-
   console.log(profile_id)
 
+  if (!session) {
+    redirect("/auth/login?returnTo=/gateway");
+  }
+
+  await connectDB();
+
+  const user = await Profile.findOne({ email: session.user.email });
+
   if (!user || user.id !== profile_id) {
-    redirect("/login");
+    redirect("/auth/login?returnTo=/gateway");
   }
 
   return (
     <div className="flex flex-col min-h-screen h-full bg-gray-50 text-gray-900">
       <Header />
       <div className="flex">
-        <SideBar user={user} tokens={25} />
+        <SideBar id={user._id.toString()} tokens={25} />
 
         {/* Main content */}
         <main className="flex-1 mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-60 md:mt-30 mb-20 space-y-10">
