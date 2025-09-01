@@ -1,14 +1,6 @@
-// Check if the user has an active subscription (subscriptionId, status and plan)
-// If not, create a new subscription with MercadoPago and send an email with the payment link
-
-// If the user has an inactive subscription, show a message to the user and send an email with the payment link
-
-// If the user has an active subscription, redirect to the dashboard
-
 import { auth0 } from '@/lib/auth0';
 import { connectDB } from '@/lib/db';
 import { UserStatus } from '@/lib/enums';
-import { User } from '@/models/User';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { GatewayForm } from './form';
@@ -20,26 +12,24 @@ export default async function ProfilePage() {
   const session = await auth0.getSession();
 
   if (!session) {
-    return <p>Usuário não autenticado</p>;
+    redirect("/auth/login?returnTo=/gateway");
   }
-
-  const user = session.user;
 
   // Check if the user exists on MongoDB
   await connectDB();
 
-  const userFromDB = await Profile.findOne({ email: user.email });
+  const user = await Profile.findOne({ email: session.user.email });
 
   // Improve the validation below
-  if (userFromDB && userFromDB.status === UserStatus.ACTIVE) {
-    redirect('/profile/' + userFromDB._id)
+  if (user && user.status === UserStatus.ACTIVE) {
+    redirect('/profile/' + user._id)
   }
 
-  if (userFromDB && userFromDB.status === UserStatus.INACTIVE) {
+  if (user && user.status === UserStatus.INACTIVE) {
 
     console.log("Creating a new subscription...")
     const subscription = await createSubscription({
-      plan: userFromDB.plan,
+      plan: user.plan,
       email: user.email!,
     })
     
@@ -47,7 +37,7 @@ export default async function ProfilePage() {
     await sendPaymentEmail({
       name: user.name!,
       to: user.email!,
-      plan: userFromDB.plan,
+      plan: user.plan,
       paymentLink: subscription.init_point
     })
 

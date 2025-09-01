@@ -1,22 +1,24 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getUserFromCookie } from "@/lib/auth";
-
+import { auth0 } from '@/lib/auth0';
 import { CareerInsight, ICareerInsight } from "@/models/CarrerInsight";
 import { connectDB } from "@/lib/db";
-import Link from "next/link";
 import { User } from "@/store/UserContext";
+import { Profile } from "@/models/Profile";
 
 export default async function Page() {
-  const user = await getUserFromCookie();
+  const session = await auth0.getSession();
 
-  if (!user) {
-    redirect("/login");
+  if (!session) {
+    redirect("/auth/login?returnTo=/gateway");
   }
 
   await connectDB();
 
+  const user = await Profile.findOne({ email: session.user.email });
+
   const insights: ICareerInsight[] = await CareerInsight.find(
-    { user_id: user.id },
+    { user_id: user._id },
     { "hero.title": 1, "hero.subtitle": 1, "createdAt": 1, "_id": 1 }
   );
 

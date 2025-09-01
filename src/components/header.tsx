@@ -1,11 +1,22 @@
-import { getUserFromCookie } from "@/lib/auth";
 import Link from "next/link";
-import Image from "next/image";
+import { redirect } from 'next/navigation';
+import { auth0 } from "@/lib/auth0";
+import { connectDB } from '@/lib/db';
+import { Profile } from '@/models/Profile';
 
 
 export default async function Header() {
-  // Server-side auth check
-  const user = await getUserFromCookie();
+  
+  const session = await auth0.getSession();
+
+  if (!session) {
+    redirect("/auth/login?returnTo=/gateway");
+  }
+  
+  await connectDB();
+
+  const user = await Profile.findOne({ email: session.user.email });
+
   const avatar = "https://images.icon-icons.com/1736/PNG/512/4043233-anime-away-face-no-nobody-spirited_113254.png"
 
   return (
@@ -13,7 +24,7 @@ export default async function Header() {
       <h1 className="p-6 text-2xl font-extrabold whitespace-nowrap">🚀 AcelerAi</h1>
 
       <Link
-        href={`/profile/${user?.id}/info`}
+        href={`/profile/${user?.id}/config`}
         className="flex items-center gap-3 hover:bg-gray-100 rounded-full px-3 py-2 transition"
       >
         <img

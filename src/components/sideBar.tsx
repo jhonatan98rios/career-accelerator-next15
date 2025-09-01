@@ -4,11 +4,11 @@ import Link from "next/link";
 import { User } from "@/store/UserContext";
 
 interface SideBarProps {
-  user: User
+  id: string
   tokens: number
 }
 
-export default function SideBar({ user, tokens }: SideBarProps) {
+export default function SideBar({ id, tokens }: SideBarProps) {
 
   return (  
     <aside className={
@@ -18,23 +18,23 @@ export default function SideBar({ user, tokens }: SideBarProps) {
       {/* Top menu */}
       <div>
         <nav className="mt-24 flex md:flex-col whitespace-nowrap space-y-4 px-4">
-          <Link href={`/profile/${user.id}`} className="hover:bg-purple-600 p-2 rounded-lg">
+          <Link href={`/profile/${id}`} className="hover:bg-purple-600 p-2 rounded-lg">
             Início
           </Link>
           <Link
-            href={`/profile/${user.id}/input`}
+            href={`/profile/${id}/input`}
             className="hover:bg-purple-600 p-2 rounded-lg"
           >
             Novo Plano de Carreira
           </Link>
           <Link
-            href={`/profile/${user.id}/roadmaps`}
+            href={`/profile/${id}/roadmaps`}
             className="hover:bg-purple-600 p-2 rounded-lg"
           >
             Acompanhe seu Progresso
           </Link>
           <Link
-            href={`/profile/${user.id}/config`}
+            href={`/profile/${id}/config`}
             className="hover:bg-purple-600 p-2 rounded-lg"
           >
             Configurações

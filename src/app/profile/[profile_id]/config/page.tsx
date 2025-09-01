@@ -1,23 +1,85 @@
+// app/settings/page.tsx
 import { redirect } from "next/navigation";
-import { getUserFromCookie } from "@/lib/auth";
+import { auth0 } from "@/lib/auth0";
+import { connectDB } from "@/lib/db";
+import { Profile } from "@/models/Profile";
+import { updateUserData } from "@/app/actions/user_config";
 
 export default async function Page() {
-  const user = await getUserFromCookie();
-
-  if (!user) {
-    redirect("/login");
+  const session = await auth0.getSession();
+  
+  if (!session) {
+    redirect("/auth/login?returnTo=/gateway");
   }
 
+  // Conectar ao banco e buscar o perfil
+  await connectDB();
+  const user = await Profile.findOne({ email: session.user.email });
+
   return (
-    <div className="flex flex-col items-center w-full">
-      Veja aqui as configurações da sua conta
+    <main className="bg-gray-50 text-gray-900 min-h-screen">
 
-      {/* Adicionar aqui o formulário de configurações da conta */}
+      {/* Formulário */}
+      <section className="container mx-auto px-6 py-12 max-w-2xl">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+          Ajuste as informações da sua conta
+        </h2>
 
-      <label htmlFor="">
-        Nome:
-        <input type="text" name="" id="" />
-      </label>
-    </div>
+        <form 
+          className="bg-white shadow-lg rounded-2xl p-8 space-y-6 border"
+          action={updateUserData}
+        >
+          {/* Nome */}
+          <div>
+            <label
+              htmlFor="user-name"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Nome
+            </label>
+            <input
+              id="user-name"
+              name="name"
+              type="text"
+              defaultValue={user?.name ?? ""}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          {/* Email (read-only) */}
+          <div>
+            <label
+              htmlFor="user-email"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Email
+            </label>
+            <input
+              id="user-email"
+              type="email"
+              value={user?.email ?? ""}
+              readOnly
+              className="w-full border border-gray-200 rounded-xl px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+            />
+          </div>
+
+          {/* Botões */}
+          <div className="flex justify-end gap-4">
+            <button
+              type="reset"
+              className="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform"
+            >
+              Salvar
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
   );
 }
