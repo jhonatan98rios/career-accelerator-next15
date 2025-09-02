@@ -19,7 +19,6 @@ export async function updateUserData(formData: FormData) {
   await connectDB();
   await Profile.findOneAndUpdate(
     { email: session.user.email },
-    { $set: { name } },
-    { new: true }
+    { $set: { name } }
   );
 }

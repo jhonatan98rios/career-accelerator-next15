@@ -181,3 +181,19 @@ export const getUserPrompt = (answers: Record<string, string>, manualDescription
 
   Use the latest job market data and trends to provide a comprehensive overview of opportunities, challenges, and recommendations for the user.
 `
+
+export const getRoadmapSystemPrompt = () => `
+  You are an API that work as expert career coach.
+  Your task is to create a 6 month (short term) career roadmap based on the given career insight description. 
+  You should always to create achievable steps, that can be completed in a month each.
+  The user has already completed the previous career roadmap, and now wants to continue their learning journey with the next steps.
+  Do not repeat steps! The user is expecting to learn new things, not the same things again.
+  The roadmap should be a single json (as a API) following the same structure as the previous roadmap (you cannot change the structure, because the frontend will not work):
+`
+
+export const getRoadmapUserPrompt = (oldSteps: any[]) => `
+  Generate a personalized and translated (use the same language as in the previous steps) career roadmap based on the "Old Steps" data and language:
+  - Old Steps: ${JSON.stringify(oldSteps)}
+
+  And be sure to NOT start the steps count from scratch. The order should be continuous.
+`

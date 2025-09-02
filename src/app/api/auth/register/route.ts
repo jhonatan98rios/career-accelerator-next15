@@ -1,50 +1,53 @@
 import { connectDB } from '@/lib/db';
-import { User } from '@/models/User';
-import { hashPassword } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { Plan, UserStatus } from '@/lib/enums';
 import { sendPaymentEmail } from "@/lib/emailService";
 import { createSubscription } from '@/lib/subscription';
+import { Profile } from '@/models/Profile';
+import { HttpStatus } from '@/types/httpStatus';
 
 type RegisterBody = {
   name: string;
   email: string;
-  password: string;
   plan: Plan;
+  sub: string;
+  picture: string;
 }
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { name, email, password, plan }: RegisterBody = body;
+  const { name, email, plan, sub, picture }: RegisterBody = body;
+
+  console.log("Registering user:", body);
 
   await connectDB();
 
-  const existing = await User.findOne({ email });
+  const existing = await Profile.findOne({ email });
   if (existing) {
-    return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+    console.log("User already exists with email:", email);
+    return NextResponse.json(null, { status: HttpStatus.CONFLICT });
   }
 
   if (!Object.values(Plan).includes(plan)) {
-    return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
+    console.log("Invalid plan selected:", plan);
+    return NextResponse.json({ error: 'Invalid plan selected' }, { status: HttpStatus.BAD_REQUEST });
   }
 
-  // Hash password and create subscription in parallel
-  const [hashedPassword, subscription] = await Promise.all([
-    hashPassword(password),
-    createSubscription({
-      plan,
-      email,
-    }),
-  ]);
+  console.log("Creating subscription...")
+  const subscription = await createSubscription({
+    plan,
+    email,
+  })
 
   // Create the user and send the email in parallel
   console.log("Creating a new user...")
   const promises = [
-    User.create({ 
+    Profile.create({ 
       name,
       email,
       plan,
-      password: hashedPassword,
+      picture,
+      externalAuthId: sub,
       status: UserStatus.INACTIVE,
     }),
     sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.init_point }),
@@ -53,8 +56,8 @@ export async function POST(req: Request) {
   await Promise.all(promises)
   .catch(error => {
     console.error('Error during user registration:', error);
-    return NextResponse.json({ error: 'Failed to create user and subscription' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create user and subscription' }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
   })
 
-  return NextResponse.json({ message: 'User created' }, { status: 201 });
+  return NextResponse.json(null, { status: HttpStatus.CREATED });
 }

@@ -23,7 +23,7 @@ export function GatewayForm({ name, email, sub, picture }: GatewayFormProps) {
     if (isLoading) return;
     setLoading(true);
 
-    const res = await fetch('/api/v2/auth/register', {
+    const res = await fetch('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ 
         name, 

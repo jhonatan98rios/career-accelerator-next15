@@ -21,14 +21,14 @@ export default async function Header() {
 
   return (
     <header className="w-full fixed z-50 flex justify-between items-center px-6 bg-white shadow-sm  overflow-x-scroll md:overflow-hidden">
-      <h1 className="p-6 text-2xl font-extrabold whitespace-nowrap">🚀 AcelerAi</h1>
+      <h1 className="p-6 text-2xl font-extrabold whitespace-nowrap">🚀 AcelerAi </h1>
 
       <Link
         href={`/profile/${user?.id}/config`}
         className="flex items-center gap-3 hover:bg-gray-100 rounded-full px-3 py-2 transition"
       >
         <img
-          src={avatar}
+          src={session.user.picture || avatar}
           alt="Profile"
           width={40}
           height={40}

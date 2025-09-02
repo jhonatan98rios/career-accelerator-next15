@@ -4,6 +4,8 @@ import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
 import { updateUserData } from "@/app/actions/user_config";
+import { LogoutButton } from "@/components/logoutButton";
+import { CancelSubscriptionButton } from "@/components/cancelSubscriptionButton";
 
 export default async function Page() {
   const session = await auth0.getSession();
@@ -67,18 +69,27 @@ export default async function Page() {
           <div className="flex justify-end gap-4">
             <button
               type="reset"
-              className="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+              className="flex-1 w-0 px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform"
+              className="flex-1 w-0 px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform cursor-pointer"
             >
               Salvar
             </button>
           </div>
+
+          
+          {/* Logout */}
+          <LogoutButton />
+
+          {/* Cancel Subscription */}
+          <CancelSubscriptionButton />
         </form>
+
+
       </section>
     </main>
   );

@@ -3,8 +3,12 @@
 import React from 'react';
 import { useFormContext } from '@/store/FormContext';
 import Link from 'next/link';
-import { User } from '@/store/UserContext';
 
+export type User = {
+  _id: string
+  email: string
+  name: string
+}
 
 export default function InsightForm(user: User) {
 
@@ -162,7 +166,7 @@ export default function InsightForm(user: User) {
       {/* Botão de envio */}
       <div className="text-center">
         <Link
-          href={`/profile/${user.id}/loading`}
+          href={`/profile/${user._id}/loading`}
           className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition"
         >
           Gerar meu roadmap

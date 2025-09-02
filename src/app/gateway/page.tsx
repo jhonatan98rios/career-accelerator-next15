@@ -8,7 +8,7 @@ import { Profile } from '@/models/Profile';
 import { createSubscription } from '@/lib/subscription';
 import { sendPaymentEmail } from '@/lib/emailService';
 
-export default async function ProfilePage() {
+export default async function Gateway() {
   const session = await auth0.getSession();
 
   if (!session) {
@@ -64,10 +64,10 @@ export default async function ProfilePage() {
       </Link>
 
       <GatewayForm 
-        name={user.name!.split('@')[0]} 
-        email={user.email!} 
-        sub={user.sub!}
-        picture={user.picture!}
+        name={session.user.name!.split('@')[0]} 
+        email={session.user.email!} 
+        sub={session.user.sub!}
+        picture={session.user.picture!}
       />
     </div>
   );
