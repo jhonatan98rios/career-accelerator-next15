@@ -135,21 +135,6 @@ const example: InsightType = {
         "title": "Observability",
         "description": "Use Prometheus, Grafana, and structured logging to monitor applications. Observability is critical: it shows you can keep systems reliable under real-world conditions and resolve issues before they impact users."
       },
-      {
-        "step": 7,
-        "title": "Cyber Security",
-        "description": "Learn the fundamentals of application security. Understanding vulnerabilities and safe coding practices sets you apart, as security is no longer optional in today’s technology landscape."
-      },
-      {
-        "step": 8,
-        "title": "Performance",
-        "description": "Dive into parallel computing and Async I/O. Optimizing performance is a skill that distinguishes senior engineers, allowing you to build systems that scale efficiently under heavy loads."
-      },
-      {
-        "step": 9,
-        "title": "Real-time Systems",
-        "description": "Work with WebSockets, RPC, WebRTC, and Kafka. Real-time communication powers modern products — from chat apps to trading platforms — and mastering these technologies makes you stand out immediately."
-      }
     ]
   },
   "finalCta": {
@@ -172,6 +157,10 @@ export const getSystemPrompt = () => `
   The insight should be a single json (as a API) following this structure (you cannot change the structure, because the frontend will not work):
 
   ${JSON.stringify(example)}
+
+  You also need to generate a 6 months (short term) career roadmap based on the given career insight description. 
+  You should always to create achievable steps, that can be completed in a month each.
+  The roadmap should be part of the json, inside the "roadmap" field.
 `
 
 export const getUserPrompt = (answers: Record<string, string>, manualDescription: string) => `
