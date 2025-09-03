@@ -17,11 +17,10 @@ interface Answers {
 
 interface FormContextProps {
   manualDescription: string;
-  uploadedFileName: string;
   answers: Answers;
   setManualDescription: (desc: string) => void;
-  setUploadedFileName: (name: string) => void;
   setAnswers: (answers: Answers) => void;
+  resetForm: () => void;
 }
 
 const FormContext = createContext<FormContextProps | undefined>(undefined);
@@ -34,7 +33,6 @@ export const useFormContext = () => {
 
 export const FormProvider = ({ children }: { children: ReactNode }) => {
   const [manualDescription, setManualDescription] = useState('');
-  const [uploadedFileName, setUploadedFileName] = useState('');
   const [answers, setAnswers] = useState<Answers>({
     currentRole: '',
     experience: '',
@@ -48,14 +46,29 @@ export const FormProvider = ({ children }: { children: ReactNode }) => {
     "10-years-goals": '',
   });
 
+  const resetForm = () => {
+    setManualDescription('');
+    setAnswers({
+      currentRole: '',
+      experience: '',
+      education: '',
+      dreamJob: '',
+      softSkills: '',
+      hardSkills: '',
+      blockers: '',
+      "1-year-goals": '',
+      "5-years-goals": '',
+      "10-years-goals": '',
+    });
+  }
+
   return (
     <FormContext.Provider value={{
       manualDescription,
-      uploadedFileName,
       answers,
       setManualDescription,
-      setUploadedFileName,
-      setAnswers
+      setAnswers,
+      resetForm,
     }}>
       {children}
     </FormContext.Provider>

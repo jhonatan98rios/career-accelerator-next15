@@ -107,34 +107,34 @@ const example: InsightType = {
     "steps": [
       {
         "step": 1,
-        "title": "Core & Frameworks",
-        "description": "Master Python syntax and its main frameworks (Flask, Django, FastAPI). These are the tools companies expect you to know for building APIs and scalable services, and strong fundamentals here will make you productive from day one."
+        "title": "Setup, Basics & Core Python Concepts",
+        "description": "Install Python and set up a code editor like VS Code or PyCharm. Learn Python syntax, variables, data types, operators, conditional statements, loops, and input/output functions. Start small exercises to reinforce learning. Keywords: Python install, Python syntax, variables, loops, if else. This step is essential because understanding the fundamentals is the foundation for all future Python development."
       },
       {
         "step": 2,
-        "title": "Paradigms & Architectures",
-        "description": "Understand OOP, functional programming, and design patterns. Explore Event-Driven and Clean Architecture. This knowledge allows you to design software that is robust, maintainable, and trusted in large-scale systems."
+        "title": "Functions, Modules & File Handling",
+        "description": "Learn how to define functions, use arguments, return values, and understand scope. Explore Python modules (standard library and third-party) and how to import them. Learn file handling (read/write text, CSV, JSON) and exception handling (try, except, finally). Keywords: Python functions, modules, file I/O, exceptions. This step teaches code organization, reusability, and error management, which are crucial for professional development."
       },
       {
         "step": 3,
-        "title": "Databases & ORM",
-        "description": "Work with PostgreSQL, Redis, and ORMs like SQLAlchemy or Django ORM. Knowing how to model, query, and optimize data makes you invaluable for building real-world applications with reliable performance."
+        "title": "Object-Oriented Programming & Intermediate Python",
+        "description": "Dive into classes, objects, attributes, methods, inheritance, encapsulation, and polymorphism. Learn intermediate Python concepts like list comprehensions, lambda functions, map/filter/reduce, decorators, generators, and context managers. Solve coding exercises on platforms like LeetCode or HackerRank. Keywords: Python OOP, classes, decorators, generators, problem solving. These skills are vital for building scalable projects and improving problem-solving efficiency."
       },
       {
         "step": 4,
-        "title": "Docker & Cloud",
-        "description": "Learn Docker and cloud services (AWS EC2, ECS, Lambda, S3, IAM, Kubernetes). These skills make you capable of deploying and managing modern applications in production environments, a highly demanded ability in the job market."
+        "title": "Python Libraries & Small Projects",
+        "description": "Learn key libraries: NumPy (numerical operations), pandas (data analysis), matplotlib/seaborn (visualization), requests (HTTP requests). Apply knowledge by building small projects like a calculator, web scraper, or basic data analysis report. Keywords: NumPy, pandas, matplotlib, requests, Python projects. Libraries expand your capabilities and projects help consolidate learning while providing practical experience."
       },
       {
         "step": 5,
-        "title": "CI/CD & Infrastructure",
-        "description": "Get hands-on with GitHub Actions, GitLab CI, and Terraform. Automating deployments and infrastructure proves that you can deliver software quickly and safely — a must-have for engineering teams today."
+        "title": "Web Development, APIs & Git",
+        "description": "Learn HTTP, REST API concepts, and basic web development. Build a simple CRUD web application with Flask or Django. Learn Git version control (init, clone, commit, push, pull, branching) and host projects on GitHub. Keywords: Flask, Django, REST API, CRUD, Git, GitHub. This step opens doors to real-world applications, teamwork, and professional collaboration, which are highly valued in careers."
       },
       {
         "step": 6,
-        "title": "Observability",
-        "description": "Use Prometheus, Grafana, and structured logging to monitor applications. Observability is critical: it shows you can keep systems reliable under real-world conditions and resolve issues before they impact users."
-      },
+        "title": "Portfolio, Career Building & Advanced Projects",
+        "description": "Create 2-3 intermediate projects (web app, API, data analysis dashboard). Document them clearly on GitHub with detailed README, screenshots, and instructions. Build a LinkedIn profile showcasing your skills, projects, and learning journey. Keywords: Python portfolio, GitHub README, LinkedIn, career development. This final step is critical for demonstrating skills to employers, creating a professional presence, and launching your Python career."
+      }
     ]
   },
   "finalCta": {
@@ -159,7 +159,9 @@ export const getSystemPrompt = () => `
   ${JSON.stringify(example)}
 
   You also need to generate a 6 months (short term) career roadmap based on the given career insight description. 
-  You should always to create achievable steps, that can be completed in a month each.
+  You should always to create achievable steps, that can be completed in a month each. Be very descriptive in each step.
+  The user has no prior experience, so the roadmap should start from the basics and gradually progress to more advanced topics.
+  Do not repeat steps! The user is expecting to learn new things, not the same things again.
   The roadmap should be part of the json, inside the "roadmap" field.
 `
 

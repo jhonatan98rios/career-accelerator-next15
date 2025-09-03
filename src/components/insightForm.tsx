@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useTransition } from 'react';
 import { useFormContext } from '@/store/FormContext';
 import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
 
 export type User = {
   _id: string
@@ -10,13 +11,25 @@ export type User = {
   name: string
 }
 
+interface PageProps {
+  output_id: string
+  profile_id: string
+}
+
 export default function InsightForm(user: User) {
+
+  const params = useParams()
+  const router = useRouter()
+
+  const { profile_id } = params as unknown as PageProps
+  const [ isPending, startTransition ] = useTransition()
 
   const {
     manualDescription,
     answers,
     setManualDescription,
     setAnswers,
+    resetForm,
   } = useFormContext();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -24,8 +37,42 @@ export default function InsightForm(user: User) {
     setAnswers({ ...answers, [name]: value });
   };
 
+  const submit = async () => {
+    try {
+      console.log('Form submitted with data:', { answers, manualDescription });
+      const res = await fetch('/api/roadmap', {
+        method: 'POST',
+        body: JSON.stringify({ answers, manualDescription, profile_id }),
+      })
+  
+      const { data } = await res.json()
+
+      if (!data._id) {
+        throw new Error('No data returned from API')
+      }
+
+      router.push(`/profile/${profile_id}/output/${data._id}`)
+    }
+    catch (err) {
+      console.log('Error while generating the insight:', err)
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isPending) return
+
+    startTransition(async () => {
+      await submit()
+    })
+  }
+
+  useEffect(() => {
+    resetForm()
+  }, []);
+
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12 space-y-12">
+    <form className="max-w-3xl mx-auto px-6 py-12 space-y-12" onSubmit={handleSubmit}>
       <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-20 block">
         Comece falando um pouco sobre você 
         <span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500'> {user?.name} </span>
@@ -165,14 +212,31 @@ export default function InsightForm(user: User) {
 
       {/* Botão de envio */}
       <div className="text-center">
-        <Link
-          href={`/profile/${user._id}/loading`}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition"
-        >
-          Gerar meu roadmap
-        </Link>
+        <Button isPending={isPending} />
       </div>
-    </div>
+    </form>
   );
+}
 
+const Button = ({ isPending }: { isPending: boolean }) => {
+
+  if (isPending) {
+    return (
+      <button
+        disabled
+        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition cursor-not-allowed opacity-50"
+      >
+        Gerando...
+      </button>
+    )
+  }
+
+  return (
+    <button 
+      type="submit" 
+      className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition cursor-pointer"
+    >
+      Gerar meu roadmap
+    </button>
+  )
 }
