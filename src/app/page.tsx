@@ -19,7 +19,7 @@ export default function Home() {
           Estatísticas de mercado, plano de carreira, currículo otimizado e roadmap de estudos.
           Tudo em um só lugar. Simples, rápido e inteligente.
         </p>
-        <Link href="/signup" className="inline-block mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform">
+        <Link href="/auth/login?returnTo=/gateway" className="inline-block mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform">
           Comece agora
         </Link>
       </section>
@@ -72,7 +72,7 @@ export default function Home() {
 								<li>✅ 7 dias grátis para testar </li>
                 <li>⚠️ Com anúncios </li>
               </ul>
-              <Link href="/signup?plan=basic" className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform">
+              <Link href="/auth/login?returnTo=/gateway" className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform">
                 Ver mais
               </Link>
             </div>
