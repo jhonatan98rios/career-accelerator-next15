@@ -5,7 +5,7 @@ import { CareerRoadmap } from "@/models/CareerRoadmap"
 import { RoadmapStatus } from "@/lib/enums"
 import { Types } from "mongoose"
 import { auth0 } from "@/lib/auth0"
-import { generateRoadmap } from "@/lib/openai"
+import { generateRoadmap } from "@/lib/llm"
 
 export async function toggleStepStatus(roadmapId: string, stepId: string, checked: boolean) {
   const session = await auth0.getSession()
@@ -42,10 +42,10 @@ export async function generateNextSteps(roadmapId: string) {
   if (!newRoadmap) {
     throw new Error("Falha ao gerar novos passos")
   }
-  
+
   const mergedRoadmap = [
     ...roadmap.steps,
-    ...newRoadmap
+    ...JSON.parse(newRoadmap)
   ]
 
   console.log("Updating roadmap...")

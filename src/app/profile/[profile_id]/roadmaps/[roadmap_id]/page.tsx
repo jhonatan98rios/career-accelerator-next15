@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
+
 import { connectDB } from "@/lib/db";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
 import { RoadmapStatus } from "@/lib/enums";
 import { RoadmapStepCheckbox, RoadmapUpdateButton } from "@/components/roadmap";
 import { auth0 } from "@/lib/auth0";
 import { Profile } from "@/models/Profile";
+import { ConfettiOnComplete } from "@/components/confetti";
+import { ProgressBar } from "@/components/progressBar";
 
 interface PageProps {
   params: Promise<{
@@ -45,7 +48,7 @@ export default async function Page({ params }: PageProps) {
 
       <h2 className="text-lg text-gray-700 mb-10">{roadmap.title}</h2>
 
-      <ul className="flex flex-col gap-6 w-full max-w-2xl">
+      <ul className="flex flex-col gap-6 w-full">
         {roadmap.steps.map(
           (step: {
             _id: { toString: () => any };
@@ -71,7 +74,9 @@ export default async function Page({ params }: PageProps) {
                     <h4 className="text-lg font-semibold text-gray-800">
                       {step.title}
                     </h4>
-                    <p className="text-gray-600 text-sm mt-1">{step.description}</p>
+                    <p className="text-gray-600 text-sm mt-1">
+                      {step.description}
+                    </p>
                   </div>
                 </label>
               </li>
@@ -80,9 +85,32 @@ export default async function Page({ params }: PageProps) {
         )}
       </ul>
 
-      {roadmap.steps.every((step: any) => step.status === RoadmapStatus.DONE) && (
-        <RoadmapUpdateButton roadmapId={roadmap._id } />
-      )}
+      <ProgressBar
+        progress={
+          Math.round(
+            (roadmap.steps.filter((step: any) => step.status === RoadmapStatus.DONE).length /
+              roadmap.steps.length) *
+              100
+          )
+        }
+      />
+
+      {
+        roadmap
+          .steps
+          .every((step: any) => step.status === RoadmapStatus.DONE) && (
+            <RoadmapUpdateButton roadmapId={roadmap._id } />
+          )
+      }
+
+      <ConfettiOnComplete 
+        allDone={
+          roadmap
+            .steps
+            .every((step: any) => step.status === RoadmapStatus.DONE)
+        } 
+      />
+      
     </div>
   );
 }

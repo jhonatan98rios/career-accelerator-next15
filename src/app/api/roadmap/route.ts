@@ -1,22 +1,28 @@
 import { NextResponse } from 'next/server';
-import { generateInsight, InsightRequestInput } from '@/lib/openai';
+import { generateInsight } from '@/lib/llm';
 import { connectDB } from "@/lib/db";
 import { CareerInsight } from '@/models/CarrerInsight';
 import { CareerRoadmap } from '@/models/CareerRoadmap';
 import { RoadmapStatus } from '@/lib/enums';
 
+type RouteBody = {
+  answers: Record<string, string>
+  manualDescription: string
+  profile_id: string
+}
+
 export async function POST(req: Request) {
 
   try {
-    const payload = await req.json();
-    const { answers, manualDescription, profile_id } = payload as InsightRequestInput;
+    const payload: RouteBody = await req.json();
+    const { answers, manualDescription, profile_id } = payload;
 
     if (!answers || !profile_id) {
       console.log("Missing required fields:")
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const json = await generateInsight({ answers, manualDescription, profile_id });
+    const json = await generateInsight({ answers, manualDescription });
 
     if (!json) {
       return NextResponse.json({ error: 'Failed to generate insight' }, { status: 500 });

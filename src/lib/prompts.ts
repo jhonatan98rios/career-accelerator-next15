@@ -1,6 +1,6 @@
 import { InsightType } from "@/types/data";
 
-const example: InsightType = {
+export const insightExample: InsightType = {
   "hero": {
     "title": "Become a Python Backend Pro",
     "subtitle": "Deep expertise • Top demand • Global & Remote • High pay",
@@ -156,7 +156,7 @@ export const getSystemPrompt = () => `
   Then, use the following received data to generate a personalized career insight for a user based on their profile and answers.
   The insight should be a single json (as a API) following this structure (you cannot change the structure, because the frontend will not work):
 
-  ${JSON.stringify(example)}
+  {insightExample}
 
   You also need to generate a 6 months (short term) career roadmap based on the given career insight description. 
   You should always to create achievable steps, that can be completed in a month each. Be very descriptive in each step.
@@ -165,10 +165,10 @@ export const getSystemPrompt = () => `
   The roadmap should be part of the json, inside the "roadmap" field.
 `
 
-export const getUserPrompt = (answers: Record<string, string>, manualDescription: string) => `
+export const getUserPrompt = () => `
   Generate a personalized and translated career insight based on the following data and language:
-  - Answers: ${JSON.stringify(answers)}
-  - Manual Description: ${manualDescription}
+  - Answers: {answers}
+  - Manual Description: {manualDescription}
 
   Use the latest job market data and trends to provide a comprehensive overview of opportunities, challenges, and recommendations for the user.
 `
@@ -182,9 +182,9 @@ export const getRoadmapSystemPrompt = () => `
   The roadmap should be a single json (as a API) following the same structure as the previous roadmap (you cannot change the structure, because the frontend will not work):
 `
 
-export const getRoadmapUserPrompt = (oldSteps: any[]) => `
+export const getRoadmapUserPrompt = () => `
   Generate a personalized and translated (use the same language as in the previous steps) career roadmap based on the "Old Steps" data and language:
-  - Old Steps: ${JSON.stringify(oldSteps)}
+  - Old Steps: {steps}
 
   And be sure to NOT start the steps count from scratch. The order should be continuous.
 `

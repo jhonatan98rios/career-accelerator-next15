@@ -60,7 +60,7 @@ export default async function Page() {
 
 function RoadmapListRender({ roadmaps, user }: { roadmaps: SerializedRoadmap[], user: User }) {
   return (
-    <ul>
+    <ul className="w-full">
       {roadmaps.map((roadmap, index) => (
         <RoadmapListItem roadmap={roadmap} user={user} key={index} />
       ))}
