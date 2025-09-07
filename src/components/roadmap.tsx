@@ -23,7 +23,7 @@ export function RoadmapStepCheckbox({ roadmapId, stepId, done }: {
       defaultChecked={done}
       onChange={(e) => handleChange(e.target.checked)}
       disabled={isPending}
-      className="w-5 h-5 accent-blue-600 rounded mt-auto mb-auto mr-2 cursor-pointer "
+      className="min-h-4 min-w-4 accent-blue-600 rounded mt-auto mb-auto mr-2 cursor-pointer "
     />
   );
 }
