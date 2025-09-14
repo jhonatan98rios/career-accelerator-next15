@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     await CareerRoadmap.create({
       user_id: profile_id,
       insight_id: newInsight._id,
-      title: newInsight.roadmap.title,
+      title: newInsight.hero.title,
       steps: newInsight.roadmap.steps.map((step: { step: string; title: string; description: string; }) => ({
         step: step.step,
         title: step.title,
