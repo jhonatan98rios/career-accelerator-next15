@@ -8,6 +8,6 @@ export async function connectDB() {
   console.log("✅ MongoDB connected");
 
   return mongoose.connect(MONGODB_URI, {
-    dbName: 'career-accelerator',
+    dbName: process.env.MONGO_DB_NAME || "career-accelerator-dev",
   });
 }
