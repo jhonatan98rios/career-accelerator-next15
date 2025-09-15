@@ -1,3 +1,5 @@
+import '@/lib/datadog';
+
 import { NextResponse } from 'next/server';
 import { generateInsight } from '@/lib/llm';
 import { connectDB } from "@/lib/db";
