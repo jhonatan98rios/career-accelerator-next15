@@ -6,6 +6,8 @@ import { connectDB } from "@/lib/db";
 import { CareerInsight, ICareerInsight } from '@/models/CarrerInsight';
 import { CareerRoadmap } from '@/models/CareerRoadmap';
 import { RoadmapStatus } from '@/lib/enums';
+import { log, LogLevel } from "@/lib/logger";
+import { HttpStatus } from '@/types/httpStatus';
 
 type RouteBody = {
   answers: Record<string, string>
@@ -20,27 +22,28 @@ export async function POST(req: Request) {
     const { answers, manualDescription, profile_id } = payload;
 
     if (!answers || !profile_id) {
-      console.log("Missing required fields:")
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      await log(LogLevel.ERROR, "POST /careerInsight: Missing required fields", { payload });
+      return NextResponse.json({ error: 'Missing required fields' }, { status: HttpStatus.BAD_REQUEST });
     }
 
     const json = await generateInsight({ answers, manualDescription });
 
     if (!json) {
-      return NextResponse.json({ error: 'Failed to generate insight' }, { status: 500 });
+      await log(LogLevel.ERROR, "POST /careerInsight: Failed to generate insight", { payload });
+      return NextResponse.json({ error: 'Failed to generate insight' }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
     }
     
     const data: Omit<ICareerInsight, "user_id"> = JSON.parse(json);
     
     await connectDB();
     
-    console.log("Creating career insight...")
+    await log(LogLevel.INFO, "Creating career insight", { profile_id, hero_title: data.hero.title });
     const newInsight: ICareerInsight = await CareerInsight.create({
       ...data,
       user_id: profile_id,
     });
 
-    console.log("Creating roadmap...")
+    await log(LogLevel.INFO, "Creating career roadmap", { profile_id, insight_id: newInsight._id });
     await CareerRoadmap.create({
       user_id: profile_id,
       insight_id: newInsight._id,
@@ -53,10 +56,10 @@ export async function POST(req: Request) {
       }))
     })
     
-    return NextResponse.json({ data: newInsight }, {status: 201});
+    return NextResponse.json({ data: newInsight }, { status: 201 });
 
   } catch (err: any) {
-    console.error("Error in POST /careerInsight:", err);
-    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
+    await log(LogLevel.ERROR, "POST /careerInsight: Exception occurred", { error: err });
+    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
   }
 }
