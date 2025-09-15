@@ -5,6 +5,7 @@ import { sendPaymentEmail } from "@/lib/emailService";
 import { createSubscription } from '@/lib/subscription';
 import { Profile } from '@/models/Profile';
 import { HttpStatus } from '@/types/httpStatus';
+import { log, LogLevel } from "@/lib/logger";
 
 type RegisterBody = {
   name: string;
@@ -18,31 +19,32 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { name, email, plan, sub, picture }: RegisterBody = body;
 
-  console.log("Registering user:", body);
+  await log(LogLevel.INFO, "Registering user", { email, plan });
 
   await connectDB();
 
   const existing = await Profile.findOne({ email });
   if (existing) {
-    console.log("User already exists with email:", email);
+    await log(LogLevel.WARN, "User already exists", { email });
     return NextResponse.json(null, { status: HttpStatus.CONFLICT });
   }
 
   if (!Object.values(Plan).includes(plan)) {
-    console.log("Invalid plan selected:", plan);
+    await log(LogLevel.ERROR, "Invalid plan selected", { email, plan });
     return NextResponse.json({ error: 'Invalid plan selected' }, { status: HttpStatus.BAD_REQUEST });
   }
 
-  console.log("Creating subscription...")
+  await log(LogLevel.INFO, "Creating subscription", { email, plan });
   const subscription = await createSubscription({
     plan,
     email,
   })
 
   // Create the user and send the email in parallel
-  console.log("Creating a new user...")
+  await log(LogLevel.INFO, "Creating a new user", { email, plan, subscriptionId: subscription.subscription_id });
+
   const promises = [
-    Profile.create({ 
+    Profile.create({
       name,
       email,
       plan,
@@ -54,8 +56,8 @@ export async function POST(req: Request) {
   ]
 
   await Promise.all(promises)
-  .catch(error => {
-    console.error('Error during user registration:', error);
+  .catch(async (error) => {
+    await log(LogLevel.ERROR, "Error during user registration", { error, email, plan });
     return NextResponse.json({ error: 'Failed to create user and subscription' }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
   })
 

@@ -7,6 +7,7 @@ import { GatewayForm } from './form';
 import { Profile } from '@/models/Profile';
 import { createSubscription } from '@/lib/subscription';
 import { sendPaymentEmail } from '@/lib/emailService';
+import { log, LogLevel } from "@/lib/logger";
 
 export default async function Gateway() {
   const session = await auth0.getSession();
@@ -26,14 +27,13 @@ export default async function Gateway() {
   }
 
   if (user && user.status === UserStatus.INACTIVE) {
-
-    console.log("Creating a new subscription...")
+    await log(LogLevel.INFO, "User inactive, creating new subscription", { email: user.email, plan: user.plan });
     const subscription = await createSubscription({
       plan: user.plan,
       email: user.email!,
     })
     
-    console.log("Sending a new e-mail...")
+    await log(LogLevel.INFO, "Sending payment email", { email: user.email, plan: user.plan, paymentLink: subscription.init_point });
     await sendPaymentEmail({
       name: user.name!,
       to: user.email!,
