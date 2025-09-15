@@ -1,6 +1,7 @@
 import { ISubscription } from "@/models/Subscription";
 import { BACK_URL, MERCADO_PAGO_SUBSCRIPTION_API_URL } from "./constants";
 import { Plan } from "./enums";
+import { log, LogLevel } from "@/lib/logger";
 
 export type SubscriptionRequest = {
   reason: string
@@ -20,19 +21,19 @@ export type SubscriptionRequest = {
 }
 
 type CreateSubscriptionParams = {
-    // planId: string
-    plan: Plan
-    email: string
+  // planId: string
+  plan: Plan
+  email: string
 }
 
 function createSubscriptionRequest({ email, plan }: CreateSubscriptionParams): SubscriptionRequest {
-  
+
   const values_by_plan = {
     [Plan.BASIC]: 14.99,
-    [Plan.INTERMEDIARY]: 29.99,
+    // [Plan.INTERMEDIARY]: 29.99,
     // [Plan.PREMIUM]: 'premium_plan_id_placeholder',
   }
-  
+
   return {
     reason: `Assinatura do plano: Career Accelerator ${plan} - ${email}`,
     external_reference: email,
@@ -66,13 +67,13 @@ export async function createSubscription({ email, plan }: CreateSubscriptionPara
     const data = await response.json();
 
     if (!response.ok) {
-      console.log(data)
+      await log(LogLevel.ERROR, "Failed to create subscription", { data, email, plan });
       throw new Error(`Failed to create subscription: ${data.message || 'Unknown error'}`);
     }
 
     return data;
   } catch (error) {
-    console.error(error);
+    await log(LogLevel.ERROR, "Error creating subscription", { error, email, plan });
     throw error;
   }
 }

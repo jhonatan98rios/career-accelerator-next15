@@ -1,6 +1,4 @@
 import { redirect } from "next/navigation";
-import { getUserFromCookie } from "@/lib/auth";
-
 import { connectDB } from "@/lib/db";
 import Link from "next/link";
 import { User } from "@/store/UserContext";

@@ -1,5 +1,6 @@
 // lib/emailService.ts
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { log, LogLevel } from "@/lib/logger";
 
 const ses = new SESClient({
   region: process.env.AWS_REGION,
@@ -76,7 +77,7 @@ export async function sendPaymentEmail({ to, name, plan, paymentLink }: SendPaym
 
   try {
     await ses.send(command);
-    console.log(`E-mail enviado para ${to}`);
+    await log(LogLevel.INFO, "Payment email sent", { to, plan });
   } catch (error) {
     console.error("Erro ao enviar e-mail:", error);
     throw error;

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateInsight } from '@/lib/llm';
 import { connectDB } from "@/lib/db";
-import { CareerInsight } from '@/models/CarrerInsight';
+import { CareerInsight, ICareerInsight } from '@/models/CarrerInsight';
 import { CareerRoadmap } from '@/models/CareerRoadmap';
 import { RoadmapStatus } from '@/lib/enums';
 
@@ -28,14 +28,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to generate insight' }, { status: 500 });
     }
     
-    const data = JSON.parse(json);
+    const data: Omit<ICareerInsight, "user_id"> = JSON.parse(json);
     
     await connectDB();
     
     console.log("Creating career insight...")
-    const newInsight = await CareerInsight.create({
-      user_id: profile_id,
+    const newInsight: ICareerInsight = await CareerInsight.create({
       ...data,
+      user_id: profile_id,
     });
 
     console.log("Creating roadmap...")
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       user_id: profile_id,
       insight_id: newInsight._id,
       title: newInsight.hero.title,
-      steps: newInsight.roadmap.steps.map((step: { step: string; title: string; description: string; }) => ({
+      steps: newInsight.roadmap.steps.map(step => ({
         step: step.step,
         title: step.title,
         description: step.description,
