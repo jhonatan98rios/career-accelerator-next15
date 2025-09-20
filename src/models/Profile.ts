@@ -13,7 +13,7 @@ export interface IProfile extends Document {
 }
 
 const ProfileSchema = new Schema<IProfile>({
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true, index: true },
   name: { type: String, required: true },
   plan: { type: String, required: true },
   externalAuthId: { type: String, required: true, unique: true },

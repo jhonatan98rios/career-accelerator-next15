@@ -1,6 +1,6 @@
 // app/settings/page.tsx
 import { redirect } from "next/navigation";
-import { auth0 } from "@/lib/auth0";
+import { getSessionCached } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
 import { updateUserData } from "@/app/actions/user_config";
@@ -8,14 +8,16 @@ import { LogoutButton } from "@/components/logoutButton";
 import { CancelSubscriptionButton } from "@/components/cancelSubscriptionButton";
 
 export default async function Page() {
-  const session = await auth0.getSession();
-  
+
+  const [session] = await Promise.all([
+    getSessionCached(),
+    connectDB()
+  ])
+
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  // Conectar ao banco e buscar o perfil
-  await connectDB();
   const user = await Profile.findOne({ email: session.user.email });
 
   return (
