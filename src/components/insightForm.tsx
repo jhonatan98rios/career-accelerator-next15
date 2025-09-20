@@ -10,7 +10,11 @@ interface PageProps {
   profile_id: string
 }
 
-export default function InsightForm() {
+interface Props {
+  jwtToken: string;
+}
+
+export default function InsightForm({ jwtToken }: Props) {
 
   const params = useParams()
   const router = useRouter()
@@ -37,6 +41,9 @@ export default function InsightForm() {
       const res = await fetch('/api/insight', {
         method: 'POST',
         body: JSON.stringify({ answers, manualDescription, profile_id }),
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
       })
   
       const { data } = await res.json()

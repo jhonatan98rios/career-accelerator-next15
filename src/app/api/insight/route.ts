@@ -3,9 +3,11 @@ import { generateInsight } from '@/lib/llm';
 import { connectDB } from "@/lib/db";
 import { CareerInsight, ICareerInsight } from '@/models/CarrerInsight';
 import { CareerRoadmap } from '@/models/CareerRoadmap';
-import { RoadmapStatus } from '@/lib/enums';
+import { RoadmapStatus, UserStatus } from '@/lib/enums';
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from '@/types/httpStatus';
+import { isAuthenticated } from '@/lib/auth0';
+import { IProfile, Profile } from '@/models/Profile';
 
 type RouteBody = {
   answers: Record<string, string>
@@ -16,6 +18,14 @@ type RouteBody = {
 export async function POST(req: Request) {
 
   try {
+
+    const { sub } = await isAuthenticated(req.headers)
+
+    await connectDB();
+
+    const user = await Profile.findOne({ externalAuthId: sub }) as IProfile | null;
+    if (!user || user.status == UserStatus.INACTIVE) return NextResponse.json({}, { status: HttpStatus.UNAUTHORIZED });
+
     const payload: RouteBody = await req.json();
     const { answers, manualDescription, profile_id } = payload;
 
@@ -32,8 +42,6 @@ export async function POST(req: Request) {
     }
     
     const data: Omit<ICareerInsight, "user_id"> = JSON.parse(json);
-    
-    await connectDB();
     
     await log(LogLevel.INFO, "Creating career insight", { profile_id, hero_title: data.hero.title });
     const newInsight: ICareerInsight = await CareerInsight.create({

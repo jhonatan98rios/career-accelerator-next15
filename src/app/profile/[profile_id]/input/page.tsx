@@ -15,5 +15,5 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  return <InsightForm />;
+  return <InsightForm jwtToken={session.tokenSet.accessToken!} />;
 }
