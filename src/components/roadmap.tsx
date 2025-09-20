@@ -1,6 +1,6 @@
 "use client";
 
-import { toggleStepStatus, generateNextSteps } from "@/app/actions/carrer_roadmap";
+import { toggleStepStatus } from "@/app/actions/career_roadmap";
 import { useTransition } from "react";
 
 export function RoadmapStepCheckbox({ roadmapId, stepId, done }: { 
@@ -33,10 +33,35 @@ export function RoadmapUpdateButton({ roadmapId }: { roadmapId: string }) {
 
   const [isPending, startTransition] = useTransition();
 
-  const handleChange = (checked: boolean) => {
+  const submit = async () => {
+    try {
+      console.log('Form submitted with data:', { roadmapId });
+
+      const res = await fetch('/api/roadmap', {
+        method: 'POST',
+        body: JSON.stringify({ roadmapId }),
+      })
+  
+      const data = await res.json()
+
+      if (!data) {
+        throw new Error('No data returned from API')
+      }
+
+      window.location.reload()
+
+    }
+    catch (err) {
+      console.log('Error while generating the roadmap:', err)
+    }
+  }
+
+  const handleSubmit = () => {
+    if (isPending) return
+
     startTransition(async () => {
-      await generateNextSteps(roadmapId);
-    });
+      await submit()
+    })
   };
 
   if (isPending) {
@@ -52,7 +77,7 @@ export function RoadmapUpdateButton({ roadmapId }: { roadmapId: string }) {
 
   return (
     <button
-      onClick={() => handleChange(true)}
+      onClick={() => handleSubmit()}
       className="mt-10 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform shadow-lg"
     >
       Solicitar proximos passos
