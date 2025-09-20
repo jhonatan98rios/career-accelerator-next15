@@ -42,6 +42,7 @@ export default function InsightForm({ jwtToken }: Props) {
         method: 'POST',
         body: JSON.stringify({ answers, manualDescription, profile_id }),
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${jwtToken}`
         }
       })

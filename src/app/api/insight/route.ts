@@ -30,14 +30,14 @@ export async function POST(req: Request) {
     const { answers, manualDescription, profile_id } = payload;
 
     if (!answers || !profile_id) {
-      await log(LogLevel.ERROR, "POST /careerInsight: Missing required fields", { payload });
+      await log(LogLevel.ERROR, "POST /insight: Missing required fields", { payload });
       return NextResponse.json({ error: 'Missing required fields' }, { status: HttpStatus.BAD_REQUEST });
     }
 
     const json = await generateInsight({ answers, manualDescription });
 
     if (!json) {
-      await log(LogLevel.ERROR, "POST /careerInsight: Failed to generate insight", { payload });
+      await log(LogLevel.ERROR, "POST /insight: Failed to generate insight", { payload });
       return NextResponse.json({ error: 'Failed to generate insight' }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
     }
     
@@ -63,13 +63,13 @@ export async function POST(req: Request) {
     })
 
     if (!createdInsight) {
-      await log(LogLevel.ERROR, "POST /careerInsight: Failed to store the insight in the collection", { profile_id, insight_id: newInsight._id });
+      await log(LogLevel.ERROR, "POST /insight: Failed to store the insight in the collection", { profile_id, insight_id: newInsight._id });
     }
     
     return NextResponse.json({ data: newInsight }, { status: 201 });
 
   } catch (err: any) {
-    await log(LogLevel.ERROR, "POST /careerInsight: Exception occurred", { error: err });
+    await log(LogLevel.ERROR, "POST /insight: Exception occurred", { error: err });
     return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
   }
 }
