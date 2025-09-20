@@ -1,27 +1,28 @@
-import { RoadmapStatus } from '@/lib/enums';
-import { Schema, Document, model, Types, models } from 'mongoose';
+import { RoadmapStatus } from '@/lib/enums'
+import { Schema, Document, model, Types, models } from 'mongoose'
 
 
+export interface IStep {
+  _id: Types.ObjectId
+  step: number
+  title: string
+  description: string
+  status: RoadmapStatus
+}
 
 export interface ICareerRoadmap extends Document {
   _id: Types.ObjectId
   user_id: Types.ObjectId
   insight_id: Types.ObjectId
   title: string
-  steps: {
-    _id: Types.ObjectId
-    step: number
-    title: string
-    description: string
-    status: RoadmapStatus
-  }[]
+  steps: IStep[]
   createdAt: Date
   updatedAt: Date
 }
 
 const CareerRoadmapSchema = new Schema<ICareerRoadmap>(
   {
-    user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user_id: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     insight_id: { type: Schema.Types.ObjectId, ref: "CareerInsight", required: true },
     title: { type: String, required: true },
     steps: [
@@ -36,6 +37,6 @@ const CareerRoadmapSchema = new Schema<ICareerRoadmap>(
   {
     timestamps: true, // adds createdAt & updatedAt
   }
-);
+)
 
-export const CareerRoadmap = models.CareerRoadmap || model<ICareerRoadmap>("CareerRoadmap", CareerRoadmapSchema);
+export const CareerRoadmap = models.CareerRoadmap || model<ICareerRoadmap>("CareerRoadmap", CareerRoadmapSchema)

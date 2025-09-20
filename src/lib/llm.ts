@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { getUserPrompt, getSystemPrompt, getRoadmapSystemPrompt, getRoadmapUserPrompt, insightExample } from './prompts';
+import { ICareerRoadmap, IStep } from "@/models/CareerRoadmap";
 
 type InsightRequestInput = {
   answers: Record<string, string>
@@ -31,7 +32,9 @@ export const generateInsight = async ({ answers, manualDescription }: InsightReq
 }
 
 
-export const generateRoadmap = async (oldSteps: any[]): Promise<string|null> => {
+
+
+export const generateRoadmap = async (oldSteps: IStep[]): Promise<string|null> => {
 
   const systemPrompt = getRoadmapSystemPrompt();
   const userPrompt = getRoadmapUserPrompt();
