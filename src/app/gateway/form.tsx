@@ -9,10 +9,11 @@ type GatewayFormProps = {
   email: string,
   sub: string,
   picture: string,
+  jwtToken: string;
 };
 
 // TODO: Send only JWT token to the API
-export function GatewayForm({ name, email, sub, picture }: GatewayFormProps) {
+export function GatewayForm({ name, email, sub, picture, jwtToken }: GatewayFormProps) {
 
   const [message, setMessage] = useState('')
   const [plan, setPlan] = useState('')
@@ -33,7 +34,10 @@ export function GatewayForm({ name, email, sub, picture }: GatewayFormProps) {
         sub,
         picture,
       }),
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken}`
+      },
     });
 
     const data = await res.json()
