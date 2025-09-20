@@ -2,17 +2,26 @@ import { NextResponse } from 'next/server';
 import { generateRoadmap } from '@/lib/llm';
 import { connectDB } from "@/lib/db";
 import { CareerRoadmap, ICareerRoadmap, IStep } from '@/models/CareerRoadmap';
-import { RoadmapStatus } from '@/lib/enums';
+import { RoadmapStatus, UserStatus } from '@/lib/enums';
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from '@/types/httpStatus';
+import { isAuthenticated } from '@/lib/auth0';
+import { IProfile, Profile } from '@/models/Profile';
 
 type RouteBody = {
   roadmapId: string
 }
 
 export async function POST(req: Request) {
-
+  
   try {
+    const { sub } = await isAuthenticated(req.headers)
+
+    await connectDB()
+
+    const user = await Profile.findOne({ externalAuthId: sub }) as IProfile | null;
+    if (!user || user.status == UserStatus.INACTIVE) return NextResponse.json({}, { status: HttpStatus.UNAUTHORIZED });
+
     const payload: RouteBody = await req.json();
     const { roadmapId } = payload;
 
@@ -20,8 +29,6 @@ export async function POST(req: Request) {
       await log(LogLevel.ERROR, "POST /roadmap: Missing required roadmapId");
       return NextResponse.json({ error: 'Missing required roadmapId' }, { status: HttpStatus.BAD_REQUEST });
     }
-
-    await connectDB()
       
     const roadmap = await CareerRoadmap.findById(
       roadmapId,

@@ -29,7 +29,7 @@ export function RoadmapStepCheckbox({ roadmapId, stepId, done }: {
 }
 
 
-export function RoadmapUpdateButton({ roadmapId }: { roadmapId: string }) {
+export function RoadmapUpdateButton({ roadmapId, jwtToken }: { roadmapId: string, jwtToken: string }) {
 
   const [isPending, startTransition] = useTransition();
 
@@ -40,6 +40,9 @@ export function RoadmapUpdateButton({ roadmapId }: { roadmapId: string }) {
       const res = await fetch('/api/roadmap', {
         method: 'POST',
         body: JSON.stringify({ roadmapId }),
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
       })
   
       const data = await res.json()

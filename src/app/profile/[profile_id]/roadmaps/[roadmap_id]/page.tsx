@@ -31,11 +31,10 @@ export default async function Page({ params }: PageProps) {
 
   const { roadmap_id } = await params;
 
-  // @ts-ignore
-  const roadmapDoc: ICareerRoadmap = await CareerRoadmap.findOne(
+  const roadmapDoc  = await CareerRoadmap.findOne(
     { _id: roadmap_id },
     { title: 1, _id: 1, steps: 1, createdAt: 1, updatedAt: 1 }
-  ).lean();
+  ).lean() as ICareerRoadmap | null;
 
   if (!roadmapDoc) {
     redirect(`/profile/${user.id}/roadmaps`);
@@ -100,7 +99,10 @@ export default async function Page({ params }: PageProps) {
         roadmap
           .steps
           .every((step) => step.status === RoadmapStatus.DONE) && (
-            <RoadmapUpdateButton roadmapId={roadmap._id.toString() } />
+            <RoadmapUpdateButton 
+              roadmapId={roadmap._id.toString() } 
+              jwtToken={session.tokenSet.accessToken!}
+            />
           )
       }
 
