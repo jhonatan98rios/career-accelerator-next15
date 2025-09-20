@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { getUserPrompt, getSystemPrompt, getRoadmapSystemPrompt, getRoadmapUserPrompt, insightExample } from './prompts';
-import { ICareerRoadmap, IStep } from "@/models/CareerRoadmap";
+import { IStep } from "@/models/CareerRoadmap";
 
 type InsightRequestInput = {
   answers: Record<string, string>
@@ -10,6 +10,7 @@ type InsightRequestInput = {
 
 const model = new ChatOpenAI({
   model: "gpt-5-nano-2025-08-07",
+  // model: "gpt-5-mini", (5x more expensive but 15% faster)
   apiKey: process.env.OPENAI_API_KEY,
 });
 

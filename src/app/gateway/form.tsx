@@ -2,7 +2,7 @@
 
 import { Plan } from "@/lib/enums";
 import { HttpStatus } from "@/types/httpStatus";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type GatewayFormProps = {
   name: string,
@@ -11,6 +11,7 @@ type GatewayFormProps = {
   picture: string,
 };
 
+// TODO: Send only JWT token to the API
 export function GatewayForm({ name, email, sub, picture }: GatewayFormProps) {
 
   const [message, setMessage] = useState('')

@@ -16,6 +16,8 @@ type RegisterBody = {
 }
 
 export async function POST(req: Request) {
+
+  // TODO: All this information are available into the JWT token
   const body = await req.json();
   const { name, email, plan, sub, picture }: RegisterBody = body;
 
