@@ -7,6 +7,7 @@ import { GatewayForm } from './form';
 import { Profile } from '@/models/Profile';
 import { createSubscription } from '@/lib/subscription';
 import { sendPaymentEmail } from '@/lib/emailService';
+import { log, LogLevel } from "@/lib/logger";
 
 export default async function Gateway() {
   const session = await auth0.getSession();
@@ -26,14 +27,13 @@ export default async function Gateway() {
   }
 
   if (user && user.status === UserStatus.INACTIVE) {
-
-    console.log("Creating a new subscription...")
+    await log(LogLevel.INFO, "User inactive, creating new subscription", { email: user.email, plan: user.plan });
     const subscription = await createSubscription({
       plan: user.plan,
       email: user.email!,
     })
     
-    console.log("Sending a new e-mail...")
+    await log(LogLevel.INFO, "Sending payment email", { email: user.email, plan: user.plan, paymentLink: subscription.init_point });
     await sendPaymentEmail({
       name: user.name!,
       to: user.email!,
@@ -43,6 +43,12 @@ export default async function Gateway() {
 
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+        <Link
+          href="/auth/logout"
+          className='absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900'
+        >
+          Logout
+        </Link>
         <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
           <h1 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Conta Inativa</h1>
           <p className="mb-4 text-gray-700">
@@ -68,6 +74,7 @@ export default async function Gateway() {
         email={session.user.email!} 
         sub={session.user.sub!}
         picture={session.user.picture!}
+        jwtToken={session.tokenSet.accessToken!}
       />
     </div>
   );

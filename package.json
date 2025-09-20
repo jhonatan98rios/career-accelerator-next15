@@ -13,6 +13,8 @@
     "@aws-sdk/client-ses": "^3.864.0",
     "bcrypt": "^6.0.0",
     "canvas-confetti": "^1.9.3",
+    "dd-trace": "^5.67.0",
+    "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.33",
     "mongodb": "^6.18.0",

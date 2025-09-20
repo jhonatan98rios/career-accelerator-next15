@@ -5,6 +5,7 @@ import { Profile } from "@/models/Profile";
 import { ISubscription, Subscription, SubscriptionStatus } from "@/models/Subscription";
 import { HttpStatus } from "@/types/httpStatus";
 import { NextRequest, NextResponse } from "next/server";
+import { log, LogLevel } from "@/lib/logger"
 
 enum WebhookType {
   SUBSCRIPTION_PREAPPROVAL = "subscription_preapproval",
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: WebhookBody = await request.json();
 
-    console.log("Body Data: ", body);
+    await log(LogLevel.INFO, "Received Mercado Pago webhook", { body });
     const { action, type, data } = body;
 
     if (type !== WebhookType.SUBSCRIPTION_PREAPPROVAL) return NextResponse.json({ error: "Erro interno" }, { status: HttpStatus.BAD_REQUEST });
@@ -48,28 +49,20 @@ export async function POST(request: NextRequest) {
     })
 
     const subscription: ISubscription = await response.json();
-    console.log('Subscription Data:', subscription);
-
-
-    const userBeforeProcessing = await Profile.find({
-      email: subscription.external_reference
-    })
-
-    console.log("User before processing...", userBeforeProcessing)
-
+    await log(LogLevel.INFO, "Fetched subscription data", { subscription });
 
     // CREATED
     if (action == WebhookAction.CREATED) {
-      console.log("Creating subscription...")
-
+      
       // Validate if the subscription already exists (to avoid duplicates)
       const existing = await Subscription.findOne({ subscription_id: subscription.subscription_id });
-
+      
       if (existing) {
-        console.log("Subscription already exists, skipping creation.");
+        await log(LogLevel.INFO, "Subscription already exists, skipping creation.", { subscriptionId: subscription.subscription_id });
         return NextResponse.json(null, { status: HttpStatus.OK });
       }
-
+      
+      await log(LogLevel.INFO, "Creating new subscription", { subscription });
       await Subscription.create(subscription)
     }
 
@@ -78,7 +71,7 @@ export async function POST(request: NextRequest) {
     if (action == WebhookAction.UPDATED && [SubscriptionStatus.CANCELLED, SubscriptionStatus.AUTHORIZED].includes(subscription.status)) {
 
       if (subscription.status == SubscriptionStatus.CANCELLED) {
-        console.log("Cancelling user...")
+        await log(LogLevel.INFO, "Cancelling user", { subscription });
         await Profile.findOneAndUpdate(
           { email: subscription.external_reference },
           {
@@ -88,7 +81,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (subscription.status == SubscriptionStatus.AUTHORIZED) {
-        console.log("Authorizing user: ", subscription.external_reference)
+        await log(LogLevel.INFO, "Authorizing user", { subscription });
         const profile = await Profile.findOneAndUpdate(
           { email: subscription.external_reference },
           {
@@ -97,28 +90,25 @@ export async function POST(request: NextRequest) {
           }
         )
 
-        console.log("Profile updated: ", profile)
+        if (!profile) {
+          await log(LogLevel.ERROR, "Profile not found for subscription authorization", { subscription });
+        }
+
+        await log(LogLevel.INFO, "User authorized", { profile });
       }
 
-      console.log("Updating subscription...")
+      await log(LogLevel.INFO, "Updating subscription", { subscription });
       await Subscription.findOneAndUpdate(
         { subscription_id: subscription.subscription_id }, 
         subscription
       )
     }
 
-    const justToBeSure = await Profile.find({
-      email: subscription.external_reference
-    })
-
-    console.log("Just to be sure...", justToBeSure)
-
-
     // Responda com 200 OK para Mercado Pago saber que recebeu
     return NextResponse.json(null, { status: HttpStatus.OK });
 
   } catch (error) {
-    console.error("Erro no webhook Mercado Pago:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
+    await log(LogLevel.ERROR, "Erro no webhook Mercado Pago", { error });
+    return NextResponse.json({ error: "Internal Error" }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
   }
 }

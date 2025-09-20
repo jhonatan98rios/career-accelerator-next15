@@ -1,19 +1,22 @@
+// profile/[profile_id]/page.tsx
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth0 } from '@/lib/auth0';
+import { getSessionCached } from '@/lib/auth0';
 import { CareerInsight, ICareerInsight } from "@/models/CarrerInsight";
 import { connectDB } from "@/lib/db";
 import { User } from "@/store/UserContext";
 import { Profile } from "@/models/Profile";
 
 export default async function Page() {
-  const session = await auth0.getSession();
+
+  const [session] = await Promise.all([
+    getSessionCached(),
+    connectDB()
+  ])
 
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
   }
-
-  await connectDB();
 
   const user = await Profile.findOne({ email: session.user.email });
 

@@ -1,6 +1,6 @@
 export enum Plan {
   BASIC = 'basic',
-  INTERMEDIARY = 'intermediary',
+  //INTERMEDIARY = 'intermediary',
   //PREMIUM = 'premium',
 }
 
