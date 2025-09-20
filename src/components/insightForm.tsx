@@ -1,22 +1,20 @@
 'use client';
 
-import React, { useEffect, useRef, useTransition } from 'react';
+import React, { useEffect, useTransition } from 'react';
 import { useFormContext } from '@/store/FormContext';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
-export type User = {
-  _id: string
-  email: string
-  name: string
-}
 
 interface PageProps {
   output_id: string
   profile_id: string
 }
 
-export default function InsightForm(user: User) {
+interface Props {
+  jwtToken: string;
+}
+
+export default function InsightForm({ jwtToken }: Props) {
 
   const params = useParams()
   const router = useRouter()
@@ -40,9 +38,12 @@ export default function InsightForm(user: User) {
   const submit = async () => {
     try {
       console.log('Form submitted with data:', { answers, manualDescription });
-      const res = await fetch('/api/roadmap', {
+      const res = await fetch('/api/insight', {
         method: 'POST',
         body: JSON.stringify({ answers, manualDescription, profile_id }),
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
       })
   
       const { data } = await res.json()
@@ -75,7 +76,6 @@ export default function InsightForm(user: User) {
     <form className="max-w-3xl mx-auto px-6 py-12 space-y-12" onSubmit={handleSubmit}>
       <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-20 block">
         Comece falando um pouco sobre você 
-        <span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500'> {user?.name} </span>
       </h1>
 
       {/* Perguntas guiadas */}

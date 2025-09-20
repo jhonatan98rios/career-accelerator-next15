@@ -1,10 +1,10 @@
+// profile/[profile_id]/roadmaps/[roadmap_id]/page.tsx
 import { redirect } from "next/navigation";
-
 import { connectDB } from "@/lib/db";
-import { CareerRoadmap } from "@/models/CareerRoadmap";
+import { CareerRoadmap, ICareerRoadmap } from "@/models/CareerRoadmap";
 import { RoadmapStatus } from "@/lib/enums";
 import { RoadmapStepCheckbox, RoadmapUpdateButton } from "@/components/roadmap";
-import { auth0 } from "@/lib/auth0";
+import { getSessionCached } from "@/lib/auth0";
 import { Profile } from "@/models/Profile";
 import { ConfettiOnComplete } from "@/components/confetti";
 import { ProgressBar } from "@/components/progressBar";
@@ -17,28 +17,30 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
-  const session = await auth0.getSession();
+
+  const [session] = await Promise.all([
+    getSessionCached(),
+    connectDB()
+  ])
 
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  await connectDB();
   const user = await Profile.findOne({ email: session.user.email });
 
   const { roadmap_id } = await params;
 
-  // @ts-ignore
-  const roadmapDoc: ICareerRoadmap = await CareerRoadmap.findOne(
+  const roadmapDoc  = await CareerRoadmap.findOne(
     { _id: roadmap_id },
     { title: 1, _id: 1, steps: 1, createdAt: 1, updatedAt: 1 }
-  ).lean();
+  ).lean() as ICareerRoadmap | null;
 
   if (!roadmapDoc) {
     redirect(`/profile/${user.id}/roadmaps`);
   }
 
-  const roadmap = JSON.parse(JSON.stringify(roadmapDoc));
+  const roadmap: ICareerRoadmap = JSON.parse(JSON.stringify(roadmapDoc));
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen px-6 py-12 bg-gray-50">
@@ -49,13 +51,7 @@ export default async function Page({ params }: PageProps) {
       <h2 className="text-lg text-gray-700 mb-10">{roadmap.title}</h2>
 
       <ul className="flex flex-col gap-6 w-full">
-        {roadmap.steps.map(
-          (step: {
-            _id: { toString: () => any };
-            title: string;
-            status: RoadmapStatus;
-            description: string;
-          }) => {
+        {roadmap.steps.map(step => {
             const id = step._id.toString();
 
             return (
@@ -65,7 +61,7 @@ export default async function Page({ params }: PageProps) {
               >
                 <label htmlFor={id} className="flex items-start gap-3 cursor-pointer">
                   <RoadmapStepCheckbox
-                    roadmapId={roadmap._id}
+                    roadmapId={roadmap._id.toString()}
                     stepId={id}
                     done={step.status == RoadmapStatus.DONE}
                     key={id}
@@ -88,9 +84,13 @@ export default async function Page({ params }: PageProps) {
       <ProgressBar
         progress={
           Math.round(
-            (roadmap.steps.filter((step: any) => step.status === RoadmapStatus.DONE).length /
-              roadmap.steps.length) *
-              100
+            (
+              roadmap
+                .steps
+                .filter(
+                  (step) => step.status === RoadmapStatus.DONE
+                ).length / roadmap.steps.length
+            ) * 100
           )
         }
       />
@@ -98,8 +98,11 @@ export default async function Page({ params }: PageProps) {
       {
         roadmap
           .steps
-          .every((step: any) => step.status === RoadmapStatus.DONE) && (
-            <RoadmapUpdateButton roadmapId={roadmap._id } />
+          .every((step) => step.status === RoadmapStatus.DONE) && (
+            <RoadmapUpdateButton 
+              roadmapId={roadmap._id.toString() } 
+              jwtToken={session.tokenSet.accessToken!}
+            />
           )
       }
 
@@ -107,7 +110,7 @@ export default async function Page({ params }: PageProps) {
         allDone={
           roadmap
             .steps
-            .every((step: any) => step.status === RoadmapStatus.DONE)
+            .every((step) => step.status === RoadmapStatus.DONE)
         } 
       />
       

@@ -16,8 +16,15 @@ type RegisterBody = {
 }
 
 export async function POST(req: Request) {
+
+  // TODO: All this information are available into the JWT token
   const body = await req.json();
   const { name, email, plan, sub, picture }: RegisterBody = body;
+
+  if (!(name && email && plan && sub && picture)) {
+    await log(LogLevel.ERROR, "Missing required registration fields", { name, email, plan, sub, picture });
+    return NextResponse.json({ error: 'Missing required registration fields' }, { status: HttpStatus.BAD_REQUEST });
+  }
 
   await log(LogLevel.INFO, "Registering user", { email, plan });
 

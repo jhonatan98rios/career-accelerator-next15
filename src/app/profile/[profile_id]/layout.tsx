@@ -16,7 +16,6 @@ export default async function ProfileLayout({
 }: LayoutProps) {
   const session = await auth0.getSession();
   const { profile_id } = await params;
-  console.log(profile_id)
 
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
