@@ -24,6 +24,7 @@ export async function connectDB() {
       dbName: MONGODB_DB_NAME,
       bufferCommands: false, // avoids memory bloat in serverless
     });
+    await log(LogLevel.INFO, "✅ MongoDB connected");
   }
 
   try {
