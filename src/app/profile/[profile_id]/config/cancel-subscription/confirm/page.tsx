@@ -33,24 +33,24 @@ export default async function ConfirmCancelPage() {
 
   const updatedSubscription = await res.json()
 
-  if (!updatedSubscription) {
-    redirect("/gateway");
-  }
-
-  if (updatedSubscription.status != "cancelled") {
+  if (!updatedSubscription || updatedSubscription.status != "cancelled") {
     await log(LogLevel.ERROR, "ConfirmCancelPage: Subscription update failed", { user, updatedSubscription });
+
+    return (
+      <section className="min-h-96 flex items-center justify-center bg-gray-50">
+        <div className="bg-white shadow-lg rounded-xl p-8 text-center space-y-4">
+          <h1 className="text-2xl font-bold text-red-500">Erro ao cancelar sua assinatura</h1>
+          <p className="text-gray-600">
+            Tente novamente mais tarde, ou entre em contato pelo email plataforma@aceler-ai.com.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   await log(LogLevel.INFO, "ConfirmCancelPage: Subscription cancelled", { user, updatedSubscription });
 
-  return (
-    <section className="min-h-96 flex items-center justify-center bg-gray-50">
-      <div className="bg-white shadow-lg rounded-xl p-8 text-center space-y-4">
-        <h1 className="text-2xl font-bold text-red-500">Assinatura cancelada</h1>
-        <p className="text-gray-600">
-          Sua assinatura foi cancelada com sucesso.
-        </p>
-      </div>
-    </section>
-  );
+  redirect("/auth/logout");
+
+  return null
 }
