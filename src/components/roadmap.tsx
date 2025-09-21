@@ -41,6 +41,7 @@ export function RoadmapUpdateButton({ roadmapId, jwtToken }: { roadmapId: string
         method: 'POST',
         body: JSON.stringify({ roadmapId }),
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${jwtToken}`
         }
       })
