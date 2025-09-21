@@ -24,7 +24,7 @@ export default async function ConfirmCancelPage() {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+      "Authorization": `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
       "status": "cancelled",
