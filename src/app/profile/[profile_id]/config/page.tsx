@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { getSessionCached } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
-import { Profile } from "@/models/Profile";
+import { IProfile, Profile } from "@/models/Profile";
 import { updateUserData } from "@/app/actions/user_config";
 import { LogoutButton } from "@/components/logoutButton";
 import { CancelSubscriptionButton } from "@/components/cancelSubscriptionButton";
@@ -18,7 +18,11 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  const user = await Profile.findOne({ email: session.user.email });
+  const user = await Profile.findOne({ email: session.user.email }) as IProfile | null;
+
+  if (!user) {
+    redirect("/auth/login?returnTo=/gateway");
+  }
 
   return (
     <main className="bg-gray-50 text-gray-900 min-h-screen">
@@ -88,7 +92,7 @@ export default async function Page() {
           <LogoutButton />
 
           {/* Cancel Subscription */}
-          <CancelSubscriptionButton />
+          <CancelSubscriptionButton profileId={user.id} />
         </form>
 
 
