@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
-import { UserStatus } from "@/lib/enums";
 
 
 export default async function ConfirmCancelPage() {
@@ -32,13 +31,13 @@ export default async function ConfirmCancelPage() {
   })
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+    <section className="min-h-96 flex items-center justify-center bg-gray-50">
       <div className="bg-white shadow-lg rounded-xl p-8 text-center space-y-4">
         <h1 className="text-2xl font-bold text-red-500">Assinatura cancelada</h1>
         <p className="text-gray-600">
           Sua assinatura foi cancelada com sucesso.
         </p>
       </div>
-    </main>
+    </section>
   );
 }
