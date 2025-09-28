@@ -4,10 +4,11 @@ import { UserStatus } from '@/lib/enums';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { GatewayForm } from './form';
-import { Profile } from '@/models/Profile';
+import { IProfile, Profile } from '@/models/Profile';
 import { createSubscription } from '@/lib/subscription';
 import { sendPaymentEmail } from '@/lib/emailService';
 import { log, LogLevel } from "@/lib/logger";
+import { Consent, ConsentEventStatus, IConsent } from '@/models/Consent';
 
 export default async function Gateway() {
   const session = await auth0.getSession();
@@ -19,11 +20,27 @@ export default async function Gateway() {
   // Check if the user exists on MongoDB
   await connectDB();
 
-  const user = await Profile.findOne({ email: session.user.email });
+  const user: IProfile | null = await Profile.findOne({ email: session.user.email });
 
-  // Improve the validation below
-  if (user && user.status === UserStatus.ACTIVE) {
-    redirect('/profile/' + user._id)
+  if (!user) {
+    return (
+      <div className="bg-gray-100 h-screen text-gray-900">
+        <Link
+          href="/auth/logout"
+          className='absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900'
+        >
+          Logout
+        </Link>
+
+        <GatewayForm
+          name={session.user.name!.split('@')[0]}
+          email={session.user.email!}
+          sub={session.user.sub!}
+          picture={session.user.picture!}
+          jwtToken={session.tokenSet.accessToken!}
+        />
+      </div>
+    );
   }
 
   if (user && user.status === UserStatus.INACTIVE) {
@@ -32,7 +49,7 @@ export default async function Gateway() {
       plan: user.plan,
       email: user.email!,
     })
-    
+
     await log(LogLevel.INFO, "Sending payment email", { email: user.email, plan: user.plan, paymentLink: subscription.init_point });
     await sendPaymentEmail({
       name: user.name!,
@@ -60,22 +77,16 @@ export default async function Gateway() {
     )
   }
 
-  return (
-    <div className="bg-gray-100 h-screen text-gray-900">
-      <Link
-        href="/auth/logout"
-        className='absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900'
-      >
-        Logout
-      </Link>
 
-      <GatewayForm 
-        name={session.user.name!.split('@')[0]} 
-        email={session.user.email!} 
-        sub={session.user.sub!}
-        picture={session.user.picture!}
-        jwtToken={session.tokenSet.accessToken!}
-      />
-    </div>
-  );
+    // Improve the validation below
+  if (user && user.status === UserStatus.ACTIVE) {
+
+    const consent = await Consent.findOne({ email: user.email }) as IConsent | null
+
+    if (!consent || consent.status != ConsentEventStatus.AGREED) {
+      redirect('/legal/terms')
+    }
+
+    redirect('/profile/' + user._id)
+  }
 }
