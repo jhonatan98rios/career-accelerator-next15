@@ -6,6 +6,10 @@ import { IProfile, Profile } from "@/models/Profile";
 import { updateUserData } from "@/app/actions/user_config";
 import { LogoutButton } from "@/components/logoutButton";
 import { CancelSubscriptionButton } from "@/components/cancelSubscriptionButton";
+import DataUsageCheckbox from "@/components/dataUsageCheckbox";
+import { ITerm, Term } from "@/models/Term";
+import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
+import Link from "next/link";
 
 export default async function Page() {
 
@@ -18,7 +22,14 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  const user = await Profile.findOne({ email: session.user.email }) as IProfile | null;
+  const { email } = session.user
+
+  const user = await Profile.findOne({ email }) as IProfile | null;
+  const term = (await Term.findOne({}, {}, { sort: { createdAt: -1 } })) as ITerm;
+  const consent = await Consent.findOne({ 
+    email, 
+    currentVersion: term.version
+  }) as IConsent | null
 
   if (!user) {
     redirect("/auth/login?returnTo=/gateway");
@@ -71,28 +82,38 @@ export default async function Page() {
             />
           </div>
 
+          { /* Consent */ }
+          <div className="mt-10 text-left">
+            <DataUsageCheckbox 
+              email={user?.email} 
+              version={term?.version!} 
+              consent={consent?.status == ConsentEventStatus.AGREED}
+              hasButton={false}
+            />
+          </div>
+
           {/* Botões */}
           <div className="flex justify-end gap-4">
-            <button
-              type="reset"
-              className="flex-1 w-0 px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+            <Link
+              href="/gateway"
+              className="flex-1 w-0 px-6 py-2 rounded-xl border border-gray-300 text-center text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
             >
               Cancelar
-            </button>
+            </Link>
             <button
               type="submit"
               className="flex-1 w-0 px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform cursor-pointer"
             >
               Salvar
             </button>
-          </div>
+          </div>        
 
           
           {/* Logout */}
           <LogoutButton />
 
           {/* Cancel Subscription */}
-          <CancelSubscriptionButton profileId={user.id} />
+          <CancelSubscriptionButton />
         </form>
 
 
