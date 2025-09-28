@@ -31,6 +31,7 @@ export async function toggleConsent(email: string, checked: boolean) {
         status: checked ? ConsentEventStatus.AGREED : ConsentEventStatus.DISAGREED,
         events: [
           {
+            version: term.version,
             createdAt: new Date(),
             status: checked ? ConsentEventStatus.AGREED : ConsentEventStatus.DISAGREED,
           }
@@ -50,6 +51,7 @@ export async function toggleConsent(email: string, checked: boolean) {
         },
         $push: {
           events: {
+            version: term.version,
             createdAt: new Date(),
             status: checked ? ConsentEventStatus.AGREED : ConsentEventStatus.DISAGREED,
           }

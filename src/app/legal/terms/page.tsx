@@ -11,7 +11,7 @@ import { redirect } from "next/navigation";
 export default async function Terms() {
 
   // try {
-  //   const version = new Date().toISOString().substring(0, 10).replaceAll("-", "");
+  //   const version = '20250929' //new Date().toISOString().substring(0, 10).replaceAll("-", "");
 
   //   Term.create({
   //     version,

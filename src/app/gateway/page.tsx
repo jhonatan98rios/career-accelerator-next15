@@ -9,6 +9,7 @@ import { createSubscription } from '@/lib/subscription';
 import { sendPaymentEmail } from '@/lib/emailService';
 import { log, LogLevel } from "@/lib/logger";
 import { Consent, ConsentEventStatus, IConsent } from '@/models/Consent';
+import { ITerm, Term } from '@/models/Term';
 
 export default async function Gateway() {
   const session = await auth0.getSession();
@@ -81,7 +82,11 @@ export default async function Gateway() {
     // Improve the validation below
   if (user && user.status === UserStatus.ACTIVE) {
 
-    const consent = await Consent.findOne({ email: user.email }) as IConsent | null
+    const term = (await Term.findOne({}, {}, { sort: { createdAt: -1 } })) as ITerm;
+    const consent = await Consent.findOne({ 
+      email: user.email,
+      currentVersion: term.version
+    }) as IConsent | null
 
     if (!consent || consent.status != ConsentEventStatus.AGREED) {
       redirect('/legal/terms')

@@ -7,6 +7,7 @@ export enum ConsentEventStatus {
 }
 
 type ConsentEvent = {
+  version: string;
   createdAt: Date;
   status: ConsentEventStatus;
 }
@@ -21,6 +22,7 @@ export interface IConsent extends Document {
 }
 
 const ConsentEventSchema = new Schema<ConsentEvent>({
+  version: { type: String, required: true },
   createdAt: { type: Date, required: true },
   status: { type: String, enum: Object.values(ConsentEventStatus), required: true }
 })
