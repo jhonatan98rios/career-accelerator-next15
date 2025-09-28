@@ -4,6 +4,9 @@ import Header from "@/components/header";
 import { auth0 } from '@/lib/auth0';
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
+import { ITerm, Term } from "@/models/Term";
+import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
+import { log, LogLevel } from "@/lib/logger";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -23,10 +26,23 @@ export default async function ProfileLayout({
 
   await connectDB();
 
-  const user = await Profile.findOne({ email: session.user.email });
-
+  const { email } = session.user
+  const user = await Profile.findOne({ email });
+  
   if (!user || user.id !== profile_id) {
+    await log(LogLevel.INFO, "ProfileLayout: User not found", { email })
     redirect("/auth/login?returnTo=/gateway");
+  }
+  
+  const term = (await Term.findOne({}, {}, { sort: { createdAt: -1 } })) as ITerm;
+  const consent = await Consent.findOne({ 
+    email, 
+    currentVersion: term.version
+  }) as IConsent | null
+
+  if (!consent || consent?.status != ConsentEventStatus.AGREED) {
+    await log(LogLevel.INFO, "ProfileLayout: Consent not found", { email, version: term.version })
+    redirect("/gateway");
   }
 
   return (
