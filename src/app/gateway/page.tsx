@@ -25,7 +25,7 @@ export default async function Gateway() {
 
   if (!user) {
     return (
-      <div className="bg-gray-100 h-screen text-gray-900">
+      <div className="bg-gray-100 text-gray-900">
         <Link
           href="/auth/logout"
           className='absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900'
@@ -34,7 +34,6 @@ export default async function Gateway() {
         </Link>
 
         <GatewayForm
-          name={session.user.name!.split('@')[0]}
           email={session.user.email!}
           sub={session.user.sub!}
           picture={session.user.picture!}

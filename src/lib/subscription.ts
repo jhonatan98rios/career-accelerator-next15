@@ -29,8 +29,8 @@ type CreateSubscriptionParams = {
 function createSubscriptionRequest({ email, plan }: CreateSubscriptionParams): SubscriptionRequest {
 
   const values_by_plan = {
-    [Plan.BASIC]: 14.99,
-    // [Plan.INTERMEDIARY]: 29.99,
+    [Plan.BASIC]: 29.99,
+    // [Plan.INTERMEDIARY]: 49.99,
     // [Plan.PREMIUM]: 'premium_plan_id_placeholder',
   }
 

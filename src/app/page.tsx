@@ -63,14 +63,13 @@ export default function Home() {
             {/* Básico */}
             <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[460px]">
               <h3 className="text-2xl font-bold text-purple-500">Básico</h3>
-              <p className="mt-4 text-4xl font-extrabold">R$14,99<span className="text-base font-normal">/mês</span></p>
+              <p className="mt-4 text-4xl font-extrabold">R$29,99<span className="text-base font-normal">/mês</span></p>
               <ul className="mt-6 space-y-3 text-gray-600">
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
-                <li>✅ 30 tokens mensais</li>
+                <li>✅ 60 tokens mensais</li>
 								<li>✅ 7 dias grátis para testar </li>
-                <li>⚠️ Com anúncios </li>
               </ul>
               <Link href="/auth/login?returnTo=/gateway" className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform">
                 Ver mais
@@ -86,8 +85,7 @@ export default function Home() {
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
                 <li>✅ Currículo otimizado para cada vaga</li>
-                <li>✅ 100 tokens mensais </li>
-                <li>✅ Sem anúncios </li>
+                <li>✅ 120 tokens mensais </li>
               </ul>
               <button disabled className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
                 Em breve
@@ -104,7 +102,6 @@ export default function Home() {
                 <li>✅ Roadmap de estudos</li>
                 <li>✅ Currículo otimizado para cada vaga</li>
                 <li>✅ 300 tokens mensais </li>
-                <li>✨ Recursos surpresa</li>
               </ul>
               <button disabled className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
                 Em breve
@@ -123,7 +120,7 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-center">
         <h2 className="text-4xl font-bold">Pronto para acelerar sua carreira?</h2>
         <p className="mt-4 text-lg">Comece hoje mesmo e dê o próximo passo rumo ao seu futuro.</p>
-        <Link href="signup" className="inline-block mt-8 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100">
+        <Link href="/auth/login?returnTo=/gateway" className="inline-block mt-8 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100">
           Criar conta grátis
         </Link>
       </section>
