@@ -8,9 +8,13 @@ import { HttpStatus } from '@/types/httpStatus';
 import { log, LogLevel } from "@/lib/logger";
 import { isAuthenticated } from '@/lib/auth0';
 
-type RegisterBody = {
+export type RegisterBody = {
   name: string;
   email: string;
+  cpf: string;
+  cep: string;
+  address: string;
+  address2: string;
   plan: Plan;
   sub: string;
   picture: string;
@@ -22,15 +26,15 @@ export async function POST(req: Request) {
     const token = await isAuthenticated(req.headers)
   
     const body = await req.json();
-    const { name, email, plan, picture, sub }: RegisterBody = body;
+    const { name, email, cpf, cep, address, address2, plan, picture, sub }: RegisterBody = body;
 
     if (sub != token.sub) {
       await log(LogLevel.ERROR, "POST /register: Failed to authenticate the user", { name, email, plan, sub, picture });
       return NextResponse.json({ error: 'Failed to authenticate the user' }, { status: HttpStatus.UNAUTHORIZED });
     }
-  
-    if (!(name && email && plan && sub && picture)) {
-      await log(LogLevel.ERROR, "POST /register: Missing required registration fields", { name, email, plan, sub, picture });
+
+    if (!(name && email && cpf && cep && address && address2 && plan && sub && picture)) {
+      await log(LogLevel.ERROR, "POST /register: Missing required registration fields", { name, email, cpf, cep, address, address2, plan, sub, picture });
       return NextResponse.json({ error: 'Missing required registration fields' }, { status: HttpStatus.BAD_REQUEST });
     }
   
@@ -62,6 +66,10 @@ export async function POST(req: Request) {
       Profile.create({
         name,
         email,
+        cpf,
+        cep,
+        address,
+        address2,
         plan,
         picture,
         externalAuthId: sub,

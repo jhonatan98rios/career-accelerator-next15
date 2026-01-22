@@ -34,8 +34,12 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({
-        fullName,
+        name: fullName,
         email,
+        cpf,
+        cep,
+        address,
+        address2,
         plan,
         sub,
         picture,
@@ -148,9 +152,14 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
       </div>
 
       <h2 className="text-2xl font-bold mb-4">Crie sua conta</h2>
-      <p className="mb-8 text-gray-600">
-        Antes de prosseguir, por favor, preencha o formulário abaixo para criar sua conta e escolher seu plano de assinatura.
-      </p>
+
+      {
+        (!isLoading && !message) && (
+          <p className="mb-8 text-gray-600">
+            Antes de prosseguir, por favor, preencha o formulário abaixo para criar sua conta e escolher seu plano de assinatura.
+          </p>
+        )
+      }
 
       {
         (!isLoading && !message) && (
