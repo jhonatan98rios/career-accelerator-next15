@@ -40,7 +40,16 @@ export function getStripe() {
 
 async function findOrCreateCustomer({ email, stripeCustomerId, profileId, externalAuthId }: CreateSubscriptionParams) {
   if (stripeCustomerId) {
-    return stripeCustomerId;
+    try {
+      const customer = await stripe.customers.retrieve(stripeCustomerId);
+      if (!customer.deleted) {
+        return stripeCustomerId;
+      }
+      // ponytail: customer was soft-deleted in Stripe, create new one
+    } catch (err: any) {
+      // ponytail: customer not found (resource_missing), create new one
+      if (err.code !== 'resource_missing') throw err;
+    }
   }
 
   const customers = await stripe.customers.list({ email, limit: 1 });
