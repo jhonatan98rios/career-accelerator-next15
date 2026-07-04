@@ -8,6 +8,8 @@ import { getSessionCached } from "@/lib/auth0";
 import { Profile } from "@/models/Profile";
 import { ConfettiOnComplete } from "@/components/confetti";
 import { ProgressBar } from "@/components/progressBar";
+import { CareerInsight } from "@/models/CarrerInsight";
+import { getRoadmapGuardrailState } from "@/lib/ai-generation-guardrails";
 
 interface PageProps {
   params: Promise<{
@@ -41,6 +43,21 @@ export default async function Page({ params }: PageProps) {
   }
 
   const roadmap: ICareerRoadmap = JSON.parse(JSON.stringify(roadmapDoc));
+  const insight = await CareerInsight.findById(roadmap.insight_id, { createdAt: 1 }).lean() as { createdAt: Date } | null;
+
+  if (!insight) {
+    redirect(`/profile/${user.id}/roadmaps`);
+  }
+
+  const roadmapGuardrail = getRoadmapGuardrailState(user, roadmap, insight.createdAt);
+  const allDone = roadmap.steps.every((step) => step.status === RoadmapStatus.DONE);
+  const progress = Math.round(
+    (
+      roadmap
+        .steps
+        .filter((step) => step.status === RoadmapStatus.DONE).length / roadmap.steps.length
+    ) * 100
+  );
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen px-6 py-12 bg-gray-50">
@@ -82,36 +99,17 @@ export default async function Page({ params }: PageProps) {
       </ul>
 
       <ProgressBar
-        progress={
-          Math.round(
-            (
-              roadmap
-                .steps
-                .filter(
-                  (step) => step.status === RoadmapStatus.DONE
-                ).length / roadmap.steps.length
-            ) * 100
-          )
-        }
+        progress={progress}
       />
 
-      {
-        roadmap
-          .steps
-          .every((step) => step.status === RoadmapStatus.DONE) && (
-            <RoadmapUpdateButton 
-              roadmapId={roadmap._id.toString() } 
-              jwtToken={session.tokenSet.accessToken!}
-            />
-          )
-      }
+      <RoadmapUpdateButton 
+        roadmapId={roadmap._id.toString() } 
+        jwtToken={session.tokenSet.accessToken!}
+        guardrail={roadmapGuardrail}
+      />
 
       <ConfettiOnComplete 
-        allDone={
-          roadmap
-            .steps
-            .every((step) => step.status === RoadmapStatus.DONE)
-        } 
+        allDone={allDone} 
       />
       
     </div>

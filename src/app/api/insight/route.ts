@@ -8,6 +8,7 @@ import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from '@/types/httpStatus';
 import { isAuthenticated } from '@/lib/auth0';
 import { IProfile, Profile } from '@/models/Profile';
+import { getInsightGuardrailState } from '@/lib/ai-generation-guardrails';
 
 type RouteBody = {
   answers: Record<string, string>
@@ -32,6 +33,29 @@ export async function POST(req: Request) {
     if (!answers || !profile_id) {
       await log(LogLevel.ERROR, "POST /insight: Missing required fields", { payload });
       return NextResponse.json({ error: 'Missing required fields' }, { status: HttpStatus.BAD_REQUEST });
+    }
+
+    if (user.id !== profile_id) {
+      await log(LogLevel.ERROR, "POST /insight: Profile mismatch", { profile_id, user_id: user.id });
+      return NextResponse.json({ error: "Profile mismatch" }, { status: HttpStatus.FORBIDDEN });
+    }
+
+    const guardrail = getInsightGuardrailState(user);
+
+    if (!guardrail.canGenerate) {
+      await log(LogLevel.WARN, "POST /insight: Insight generation locked", {
+        profile_id,
+        unlockAt: guardrail.unlockAt,
+      });
+
+      return NextResponse.json(
+        {
+          error: "A new insight will be available after the cooldown ends.",
+          code: "INSIGHT_COOLDOWN",
+          unlockAt: guardrail.unlockAt,
+        },
+        { status: HttpStatus.TOO_MANY_REQUESTS }
+      );
     }
 
     const json = await generateInsight({ answers, manualDescription });
@@ -65,6 +89,9 @@ export async function POST(req: Request) {
     if (!createdInsight) {
       await log(LogLevel.ERROR, "POST /insight: Failed to store the insight in the collection", { profile_id, insight_id: newInsight._id });
     }
+
+    user.lastInsightGeneratedAt = new Date();
+    await user.save();
     
     return NextResponse.json({ data: newInsight }, { status: 201 });
 

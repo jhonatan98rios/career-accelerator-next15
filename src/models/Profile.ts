@@ -14,6 +14,8 @@ export interface IProfile extends Document {
   externalAuthId?: string;
   subscriptionId?: string;
   stripeCustomerId?: string;
+  lastInsightGeneratedAt?: Date | null;
+  skipAiGenerationGuardrails?: boolean;
   createdAt: Date;
 }
 
@@ -30,6 +32,8 @@ const ProfileSchema = new Schema<IProfile>({
   stripeCustomerId: { type: String, required: false, default: null, index: true },
   status: { type: String, required: false, default: UserStatus.INACTIVE },
   picture: { type: String, required: false, default: null },
+  lastInsightGeneratedAt: { type: Date, required: false, default: null },
+  skipAiGenerationGuardrails: { type: Boolean, required: false, default: false },
   createdAt: { type: Date, required: false, default: Date.now },
 });
 

@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import InsightForm from '@/components/insightForm';
 import { connectDB } from '@/lib/db';
 import { getSessionCached } from '@/lib/auth0';
+import { Profile } from '@/models/Profile';
+import { getInsightGuardrailState } from '@/lib/ai-generation-guardrails';
 
 
 export default async function Page() {
@@ -15,5 +17,16 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  return <InsightForm jwtToken={session.tokenSet.accessToken!} />;
+  const user = await Profile.findOne({ email: session.user.email });
+
+  if (!user) {
+    redirect("/auth/login?returnTo=/gateway");
+  }
+
+  return (
+    <InsightForm
+      jwtToken={session.tokenSet.accessToken!}
+      insightGuardrail={getInsightGuardrailState(user)}
+    />
+  );
 }

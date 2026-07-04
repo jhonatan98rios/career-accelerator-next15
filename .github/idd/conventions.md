@@ -55,6 +55,7 @@ No test framework installed. Verification is manual (`next build`, manual smoke 
 |-----------------|------------------------|-------|
 | Mongoose | Model definition in `src/models/` with `I{Name}` interface + `{Name}Schema` + export | Raw `mongodb` driver (avoid unless needed) |
 | `@auth0/nextjs-auth0` | `Auth0Client` server init in `src/lib/auth0.ts`; middleware in `src/middleware.ts`; `getSessionCached()` wrapped with `React.cache()` | Calling `auth0.getSession()` directly without cache in server components |
+| AI guardrails | Shared eligibility logic in `src/lib/ai-generation-guardrails.ts`; server routes enforce limits and client UI mirrors returned state | Client-only throttling or hardcoded counters |
 | LangChain / OpenAI | `ChatOpenAI` model in `src/lib/llm.ts`; prompts in `src/lib/prompts.ts` | Embedding model not needed; direct OpenAI SDK preferred over LangChain for simple calls |
 | `canvas-confetti` | Trigger on roadmap completion | Persistent DOM manipulation |
 | Stripe | Subscription lifecycle via Checkout Session + signed webhook | Manual status manipulation or custom card forms |
@@ -75,7 +76,6 @@ No test framework installed. Verification is manual (`next build`, manual smoke 
 
 ## Anti-Patterns
 
-- Hardcoded token count (25) in sidebar component instead of querying from database
 - `@ts-ignore` used in output page (`src/pages/profile/[profile_id]/output/[output_id]/index.tsx`) — suppress errors instead of fixing types
 - Pages Router (`src/pages/`) coexists with App Router — migration incomplete
 - Inconsistent quote style (`'use client'` single-quoted, JS strings double-quoted)

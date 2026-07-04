@@ -2,7 +2,7 @@
 
 ## Summary
 
-Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serves a Brazilian Portuguese career-acceleration SaaS ("AcelerAi"). Auth via Auth0, payments via Stripe Checkout subscriptions, LLM insights via OpenAI/LangChain (gpt-5-nano), MongoDB/Mongoose for persistence, AWS SES for transactional email, Datadog for logging, Nuvem Fiscal for NFSe invoicing.
+Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serves a Brazilian Portuguese career-acceleration SaaS ("AcelerAi"). Auth via Auth0, payments via Stripe Checkout subscriptions, LLM insights via OpenAI/LangChain (gpt-5-nano), MongoDB/Mongoose for persistence, AWS SES for transactional email, Datadog for logging, Nuvem Fiscal for NFSe invoicing. AI generation access is guarded by Mongo-backed cooldown and retry rules rather than a UI-only token counter.
 
 ## Mode
 
@@ -19,6 +19,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 ## Capabilities
 
 - Career insight generation (LLM-powered market analysis, compensation, roadmap)
+- AI generation guardrails (24-hour insight cooldown, roadmap completion gate, one corrective retry, developer bypass flag)
 - User registration + Auth0 authentication
 - Stripe Checkout subscription lifecycle (create, activate, cancel via webhook)
 - Consent management (versioned data-usage terms, PDFs, audit trail)
@@ -69,7 +70,6 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 ## Open Questions
 
 - Pages Router output page (`/profile/[id]/output/[output_id]`) uses `getStaticProps` with `fallback: 'blocking'` — should migrate to App Router.
-- Token tracking is hardcoded (25 tokens in sidebar); no actual usage enforcement.
 - Intermediate/Premium plans stubbed but never activated; code shows commented-out enum values.
 - `ponytail:` comments may accumulate over time — ledger at `.github/idd/learned.md` or `/ponytail-debt`.
 
@@ -82,3 +82,4 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - `src/app/api/webhook/payment/stripe/route.ts` — Stripe webhook drives subscription lifecycle
 - `src/app/gateway/page.tsx` — Registration orchestration (profile + subscription + email + consent)
 - `src/pages/profile/[profile_id]/output/[output_id]/index.tsx` — Pages Router output page
+- `src/lib/ai-generation-guardrails.ts` — Shared eligibility logic for insight cooldown and roadmap retry rules

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { useFormContext } from '@/store/FormContext';
 import { useParams, useRouter } from 'next/navigation';
+import { InsightGuardrailState } from '@/lib/ai-generation-guardrails';
 
 
 interface PageProps {
@@ -12,12 +13,25 @@ interface PageProps {
 
 interface Props {
   jwtToken: string;
+  insightGuardrail: InsightGuardrailState;
 }
 
-export default function InsightForm({ jwtToken }: Props) {
+function formatDateTime(value: string | null) {
+  if (!value) return null;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
 
   const params = useParams()
   const router = useRouter()
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const { profile_id } = params as unknown as PageProps
   const [ isPending, startTransition ] = useTransition()
@@ -37,6 +51,7 @@ export default function InsightForm({ jwtToken }: Props) {
 
   const submit = async () => {
     try {
+      setErrorMessage(null)
       console.log('Form submitted with data:', { answers, manualDescription });
       const res = await fetch('/api/insight', {
         method: 'POST',
@@ -46,8 +61,20 @@ export default function InsightForm({ jwtToken }: Props) {
           'Authorization': `Bearer ${jwtToken}`
         }
       })
+
+      const payload = await res.json()
+
+      if (!res.ok) {
+        const unlockAt = formatDateTime(payload.unlockAt ?? null)
+        setErrorMessage(
+          unlockAt
+            ? `Seu proximo insight sera liberado em ${unlockAt}.`
+            : payload.error || 'Nao foi possivel gerar o insight agora.'
+        )
+        return
+      }
   
-      const { data } = await res.json()
+      const { data } = payload
 
       if (!data._id) {
         throw new Error('No data returned from API')
@@ -57,12 +84,13 @@ export default function InsightForm({ jwtToken }: Props) {
     }
     catch (err) {
       console.log('Error while generating the insight:', err)
+      setErrorMessage('Nao foi possivel gerar o insight agora. Tente novamente em instantes.')
     }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPending) return
+    if (isPending || !insightGuardrail.canGenerate) return
 
     startTransition(async () => {
       await submit()
@@ -72,6 +100,12 @@ export default function InsightForm({ jwtToken }: Props) {
   useEffect(() => {
     resetForm()
   }, []);
+
+  const helperMessage = insightGuardrail.bypassed
+    ? "Sua conta ignora os limites de geracao."
+    : insightGuardrail.canGenerate
+      ? "Seu proximo plano pode ser gerado agora."
+      : `Seu proximo insight sera liberado em ${formatDateTime(insightGuardrail.unlockAt)}.`
 
   return (
     <form className="max-w-3xl mx-auto px-6 py-12 space-y-12" onSubmit={handleSubmit}>
@@ -211,15 +245,25 @@ export default function InsightForm({ jwtToken }: Props) {
         />
       </section>
 
+      <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm">
+        {helperMessage}
+      </div>
+
+      {errorMessage && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {errorMessage}
+        </div>
+      )}
+
       {/* Botão de envio */}
       <div className="text-center">
-        <Button isPending={isPending} />
+        <Button isPending={isPending} disabled={!insightGuardrail.canGenerate} />
       </div>
     </form>
   );
 }
 
-const Button = ({ isPending }: { isPending: boolean }) => {
+const Button = ({ isPending, disabled }: { isPending: boolean; disabled: boolean }) => {
 
   if (isPending) {
     return (
@@ -235,7 +279,12 @@ const Button = ({ isPending }: { isPending: boolean }) => {
   return (
     <button 
       type="submit" 
-      className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition cursor-pointer"
+      disabled={disabled}
+      className={`px-6 py-3 text-white font-medium rounded-xl shadow-md transition ${
+        disabled
+          ? "bg-gray-400 cursor-not-allowed opacity-70"
+          : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90 cursor-pointer"
+      }`}
     >
       Gerar meu roadmap
     </button>

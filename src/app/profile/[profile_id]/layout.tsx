@@ -7,6 +7,7 @@ import { Profile } from "@/models/Profile";
 import { ITerm, Term } from "@/models/Term";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import { log, LogLevel } from "@/lib/logger";
+import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -45,11 +46,13 @@ export default async function ProfileLayout({
     redirect("/gateway");
   }
 
+  const insightGuardrail = getInsightGuardrailState(user);
+
   return (
     <div className="flex flex-col min-h-screen h-full bg-gray-50 text-gray-900">
       <Header />
       <div className="flex">
-        <SideBar id={user._id.toString()} tokens={25} />
+        <SideBar id={user.id} insightGuardrail={insightGuardrail} />
 
         {/* Main content */}
         <main className="flex-1 mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-60 md:mt-30 mb-20 space-y-10">
