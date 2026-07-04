@@ -1,94 +1,59 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Plan } from '@/lib/enums';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export enum SubscriptionStatus {
-  PENDING = "pending",
-  CANCELLED = "cancelled",
-  AUTHORIZED = "authorized"
+  INCOMPLETE = "incomplete",
+  INCOMPLETE_EXPIRED = "incomplete_expired",
+  TRIALING = "trialing",
+  ACTIVE = "active",
+  PAST_DUE = "past_due",
+  CANCELED = "canceled",
+  UNPAID = "unpaid",
+  PAUSED = "paused",
 }
 
 export interface ISubscription extends Document {
-  id: string;
-	payer_id: number;
-	payer_email: string;
-	back_url: string;
-	collector_id: number;
-	application_id: number;
-	status: SubscriptionStatus;
-	reason: string;
-	external_reference: string;
-	date_created: string;
-	last_modified: string;
-	init_point: string;
-	auto_recurring: {
-		frequency: number;
-		frequency_type: string;
-		transaction_amount: number;
-		currency_id: string;
-		start_date: string;
-		end_date: string;
-		free_trial: any;
-	};
-	summarized: {
-		quotas: number;
-		charged_quantity: number | null;
-		pending_charge_quantity: number;
-		charged_amount: number | null;
-		pending_charge_amount: number;
-		semaphore: any;
-		last_charged_date: string | null;
-		last_charged_amount: number | null;
-	};
-	next_payment_date: string;
-	payment_method_id: string | null;
-	payment_method_id_secondary: string | null;
-	first_invoice_offset: number | null;
-	subscription_id: string;
-	owner: any;
+  email: string;
+  profileId?: string;
+  plan: Plan;
+  status: SubscriptionStatus | string;
+  stripeCustomerId: string;
+  stripeSubscriptionId: string;
+  stripeCheckoutSessionId?: string;
+  stripePriceId?: string;
+  currentPeriodStart?: Date;
+  currentPeriodEnd?: Date;
+  cancelAtPeriodEnd?: boolean;
+  canceledAt?: Date;
+  trialStart?: Date;
+  trialEnd?: Date;
+  latestInvoiceId?: string;
+  lastStripeEventId?: string;
+  processedStripeEventIds: string[];
+  raw?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-
-const AutoRecurringSchema = new mongoose.Schema({
-  frequency: Number,
-  frequency_type: String,
-  transaction_amount: Number,
-  currency_id: String,
-  start_date: Date,
-  end_date: Date,
-  free_trial: mongoose.Schema.Types.Mixed
-}, { _id: false });
-
-const SummarizedSchema = new mongoose.Schema({
-  quotas: Number,
-  charged_quantity: Number,
-  pending_charge_quantity: Number,
-  charged_amount: Number,
-  pending_charge_amount: Number,
-  semaphore: mongoose.Schema.Types.Mixed,
-  last_charged_date: Date,
-  last_charged_amount: Number
-}, { _id: false });
-
-const SubscriptionSchema = new mongoose.Schema({
-  id: String,
-  payer_id: Number,
-  payer_email: String,
-  back_url: String,
-  collector_id: Number,
-  application_id: Number,
-  status: String,
-  reason: String,
-  external_reference: String,
-  date_created: Date,
-  last_modified: Date,
-  init_point: String,
-  auto_recurring: AutoRecurringSchema,
-  summarized: SummarizedSchema,
-  next_payment_date: Date,
-  payment_method_id: mongoose.Schema.Types.Mixed,
-  payment_method_id_secondary: mongoose.Schema.Types.Mixed,
-  first_invoice_offset: mongoose.Schema.Types.Mixed,
-  subscription_id: String,
-  owner: mongoose.Schema.Types.Mixed
-});
+const SubscriptionSchema = new Schema<ISubscription>({
+  email: { type: String, required: true, index: true },
+  profileId: { type: String, required: false, default: null, index: true },
+  plan: { type: String, required: true, default: Plan.BASIC },
+  status: { type: String, required: true, index: true },
+  stripeCustomerId: { type: String, required: true, index: true },
+  stripeSubscriptionId: { type: String, required: true, unique: true, index: true },
+  stripeCheckoutSessionId: { type: String, required: false, default: null, index: true },
+  stripePriceId: { type: String, required: false, default: null },
+  currentPeriodStart: { type: Date, required: false, default: null },
+  currentPeriodEnd: { type: Date, required: false, default: null },
+  cancelAtPeriodEnd: { type: Boolean, required: false, default: false },
+  canceledAt: { type: Date, required: false, default: null },
+  trialStart: { type: Date, required: false, default: null },
+  trialEnd: { type: Date, required: false, default: null },
+  latestInvoiceId: { type: String, required: false, default: null },
+  lastStripeEventId: { type: String, required: false, default: null, index: true },
+  processedStripeEventIds: { type: [String], required: false, default: [] },
+  raw: { type: Schema.Types.Mixed, required: false, default: null },
+}, { timestamps: true });
 
 export const Subscription = mongoose.models.Subscription || mongoose.model<ISubscription>('Subscription', SubscriptionSchema);

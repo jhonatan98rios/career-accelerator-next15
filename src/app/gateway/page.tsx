@@ -48,14 +48,22 @@ export default async function Gateway() {
     const subscription = await createSubscription({
       plan: user.plan,
       email: user.email!,
+      profileId: String(user._id),
+      externalAuthId: user.externalAuthId,
+      stripeCustomerId: user.stripeCustomerId,
     })
 
-    await log(LogLevel.INFO, "Sending payment email", { email: user.email, plan: user.plan, paymentLink: subscription.init_point });
+    await Profile.findByIdAndUpdate(user._id, {
+      stripeCustomerId: subscription.stripeCustomerId,
+      subscriptionId: subscription.stripeSubscriptionId || subscription.checkoutSessionId,
+    });
+
+    await log(LogLevel.INFO, "Sending payment email", { email: user.email, plan: user.plan, paymentLink: subscription.checkoutUrl });
     await sendPaymentEmail({
       name: user.name!,
       to: user.email!,
       plan: user.plan,
-      paymentLink: subscription.init_point
+      paymentLink: subscription.checkoutUrl
     })
 
     return (

@@ -53,36 +53,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: HttpStatus.BAD_REQUEST });
     }
   
-    await log(LogLevel.INFO, "POST /register: Creating subscription", { email, plan });
+    await log(LogLevel.INFO, "Creating a new inactive user", { email, plan });
+
+    const profile = await Profile.create({
+      name,
+      email,
+      cpf,
+      cep,
+      address,
+      address2,
+      plan,
+      picture,
+      externalAuthId: sub,
+      status: UserStatus.INACTIVE,
+    })
+
+    await log(LogLevel.INFO, "POST /register: Creating Stripe subscription", { email, plan, profileId: profile._id.toString() });
     const subscription = await createSubscription({
       plan,
       email,
-    })
-  
-    // Create the user and send the email in parallel
-    await log(LogLevel.INFO, "Creating a new user", { email, plan, subscriptionId: subscription.subscription_id });
-  
-    const promises = [
-      Profile.create({
-        name,
-        email,
-        cpf,
-        cep,
-        address,
-        address2,
-        plan,
-        picture,
-        externalAuthId: sub,
-        status: UserStatus.INACTIVE,
-      }),
-      sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.init_point }),
-    ]
-  
-    await Promise.all(promises)
-    .catch(async (error) => {
-      await log(LogLevel.ERROR, "POST /register: Error during user registration", { error, email, plan });
-      return NextResponse.json({ error: 'Failed to create user and subscription' }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
-    })
+      profileId: profile._id.toString(),
+      externalAuthId: sub,
+      stripeCustomerId: profile.stripeCustomerId,
+    });
+
+    await Profile.findByIdAndUpdate(profile._id, {
+      stripeCustomerId: subscription.stripeCustomerId,
+      subscriptionId: subscription.stripeSubscriptionId || subscription.checkoutSessionId,
+    });
+
+    await sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.checkoutUrl });
   
     return NextResponse.json(null, { status: HttpStatus.CREATED });
   }
