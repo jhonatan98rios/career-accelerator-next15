@@ -1,79 +1,215 @@
-import { ISubscription } from "@/models/Subscription";
-import { BACK_URL, MERCADO_PAGO_SUBSCRIPTION_API_URL } from "./constants";
-import { Plan } from "./enums";
+import Stripe from "stripe";
+import { ISubscription, Subscription, SubscriptionStatus } from "@/models/Subscription";
+import { STRIPE_CHECKOUT_CANCEL_URL, STRIPE_CHECKOUT_SUCCESS_URL } from "./constants";
+import { Plan, UserStatus } from "./enums";
 import { log, LogLevel } from "@/lib/logger";
+import { Profile } from "@/models/Profile";
 
-export type SubscriptionRequest = {
-  reason: string
-  // preapproval_plan_id: string
-  external_reference: string
-  payer_email: string
-  back_url: string,
-  status: string,
-  auto_recurring: {
-    frequency: number,
-    frequency_type: string,
-    transaction_amount: number,
-    currency_id: string
-    start_date: string,
-    end_date: string,
-  },
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 type CreateSubscriptionParams = {
-  // planId: string
   plan: Plan
   email: string
+  profileId?: string
+  externalAuthId?: string
+  stripeCustomerId?: string | null
 }
 
-function createSubscriptionRequest({ email, plan }: CreateSubscriptionParams): SubscriptionRequest {
+export type CreatedSubscription = {
+  checkoutSessionId: string;
+  checkoutUrl: string;
+  stripeCustomerId: string;
+  stripeSubscriptionId?: string;
+}
 
-  const values_by_plan = {
-    [Plan.BASIC]: 29.99,
-    // [Plan.INTERMEDIARY]: 49.99,
-    // [Plan.PREMIUM]: 'premium_plan_id_placeholder',
+function getStripePriceId(plan: Plan) {
+  if (plan !== Plan.BASIC) {
+    throw new Error("Only the Basic monthly plan is supported");
   }
 
-  return {
-    reason: `Assinatura do plano: Career Accelerator ${plan} - ${email}`,
-    external_reference: email,
-    payer_email: email,
-    back_url: BACK_URL,
-    status: 'pending',
-    auto_recurring: {
-      frequency: 1,
-      frequency_type: 'months',
-      transaction_amount: values_by_plan[plan]!,
-      currency_id: 'BRL',
-      start_date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(), // 7 trial days
-      end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
-    },
-  };
+  if (!process.env.STRIPE_BASIC_MONTHLY_PRICE_ID) {
+    throw new Error("STRIPE_BASIC_MONTHLY_PRICE_ID is not configured");
+  }
+
+  return process.env.STRIPE_BASIC_MONTHLY_PRICE_ID;
 }
 
-export async function createSubscription({ email, plan }: CreateSubscriptionParams): Promise<ISubscription> {
-  try {
-    const subscriptionRequest = createSubscriptionRequest({ email, plan });
+export function getStripe() {
+  return stripe;
+}
 
-    const response = await fetch(MERCADO_PAGO_SUBSCRIPTION_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': "Bearer " + process.env.MERCADO_PAGO_ACCESS_TOKEN,
-        'Content-Type': 'application/json',
+async function findOrCreateCustomer({ email, stripeCustomerId, profileId, externalAuthId }: CreateSubscriptionParams) {
+  if (stripeCustomerId) {
+    return stripeCustomerId;
+  }
+
+  const customers = await stripe.customers.list({ email, limit: 1 });
+  const existingCustomerId = customers.data[0]?.id;
+
+  if (existingCustomerId) {
+    return existingCustomerId;
+  }
+
+  const customer = await stripe.customers.create({
+    email,
+    metadata: {
+      profileId: profileId || "",
+      externalAuthId: externalAuthId || "",
+    },
+  });
+
+  return customer.id;
+}
+
+export async function createSubscription(params: CreateSubscriptionParams): Promise<CreatedSubscription> {
+  const { email, plan, profileId, externalAuthId } = params;
+
+  try {
+    const stripePriceId = getStripePriceId(plan);
+    const stripeCustomerId = await findOrCreateCustomer(params);
+
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: stripePriceId, quantity: 1 }],
+      customer: stripeCustomerId,
+      client_reference_id: profileId || email,
+      success_url: STRIPE_CHECKOUT_SUCCESS_URL,
+      cancel_url: STRIPE_CHECKOUT_CANCEL_URL,
+      metadata: {
+        email,
+        plan,
+        profileId: profileId || "",
+        externalAuthId: externalAuthId || "",
       },
-      body: JSON.stringify(subscriptionRequest),
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: {
+          email,
+          plan,
+          profileId: profileId || "",
+          externalAuthId: externalAuthId || "",
+        },
+      },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      await log(LogLevel.ERROR, "Failed to create subscription", { data, email, plan });
-      throw new Error(`Failed to create subscription: ${data.message || 'Unknown error'}`);
+    if (!checkout.url) {
+      throw new Error("Stripe Checkout did not return a checkout URL");
     }
 
-    return data;
+    await log(LogLevel.INFO, "Stripe Checkout Session created", {
+      email,
+      plan,
+      profileId,
+      stripeCustomerId,
+      stripeCheckoutSessionId: checkout.id,
+    });
+
+    return {
+      checkoutSessionId: checkout.id,
+      checkoutUrl: checkout.url,
+      stripeCustomerId,
+      stripeSubscriptionId: typeof checkout.subscription === "string" ? checkout.subscription : checkout.subscription?.id,
+    };
   } catch (error) {
-    await log(LogLevel.ERROR, "Error creating subscription", { error, email, plan });
+    await log(LogLevel.ERROR, "Error creating Stripe subscription", { error, email, plan, profileId });
     throw error;
   }
+}
+
+export async function cancelSubscription(stripeSubscriptionId: string) {
+  await log(LogLevel.INFO, "Cancelling Stripe subscription", { stripeSubscriptionId });
+
+  const updatedSubscription = await stripe.subscriptions.update(stripeSubscriptionId, {
+    cancel_at_period_end: true,
+  });
+
+  await log(LogLevel.INFO, "Stripe subscription cancellation requested", {
+    stripeSubscriptionId: updatedSubscription.id,
+    status: updatedSubscription.status,
+    cancelAtPeriodEnd: updatedSubscription.cancel_at_period_end,
+  });
+
+  return updatedSubscription;
+}
+
+export async function upsertStripeSubscription({
+  stripeSubscription,
+  stripeCheckoutSessionId,
+  eventId,
+}: {
+  stripeSubscription: Stripe.Subscription;
+  stripeCheckoutSessionId?: string;
+  eventId: string;
+}): Promise<ISubscription> {
+  const subscription = stripeSubscription as any;
+  const firstItem = subscription.items?.data?.[0];
+  const email = subscription.metadata?.email || "";
+  const profileId = subscription.metadata?.profileId || "";
+  const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+
+  return Subscription.findOneAndUpdate(
+    { stripeSubscriptionId: subscription.id },
+    {
+      $set: {
+        email,
+        profileId,
+        plan: subscription.metadata?.plan || Plan.BASIC,
+        status: subscription.status,
+        stripeCustomerId,
+        stripeSubscriptionId: subscription.id,
+        stripeCheckoutSessionId,
+        stripePriceId: firstItem?.price?.id,
+        currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
+        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+        trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+        latestInvoiceId: typeof subscription.latest_invoice === "string" ? subscription.latest_invoice : subscription.latest_invoice?.id,
+        lastStripeEventId: eventId,
+        raw: {
+          id: subscription.id,
+          status: subscription.status,
+          customer: stripeCustomerId,
+          metadata: subscription.metadata,
+        },
+      },
+      $addToSet: { processedStripeEventIds: eventId },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+}
+
+export async function syncProfileFromStripeSubscription(stripeSubscription: Stripe.Subscription) {
+  const subscription = stripeSubscription as any;
+  const email = subscription.metadata?.email;
+  const profileId = subscription.metadata?.profileId;
+  const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+  const status = [SubscriptionStatus.TRIALING, SubscriptionStatus.ACTIVE].includes(subscription.status)
+    ? UserStatus.ACTIVE
+    : [SubscriptionStatus.CANCELED, SubscriptionStatus.UNPAID, SubscriptionStatus.INCOMPLETE_EXPIRED, SubscriptionStatus.PAUSED].includes(subscription.status)
+      ? UserStatus.INACTIVE
+      : null;
+
+  if (subscription.status === SubscriptionStatus.PAST_DUE) {
+    await log(LogLevel.WARN, "Stripe subscription is past_due; access unchanged", {
+      email,
+      profileId,
+      stripeCustomerId,
+      stripeSubscriptionId: subscription.id,
+    });
+    return;
+  }
+
+  if (!status) {
+    return;
+  }
+
+  const query = profileId ? { _id: profileId } : { email };
+  await Profile.findOneAndUpdate(query, {
+    status,
+    subscriptionId: subscription.id,
+    stripeCustomerId,
+  });
 }

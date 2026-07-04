@@ -13,6 +13,7 @@ export interface IProfile extends Document {
   status: UserStatus;
   externalAuthId?: string;
   subscriptionId?: string;
+  stripeCustomerId?: string;
   createdAt: Date;
 }
 
@@ -26,6 +27,7 @@ const ProfileSchema = new Schema<IProfile>({
   plan: { type: String, required: true },
   externalAuthId: { type: String, required: true, unique: true },
   subscriptionId: { type: String, required: false, default: null },
+  stripeCustomerId: { type: String, required: false, default: null, index: true },
   status: { type: String, required: false, default: UserStatus.INACTIVE },
   picture: { type: String, required: false, default: null },
   createdAt: { type: Date, required: false, default: Date.now },

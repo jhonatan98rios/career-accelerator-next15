@@ -24,7 +24,7 @@ function getEmailTemplate(name: string, plan: string, paymentLink: string) {
       <tr>
         <td style="padding: 30px; color: #374151; font-size: 16px; line-height: 1.5;">
           <p>Olá <strong>${name}</strong>,</p>
-          <p>Obrigado por se cadastrar! Para ativar seu plano <strong>${planLabel}</strong>, é necessário confirmar o pagamento através do nosso parceiro seguro <strong>Mercado Pago</strong>.</p>
+          <p>Obrigado por se cadastrar! Para ativar seu plano <strong>${planLabel}</strong>, é necessário confirmar o pagamento através do nosso parceiro seguro <strong>Stripe</strong>.</p>
           <p>O link abaixo é exclusivo para sua assinatura e garante que você terá acesso imediato aos benefícios do seu plano assim que o pagamento for confirmado.</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${paymentLink}" style="background: linear-gradient(to right, #8b5cf6, #6366f1); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: bold;">
@@ -32,7 +32,7 @@ function getEmailTemplate(name: string, plan: string, paymentLink: string) {
             </a>
           </div>
           <p style="font-size: 14px; color: #6b7280;">
-            Este link direciona para o sistema de pagamentos do Mercado Pago para garantir a segurança da sua transação.
+            Este link direciona para o Checkout seguro da Stripe para garantir a segurança da sua transação.
           </p>
         </td>
       </tr>
