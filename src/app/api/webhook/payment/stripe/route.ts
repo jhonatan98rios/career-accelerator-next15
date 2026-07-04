@@ -72,6 +72,26 @@ async function handleInvoicePaymentFailed(event: Stripe.Event) {
   await syncProfileFromStripeSubscription(stripeSubscription);
 }
 
+async function handleInvoicePaid(event: Stripe.Event) {
+  const invoice = event.data.object as any;
+  const stripeSubscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+
+  await log(LogLevel.INFO, "Stripe invoice paid", {
+    eventId: event.id,
+    stripeCustomerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
+    stripeSubscriptionId,
+    invoiceId: invoice.id,
+  });
+
+  if (!stripeSubscriptionId || await alreadyProcessed(event.id)) {
+    return;
+  }
+
+  const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+  await upsertStripeSubscription({ stripeSubscription, eventId: event.id });
+  await syncProfileFromStripeSubscription(stripeSubscription);
+}
+
 export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -100,12 +120,20 @@ export async function POST(req: Request) {
         await handleCheckoutCompleted(event);
         break;
       case "customer.subscription.created":
+      case "customer.subscription.paused":
+      case "customer.subscription.resumed":
       case "customer.subscription.updated":
       case "customer.subscription.deleted":
+      case "customer.subscription.pending_update_applied":
+      case "customer.subscription.pending_update_expired":
+      case "customer.subscription.trial_will_end":
         await handleSubscriptionEvent(event);
         break;
       case "invoice.payment_failed":
         await handleInvoicePaymentFailed(event);
+        break;
+      case "invoice.paid":
+        await handleInvoicePaid(event);
         break;
       default:
         await log(LogLevel.INFO, "Ignoring unsupported Stripe webhook event", { eventId: event.id, type: event.type });

@@ -18,8 +18,8 @@ Use Stripe-hosted Checkout subscriptions while preserving the existing Auth0 -> 
       Verify: `rg -n "UserStatus.INACTIVE|sendPaymentEmail|redirect\\('/legal/terms'\\)|redirect\\('/profile/'|returnTo=/gateway" src/app/gateway src/app/api/auth/register`
 - [x] AC-4: Stripe webhooks are received at a Stripe-specific API route, verify `stripe-signature` with `STRIPE_WEBHOOK_SECRET` against the raw request body, and process duplicate events idempotently.
       Verify: `rg -n "stripe-signature|STRIPE_WEBHOOK_SECRET|constructEvent|processed|event.id|checkout.session.completed|customer.subscription" src/app/api/webhook src/models`
-- [x] AC-5: Stripe webhook state transitions keep `Profile.status` authoritative for authorization: `trialing` and `active` activate the profile; `canceled`, `unpaid`, and terminal checkout/subscription failures deactivate it; `past_due` is logged and handled according to the decision table below.
-      Verify: `rg -n "trialing|active|past_due|canceled|unpaid|UserStatus.ACTIVE|UserStatus.INACTIVE" src/app/api/webhook src/models/Subscription.ts`
+- [x] AC-5: Stripe webhook state transitions keep `Profile.status` authoritative for authorization: `trialing` and `active` activate the profile; `canceled`, `unpaid`, and terminal checkout/subscription failures deactivate it; `past_due` is logged and handled according to the decision table below. Successful recurring billing is reconciled from `invoice.paid`.
+      Verify: `rg -n "invoice.paid|trialing|active|past_due|canceled|unpaid|UserStatus.ACTIVE|UserStatus.INACTIVE" src/app/api/webhook src/models/Subscription.ts`
 - [x] AC-6: User-initiated cancellation updates the Stripe subscription, logs the request and result, and relies on the webhook to reconcile local state.
       Verify: `rg -n "subscriptions.update|cancel_at_period_end|subscriptions.cancel|ConfirmCancelPage|Stripe" src/app/config/cancel-subscription src/lib`
 - [x] AC-7: Subscription persistence mirrors Stripe identifiers and statuses, including enough data to reconcile users, customers, checkout sessions, subscriptions, prices, current period dates, cancellation status, and last processed webhook event.
@@ -57,7 +57,7 @@ The user explicitly suspended Red/Green TDD for this migration. Use the `rg`/`te
 | Checkout link | `checkout.url` |
 | Reconciliation key | `client_reference_id = profile id or email`, plus metadata `{ email, plan, externalAuthId }` |
 | Webhook route | Stripe webhook route `/api/webhook/payment/stripe` |
-| Webhook events | Stripe `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` |
+| Webhook events | Stripe `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `customer.subscription.pending_update_applied`, `customer.subscription.pending_update_expired`, `customer.subscription.trial_will_end`, `invoice.paid`, `invoice.payment_failed` |
 | Active payment status | Stripe subscription `trialing` or `active` |
 | Cancelled payment status | Stripe subscription `canceled` or deleted event |
 | Cancellation | Stripe subscription cancel/update API |
@@ -93,6 +93,12 @@ The user explicitly suspended Red/Green TDD for this migration. Use the `rg`/`te
 | `customer.subscription.created` | Upsert local `Subscription`; activate profile if status is `trialing` or `active`. |
 | `customer.subscription.updated` | Upsert local `Subscription`; set profile active for `trialing` or `active`; log `past_due`; set inactive for `unpaid`, `canceled`, or `incomplete_expired`. |
 | `customer.subscription.deleted` | Upsert final subscription data when present; set profile inactive. |
+| `customer.subscription.paused` | Upsert local `Subscription` and set the local profile inactive while Stripe reports the subscription as paused. |
+| `customer.subscription.resumed` | Upsert local `Subscription` and restore the local profile to active when Stripe resumes the subscription to `trialing` or `active`. |
+| `customer.subscription.pending_update_applied` | Upsert the latest Stripe subscription snapshot so local metadata stays aligned with a pending change that got applied. |
+| `customer.subscription.pending_update_expired` | Upsert the latest Stripe subscription snapshot so local metadata stays aligned when a pending change expires. |
+| `customer.subscription.trial_will_end` | Upsert the current subscription snapshot for observability; access remains driven by the subscription status mapping. |
+| `invoice.paid` | Retrieve the subscription, upsert the local mirror, and keep the profile active when Stripe has collected the recurring invoice successfully. |
 | `invoice.payment_failed` | Log with customer/subscription ids; mark profile inactive only if retrieved subscription status is `unpaid`, `canceled`, or `incomplete_expired`; for `past_due`, keep current access during Stripe retry window unless the business decides otherwise. |
 
 ### Reliability Requirements
@@ -135,7 +141,7 @@ Required fields:
 - Create one recurring monthly BRL Price for R$29.99.
 - Configure Checkout to collect credit cards only for this integration.
 - Configure the Stripe webhook endpoint to point at `/api/webhook/payment/stripe`.
-- Subscribe the endpoint to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, and `invoice.payment_failed`.
+- Subscribe the endpoint to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `customer.subscription.pending_update_applied`, `customer.subscription.pending_update_expired`, `customer.subscription.trial_will_end`, `invoice.paid`, and `invoice.payment_failed`.
 - Enable Stripe Billing retry settings/Smart Retries in Dashboard for card failures.
 - Keep Nuvem Fiscal unchanged for this feature unless a later invoice feature consumes Stripe invoice events.
 
@@ -259,6 +265,7 @@ POST /api/webhook/payment/stripe
 | `code::src/lib/subscription.ts::createSubscription` | source | Provider-specific subscription creation helper to replace with Stripe. |
 | `code::src/lib/emailService.ts::sendPaymentEmail` | source | SES payment activation email sender. |
 | `code::src/app/api/webhook/payment/stripe/route.ts::POST` | source | Stripe webhook route. |
+| `code::src/app/api/webhook/payment/stripe/route.ts::handleInvoicePaid` | source | Stripe recurring payment success reconciliation. |
 | `code::src/app/config/cancel-subscription/confirm/page.tsx::ConfirmCancelPage` | source | Cancellation flow to retarget to Stripe. |
 | `code::src/models/Profile.ts::Profile` | source | Profile model carrying app authorization status and subscription linkage. |
 | `code::src/models/Subscription.ts::Subscription` | source | Subscription mirror model to reshape for Stripe. |

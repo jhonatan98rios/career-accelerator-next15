@@ -2,7 +2,7 @@
 
 ## Summary
 
-Users subscribe through Stripe-hosted Checkout. Registration creates an inactive profile, creates a monthly Basic card Checkout Session, sends the Checkout activation link by email, and keeps the user INACTIVE until Stripe webhook evidence activates access. Cancellation can be triggered by the user from the settings page and is reconciled by Stripe webhooks.
+Users subscribe through Stripe-hosted Checkout. Registration creates an inactive profile, creates a monthly Basic card Checkout Session, sends the Checkout activation link by email, and keeps the user INACTIVE until Stripe webhook evidence activates access. Cancellation can be triggered by the user from the settings page and is reconciled by Stripe webhooks. Successful renewals are also reconciled from Stripe invoice webhooks so recurring access stays in sync without relying only on subscription update timing, and paused subscriptions are treated as inactive locally.
 
 ## Mental Model
 
@@ -18,6 +18,7 @@ User-facing cancellation calls Stripe from the server, requests period-end cance
 - `code::src/lib/subscription.ts::cancelSubscription` — Requests Stripe subscription cancellation
 - `code::src/lib/emailService.ts::sendPaymentEmail` — SES transactional email with Stripe Checkout link
 - `code::src/app/api/webhook/payment/stripe/route.ts::POST` — Signed Stripe webhook receiver, drives status transitions
+- `code::src/app/api/webhook/payment/stripe/route.ts::handleInvoicePaid` — Reconciles successful recurring invoice payments back into subscription/profile state
 - `code::src/app/api/auth/register/route.ts::POST` — Registration endpoint, creates Profile + subscription + email
 - `code::src/models/Subscription.ts::Subscription` — Mongoose model mirroring Stripe subscription state
 - `code::src/app/config/cancel-subscription/confirm/page.tsx::ConfirmCancelPage` — User-initiated subscription cancellation

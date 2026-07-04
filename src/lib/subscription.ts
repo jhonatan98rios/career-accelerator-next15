@@ -188,7 +188,7 @@ export async function syncProfileFromStripeSubscription(stripeSubscription: Stri
   const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
   const status = [SubscriptionStatus.TRIALING, SubscriptionStatus.ACTIVE].includes(subscription.status)
     ? UserStatus.ACTIVE
-    : [SubscriptionStatus.CANCELED, SubscriptionStatus.UNPAID, SubscriptionStatus.INCOMPLETE_EXPIRED].includes(subscription.status)
+    : [SubscriptionStatus.CANCELED, SubscriptionStatus.UNPAID, SubscriptionStatus.INCOMPLETE_EXPIRED, SubscriptionStatus.PAUSED].includes(subscription.status)
       ? UserStatus.INACTIVE
       : null;
 
