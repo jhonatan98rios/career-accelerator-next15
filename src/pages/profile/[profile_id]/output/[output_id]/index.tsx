@@ -9,9 +9,10 @@ import { GetStaticProps, InferGetStaticPropsType } from 'next';
 
 type StaticPropsType = {
   insight: InsightType | null
+  profile_id: string | undefined
 }
 
-export default function Page({ insight }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Page({ insight, profile_id }: InferGetStaticPropsType<typeof getStaticProps>) {
 
   useEffect(() => {
 
@@ -46,6 +47,15 @@ export default function Page({ insight }: InferGetStaticPropsType<typeof getStat
 
   return (
     <div>
+      <Link
+        href={`/profile/${profile_id}`}
+        className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-lg hover:bg-white/20 transition text-sm font-medium"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Voltar ao perfil
+      </Link>
       <header className="relative h-screen flex items-center justify-center bg-gradient-to-br from-purple-800 to-indigo-600 overflow-hidden">
         <div className="absolute top-10 left-1/4 w-64 h-64 bg-purple-700 rounded-full opacity-30 animate-float"></div>
         <div className="absolute bottom-16 right-1/5 w-72 h-72 bg-indigo-700 rounded-full opacity-30 animate-float"></div>
@@ -209,6 +219,7 @@ export const getStaticProps = (async (context) => {
       },
       props: {
         insight: null,
+        profile_id: profile_id || null,
       },
     };
   }
@@ -265,6 +276,7 @@ export const getStaticProps = (async (context) => {
   return {
     props: {
       insight: serialized_insight,
+      profile_id,
     },
   };
 

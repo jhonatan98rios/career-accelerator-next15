@@ -142,7 +142,7 @@ export const insightExample: InsightType = {
     "subtitle": "<string>",
     "cta": {
       "text": "<string>",
-      "href": "https://www.udemy.com/courses/search/?src=ukw&q=<keyword-here>&sort=relevance&ratings=4.5&lang=<language-here>",
+      "href": "https://www.udemy.com/courses/search/?src=ukw&q=<keyword+here>&sort=relevance&ratings=4.5&lang=<language-here>",
     }
   },
   "footer": {
@@ -158,6 +158,11 @@ export const getSystemPrompt = () => `
   The insight should be a single json (as a API) following this structure (you cannot change the structure, because the frontend will not work):
 
   {insightExample}
+
+  Rules:
+  - The language might respect the user's prompt language + english, like in "lang=pt&lang=en" or "lang=es&lang=en".
+  - The default udemy format for "keyword+here" is using + as a word separator, like in "q=Machine+Learning", "q=Deep+Learning" e "q=Engenharia+de+dados".
+  - The keywords might follow the market standard for the given profile, like "Machine+Learning", "Deep+Learning" and "Data+Engineering", even if the user's prompt language is different. Like in "q=Machine+Learning&lang=pt".
 
   You also need to generate a 6 months (short term) career roadmap based on the given career insight description. 
   You should always to create achievable steps, that can be completed in a month each. Be very descriptive in each step.
