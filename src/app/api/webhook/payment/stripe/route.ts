@@ -96,8 +96,21 @@ export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  const secretPreview = webhookSecret
+    ? `${webhookSecret.slice(0, 8)}...${webhookSecret.slice(-4)}`
+    : "undefined";
+  await log(LogLevel.INFO, "Stripe webhook received", {
+    hasSignature: !!signature,
+    signaturePreview: signature ? `${signature.slice(0, 16)}...` : "undefined",
+    hasSecret: !!webhookSecret,
+    secretPreview,
+  });
+
   if (!signature || !webhookSecret) {
-    await log(LogLevel.ERROR, "Stripe webhook missing signature or secret");
+    await log(LogLevel.ERROR, "Stripe webhook missing signature or secret", {
+      hasSignature: !!signature,
+      hasSecret: !!webhookSecret,
+    });
     return NextResponse.json({ error: "Invalid webhook configuration" }, { status: HttpStatus.BAD_REQUEST });
   }
 
@@ -105,9 +118,19 @@ export async function POST(req: Request) {
 
   try {
     const rawBody = await req.text();
+    await log(LogLevel.INFO, "Verifying Stripe webhook signature", {
+      bodyLength: rawBody.length,
+      bodyStart: rawBody.slice(0, 100),
+    });
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch (error) {
-    await log(LogLevel.ERROR, "Stripe webhook signature verification failed", { error });
+    await log(LogLevel.INFO, "Stripe webhook signature verified successfully", { eventId: event.id, type: event.type });
+  } catch (error: any) {
+    await log(LogLevel.ERROR, "Stripe webhook signature verification failed", {
+      errorMessage: error?.message,
+      errorType: error?.type || typeof error,
+      signaturePreview: signature.slice(0, 16) + "...",
+      secretPreview,
+    });
     return NextResponse.json({ error: "Invalid signature" }, { status: HttpStatus.BAD_REQUEST });
   }
 
