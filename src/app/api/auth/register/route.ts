@@ -1,20 +1,20 @@
-import { connectDB } from '@/lib/db';
-import { NextResponse } from 'next/server';
-import { Plan, UserStatus } from '@/lib/enums';
+import { connectDB } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { Plan, UserStatus } from "@/lib/enums";
 import { sendPaymentEmail } from "@/lib/emailService";
-import { createSubscription } from '@/lib/subscription';
-import { Profile } from '@/models/Profile';
-import { HttpStatus } from '@/types/httpStatus';
+import { createSubscription } from "@/lib/subscription";
+import { Profile } from "@/models/Profile";
+import { HttpStatus } from "@/types/httpStatus";
 import { log, LogLevel } from "@/lib/logger";
-import { isAuthenticated } from '@/lib/auth0';
+import { isAuthenticated } from "@/lib/auth0";
+import { BillingAddressInput, normalizeTaxProfile } from "@/lib/tax-profile";
 
 export type RegisterBody = {
   name: string;
   email: string;
-  cpf: string;
-  cep: string;
-  address: string;
-  address2: string;
+  billingEmail: string;
+  taxDocument: string;
+  billingAddress: BillingAddressInput;
   plan: Plan;
   sub: string;
   picture: string;
@@ -23,19 +23,35 @@ export type RegisterBody = {
 export async function POST(req: Request) {
 
   try {
-    const token = await isAuthenticated(req.headers)
+    const token = await isAuthenticated(req.headers);
   
     const body = await req.json();
-    const { name, email, cpf, cep, address, address2, plan, picture, sub }: RegisterBody = body;
+    const { name, email, billingEmail, taxDocument, billingAddress, plan, picture, sub }: RegisterBody = body;
 
     if (sub != token.sub) {
-      await log(LogLevel.ERROR, "POST /register: Failed to authenticate the user", { name, email, plan, sub, picture });
-      return NextResponse.json({ error: 'Failed to authenticate the user' }, { status: HttpStatus.UNAUTHORIZED });
+      await log(LogLevel.ERROR, "POST /register: Failed to authenticate the user", { email, plan, sub });
+      return NextResponse.json({ error: "Failed to authenticate the user" }, { status: HttpStatus.UNAUTHORIZED });
     }
 
-    if (!(name && email && cpf && cep && address && address2 && plan && sub && picture)) {
-      await log(LogLevel.ERROR, "POST /register: Missing required registration fields", { name, email, cpf, cep, address, address2, plan, sub, picture });
-      return NextResponse.json({ error: 'Missing required registration fields' }, { status: HttpStatus.BAD_REQUEST });
+    if (!(name && email && billingEmail && taxDocument && billingAddress && plan && sub && picture)) {
+      await log(LogLevel.ERROR, "POST /register: Missing required registration fields", { email, plan });
+      return NextResponse.json({ error: "Missing required registration fields" }, { status: HttpStatus.BAD_REQUEST });
+    }
+
+    const normalizedTaxProfile = normalizeTaxProfile({
+      name,
+      billingEmail,
+      taxDocument,
+      billingAddress,
+    });
+
+    if (normalizedTaxProfile.errors.length > 0 || !normalizedTaxProfile.data) {
+      await log(LogLevel.WARN, "POST /register: Invalid tax profile data", {
+        email,
+        plan,
+        invalidFields: normalizedTaxProfile.errors,
+      });
+      return NextResponse.json({ error: "Invalid tax profile data", fields: normalizedTaxProfile.errors }, { status: HttpStatus.BAD_REQUEST });
     }
   
     await log(LogLevel.INFO, "POST /register: Registering user", { email, plan });
@@ -56,17 +72,22 @@ export async function POST(req: Request) {
     await log(LogLevel.INFO, "Creating a new inactive user", { email, plan });
 
     const profile = await Profile.create({
-      name,
+      name: normalizedTaxProfile.data.name,
       email,
-      cpf,
-      cep,
-      address,
-      address2,
+      billingEmail: normalizedTaxProfile.data.billingEmail,
+      taxDocumentType: normalizedTaxProfile.data.taxDocumentType,
+      taxDocument: normalizedTaxProfile.data.taxDocument,
+      billingAddress: normalizedTaxProfile.data.billingAddress,
+      billingProfileCompletedAt: normalizedTaxProfile.data.billingProfileCompletedAt,
+      cpf: normalizedTaxProfile.data.legacy.cpf,
+      cep: normalizedTaxProfile.data.legacy.cep,
+      address: normalizedTaxProfile.data.legacy.address,
+      address2: normalizedTaxProfile.data.legacy.address2,
       plan,
       picture,
       externalAuthId: sub,
       status: UserStatus.INACTIVE,
-    })
+    });
 
     await log(LogLevel.INFO, "POST /register: Creating Stripe subscription", { email, plan, profileId: profile._id.toString() });
     const subscription = await createSubscription({
@@ -82,7 +103,7 @@ export async function POST(req: Request) {
       subscriptionId: subscription.stripeSubscriptionId || subscription.checkoutSessionId,
     });
 
-    await sendPaymentEmail({ name, to: email, plan, paymentLink: subscription.checkoutUrl });
+    await sendPaymentEmail({ name: normalizedTaxProfile.data.name, to: email, plan, paymentLink: subscription.checkoutUrl });
   
     return NextResponse.json(null, { status: HttpStatus.CREATED });
   }

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serves a Brazilian Portuguese career-acceleration SaaS ("AcelerAi"). Auth via Auth0, payments via Stripe Checkout subscriptions, LLM insights via OpenAI/LangChain (gpt-5-nano), MongoDB/Mongoose for persistence, AWS SES for transactional email, Datadog for logging, Nuvem Fiscal for NFSe invoicing. AI generation access is guarded by Mongo-backed cooldown and retry rules rather than a UI-only token counter.
+Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serves a Brazilian Portuguese career-acceleration SaaS ("AcelerAi"). Auth via Auth0, payments via Stripe Checkout subscriptions, LLM insights via OpenAI/LangChain (gpt-5-nano), MongoDB/Mongoose for persistence, AWS SES for transactional email, Datadog for logging, and structured fiscal-profile capture for later manual NFS-e issuance/export. AI generation access is guarded by Mongo-backed cooldown and retry rules rather than a UI-only token counter.
 
 ## Mode
 
@@ -23,7 +23,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - User registration + Auth0 authentication
 - Stripe Checkout subscription lifecycle (create, activate, cancel via webhook)
 - Consent management (versioned data-usage terms, PDFs, audit trail)
-- NFSe invoice generation via Nuvem Fiscal
+- Fiscal recipient data capture for manual NFSe issuance/export
 - Email notifications via AWS SES
 - Datadog-structured logging (Vercel → DD HTTP intake)
 - Career roadmap CRUD with step-level status tracking
@@ -39,7 +39,6 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 | OpenAI | LLM | OpenAI API | `gpt-5-nano-2025-08-07`, LangChain integration |
 | Stripe | Payment processor | Stripe API | Checkout subscription, webhook-driven status |
 | AWS SES | Email | AWS | Transactional payment-activation emails |
-| Nuvem Fiscal | Invoicing | Nuvem Fiscal API | NFSe issuance, OAuth2 client credentials |
 | Datadog | Logging | Datadog HTTP intake | Structured JSON logs from serverless functions |
 | ViaCEP | Address lookup | ViaCEP API | Client-side CEP auto-fill on registration form |
 
@@ -63,7 +62,6 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 | MongoDB | outbound | Persistence | Mongoose ODM, global connection cache pattern |
 | Stripe | outbound/inbound | Subscription creation and lifecycle | Stripe SDK for Checkout/subscriptions; signed webhook POST from Stripe |
 | AWS SES | outbound | Transactional email | SESClient via @aws-sdk/client-ses |
-| Nuvem Fiscal | outbound | NFSe invoice | OAuth2 client-credentials, REST v2 |
 | Datadog | outbound | Structured logging | HTTP POST to DD intake API |
 | ViaCEP | outbound | Address autocomplete | Public REST API, client-side `fetch` |
 
@@ -83,3 +81,4 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - `src/app/gateway/page.tsx` — Registration orchestration (profile + subscription + email + consent)
 - `src/pages/profile/[profile_id]/output/[output_id]/index.tsx` — Pages Router output page
 - `src/lib/ai-generation-guardrails.ts` — Shared eligibility logic for insight cooldown and roadmap retry rules
+- `src/lib/tax-profile.ts` — Shared fiscal-profile normalization and validation for manual invoicing data capture

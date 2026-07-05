@@ -10,6 +10,7 @@ import DataUsageCheckbox from "@/components/dataUsageCheckbox";
 import { ITerm, Term } from "@/models/Term";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import Link from "next/link";
+import { formatCep, formatCpf } from "@/lib/tax-profile";
 
 export default async function Page() {
 
@@ -35,6 +36,8 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
+  const billingAddress = user.billingAddress;
+
   return (
     <main className="bg-gray-50 text-gray-900 min-h-screen">
 
@@ -48,6 +51,7 @@ export default async function Page() {
           className="bg-white shadow-lg rounded-2xl p-8 space-y-6 border"
           action={updateUserData}
         >
+          <input type="hidden" name="billingAddress.country" value="BR" />
           {/* Nome */}
           <div>
             <label
@@ -80,6 +84,145 @@ export default async function Page() {
               readOnly
               className="w-full border border-gray-200 rounded-xl px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="billing-email"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              E-mail para faturamento
+            </label>
+            <input
+              id="billing-email"
+              name="billingEmail"
+              type="email"
+              defaultValue={user?.billingEmail ?? user?.email ?? ""}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="tax-document"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              CPF
+            </label>
+            <input
+              id="tax-document"
+              name="taxDocument"
+              type="text"
+              defaultValue={formatCpf(user?.taxDocument ?? user?.cpf ?? "")}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <label htmlFor="billing-cep" className="block text-sm font-semibold text-gray-700 mb-2">
+                CEP
+              </label>
+              <input
+                id="billing-cep"
+                name="billingAddress.cep"
+                type="text"
+                defaultValue={formatCep(billingAddress?.cep ?? user?.cep ?? "")}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="billing-number" className="block text-sm font-semibold text-gray-700 mb-2">
+                Numero
+              </label>
+              <input
+                id="billing-number"
+                name="billingAddress.number"
+                type="text"
+                defaultValue={billingAddress?.number ?? ""}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="billing-street" className="block text-sm font-semibold text-gray-700 mb-2">
+              Logradouro
+            </label>
+            <input
+              id="billing-street"
+              name="billingAddress.street"
+              type="text"
+              defaultValue={billingAddress?.street ?? user?.address ?? ""}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <label htmlFor="billing-complement" className="block text-sm font-semibold text-gray-700 mb-2">
+                Complemento
+              </label>
+              <input
+                id="billing-complement"
+                name="billingAddress.complement"
+                type="text"
+                defaultValue={billingAddress?.complement ?? user?.address2 ?? ""}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="billing-neighborhood" className="block text-sm font-semibold text-gray-700 mb-2">
+                Bairro
+              </label>
+              <input
+                id="billing-neighborhood"
+                name="billingAddress.neighborhood"
+                type="text"
+                defaultValue={billingAddress?.neighborhood ?? ""}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <div>
+              <label htmlFor="billing-city" className="block text-sm font-semibold text-gray-700 mb-2">
+                Cidade
+              </label>
+              <input
+                id="billing-city"
+                name="billingAddress.city"
+                type="text"
+                defaultValue={billingAddress?.city ?? ""}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="billing-state" className="block text-sm font-semibold text-gray-700 mb-2">
+                UF
+              </label>
+              <input
+                id="billing-state"
+                name="billingAddress.state"
+                type="text"
+                maxLength={2}
+                defaultValue={billingAddress?.state ?? ""}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="billing-ibge" className="block text-sm font-semibold text-gray-700 mb-2">
+                Codigo IBGE
+              </label>
+              <input
+                id="billing-ibge"
+                name="billingAddress.ibgeCityCode"
+                type="text"
+                defaultValue={billingAddress?.ibgeCityCode ?? ""}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
           </div>
 
           { /* Consent */ }
