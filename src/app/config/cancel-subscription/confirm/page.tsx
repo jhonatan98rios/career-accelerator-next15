@@ -14,7 +14,7 @@ export default async function ConfirmCancelPage() {
   // Check if the user exists on MongoDB
   await connectDB();
 
-  const user = await Profile.findOne({ email: session.user.email }) as IProfile | null;
+  const user = (await Profile.findOne({ email: session.user.email })) as IProfile | null;
 
   if (!user) {
     redirect("/gateway");
@@ -67,5 +67,5 @@ export default async function ConfirmCancelPage() {
 
   redirect("/auth/logout");
 
-  return null
+  return null;
 }

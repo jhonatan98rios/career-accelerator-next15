@@ -8,19 +8,19 @@ import { Profile } from "@/models/Profile";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 type CreateSubscriptionParams = {
-  plan: Plan
-  email: string
-  profileId?: string
-  externalAuthId?: string
-  stripeCustomerId?: string | null
-}
+  plan: Plan;
+  email: string;
+  profileId?: string;
+  externalAuthId?: string;
+  stripeCustomerId?: string | null;
+};
 
 export type CreatedSubscription = {
   checkoutSessionId: string;
   checkoutUrl: string;
   stripeCustomerId: string;
   stripeSubscriptionId?: string;
-}
+};
 
 function getStripePriceId(plan: Plan) {
   if (plan !== Plan.BASIC) {
@@ -38,7 +38,12 @@ export function getStripe() {
   return stripe;
 }
 
-async function findOrCreateCustomer({ email, stripeCustomerId, profileId, externalAuthId }: CreateSubscriptionParams) {
+async function findOrCreateCustomer({
+  email,
+  stripeCustomerId,
+  profileId,
+  externalAuthId,
+}: CreateSubscriptionParams) {
   if (stripeCustomerId) {
     try {
       const customer = await stripe.customers.retrieve(stripeCustomerId);
@@ -48,7 +53,7 @@ async function findOrCreateCustomer({ email, stripeCustomerId, profileId, extern
       // ponytail: customer was soft-deleted in Stripe, create new one
     } catch (err: any) {
       // ponytail: customer not found (resource_missing), create new one
-      if (err.code !== 'resource_missing') throw err;
+      if (err.code !== "resource_missing") throw err;
     }
   }
 
@@ -70,7 +75,9 @@ async function findOrCreateCustomer({ email, stripeCustomerId, profileId, extern
   return customer.id;
 }
 
-export async function createSubscription(params: CreateSubscriptionParams): Promise<CreatedSubscription> {
+export async function createSubscription(
+  params: CreateSubscriptionParams
+): Promise<CreatedSubscription> {
   const { email, plan, profileId, externalAuthId } = params;
 
   try {
@@ -118,10 +125,18 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
       checkoutSessionId: checkout.id,
       checkoutUrl: checkout.url,
       stripeCustomerId,
-      stripeSubscriptionId: typeof checkout.subscription === "string" ? checkout.subscription : checkout.subscription?.id,
+      stripeSubscriptionId:
+        typeof checkout.subscription === "string"
+          ? checkout.subscription
+          : checkout.subscription?.id,
     };
   } catch (error) {
-    await log(LogLevel.ERROR, "Error creating Stripe subscription", { error, email, plan, profileId });
+    await log(LogLevel.ERROR, "Error creating Stripe subscription", {
+      error,
+      email,
+      plan,
+      profileId,
+    });
     throw error;
   }
 }
@@ -155,7 +170,8 @@ export async function upsertStripeSubscription({
   const firstItem = subscription.items?.data?.[0];
   const email = subscription.metadata?.email || "";
   const profileId = subscription.metadata?.profileId || "";
-  const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+  const stripeCustomerId =
+    typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
 
   return Subscription.findOneAndUpdate(
     { stripeSubscriptionId: subscription.id },
@@ -169,13 +185,20 @@ export async function upsertStripeSubscription({
         stripeSubscriptionId: subscription.id,
         stripeCheckoutSessionId,
         stripePriceId: firstItem?.price?.id,
-        currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
-        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+        currentPeriodStart: subscription.current_period_start
+          ? new Date(subscription.current_period_start * 1000)
+          : null,
+        currentPeriodEnd: subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000)
+          : null,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
         trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
         trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-        latestInvoiceId: typeof subscription.latest_invoice === "string" ? subscription.latest_invoice : subscription.latest_invoice?.id,
+        latestInvoiceId:
+          typeof subscription.latest_invoice === "string"
+            ? subscription.latest_invoice
+            : subscription.latest_invoice?.id,
         lastStripeEventId: eventId,
         raw: {
           id: subscription.id,
@@ -186,7 +209,7 @@ export async function upsertStripeSubscription({
       },
       $addToSet: { processedStripeEventIds: eventId },
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 }
 
@@ -194,10 +217,18 @@ export async function syncProfileFromStripeSubscription(stripeSubscription: Stri
   const subscription = stripeSubscription as any;
   const email = subscription.metadata?.email;
   const profileId = subscription.metadata?.profileId;
-  const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
-  const status = [SubscriptionStatus.TRIALING, SubscriptionStatus.ACTIVE].includes(subscription.status)
+  const stripeCustomerId =
+    typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+  const status = [SubscriptionStatus.TRIALING, SubscriptionStatus.ACTIVE].includes(
+    subscription.status
+  )
     ? UserStatus.ACTIVE
-    : [SubscriptionStatus.CANCELED, SubscriptionStatus.UNPAID, SubscriptionStatus.INCOMPLETE_EXPIRED, SubscriptionStatus.PAUSED].includes(subscription.status)
+    : [
+          SubscriptionStatus.CANCELED,
+          SubscriptionStatus.UNPAID,
+          SubscriptionStatus.INCOMPLETE_EXPIRED,
+          SubscriptionStatus.PAUSED,
+        ].includes(subscription.status)
       ? UserStatus.INACTIVE
       : null;
 

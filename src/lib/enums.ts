@@ -1,15 +1,15 @@
 export enum Plan {
-  BASIC = 'basic',
+  BASIC = "basic",
   //INTERMEDIARY = 'intermediary',
   //PREMIUM = 'premium',
 }
 
 export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
+  ACTIVE = "active",
+  INACTIVE = "inactive",
 }
 
 export enum RoadmapStatus {
-  PENDING = 'pending',
-  DONE = 'done'
+  PENDING = "pending",
+  DONE = "done",
 }

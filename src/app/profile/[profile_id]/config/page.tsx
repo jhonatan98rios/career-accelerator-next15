@@ -13,51 +13,43 @@ import Link from "next/link";
 import { formatCep, formatCpf } from "@/lib/tax-profile";
 
 export default async function Page() {
-
-  const [session] = await Promise.all([
-    getSessionCached(),
-    connectDB()
-  ])
+  const [session] = await Promise.all([getSessionCached(), connectDB()]);
 
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  const { email } = session.user
+  const { email } = session.user;
 
-  const user = await Profile.findOne({ email }) as IProfile | null;
+  const user = (await Profile.findOne({ email })) as IProfile | null;
   const term = (await Term.findOne({}, {}, { sort: { createdAt: -1 } })) as ITerm;
-  const consent = await Consent.findOne({ 
-    email, 
-    currentVersion: term.version
-  }) as IConsent | null
+  const consent = (await Consent.findOne({
+    email,
+    currentVersion: term.version,
+  })) as IConsent | null;
 
   if (!user) {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  let billingAddress = user.billingAddress;
+  const billingAddress = user.billingAddress;
 
   return (
     <main className="bg-gray-50 text-gray-900 min-h-screen">
-
       {/* Formulário */}
       <section className="container mx-auto px-6 py-12 max-w-2xl">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
           Ajuste as informações da sua conta
         </h2>
 
-        <form 
+        <form
           className="bg-white shadow-lg rounded-2xl p-8 space-y-6 border"
           action={updateUserData}
         >
           <input type="hidden" name="billingAddress.country" value="BR" />
           {/* Nome */}
           <div>
-            <label
-              htmlFor="user-name"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
+            <label htmlFor="user-name" className="block text-sm font-semibold text-gray-700 mb-2">
               Nome
             </label>
             <input
@@ -71,10 +63,7 @@ export default async function Page() {
 
           {/* Email (read-only) */}
           <div>
-            <label
-              htmlFor="user-email"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
+            <label htmlFor="user-email" className="block text-sm font-semibold text-gray-700 mb-2">
               Email
             </label>
             <input
@@ -120,7 +109,10 @@ export default async function Page() {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="billing-cep" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="billing-cep"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 CEP
               </label>
               <input
@@ -132,7 +124,10 @@ export default async function Page() {
               />
             </div>
             <div>
-              <label htmlFor="billing-number" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="billing-number"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Numero
               </label>
               <input
@@ -146,7 +141,10 @@ export default async function Page() {
           </div>
 
           <div>
-            <label htmlFor="billing-street" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="billing-street"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Logradouro
             </label>
             <input
@@ -160,7 +158,10 @@ export default async function Page() {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="billing-complement" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="billing-complement"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Complemento
               </label>
               <input
@@ -172,7 +173,10 @@ export default async function Page() {
               />
             </div>
             <div>
-              <label htmlFor="billing-neighborhood" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="billing-neighborhood"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Bairro
               </label>
               <input
@@ -187,7 +191,10 @@ export default async function Page() {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="billing-city" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="billing-city"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 Cidade
               </label>
               <input
@@ -199,7 +206,10 @@ export default async function Page() {
               />
             </div>
             <div>
-              <label htmlFor="billing-state" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                htmlFor="billing-state"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 UF
               </label>
               <input
@@ -211,14 +221,13 @@ export default async function Page() {
                 className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-
           </div>
 
-          { /* Consent */ }
+          {/* Consent */}
           <div className="mt-10 text-left">
-            <DataUsageCheckbox 
-              email={user?.email} 
-              version={term?.version!} 
+            <DataUsageCheckbox
+              email={user?.email}
+              version={term?.version ?? ""}
               consent={consent?.status == ConsentEventStatus.AGREED}
               hasButton={false}
             />
@@ -238,17 +247,14 @@ export default async function Page() {
             >
               Salvar
             </button>
-          </div>        
+          </div>
 
-          
           {/* Logout */}
           <LogoutButton />
 
           {/* Cancel Subscription */}
           <CancelSubscriptionButton />
         </form>
-
-
       </section>
     </main>
   );

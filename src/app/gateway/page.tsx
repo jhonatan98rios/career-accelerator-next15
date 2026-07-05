@@ -1,15 +1,15 @@
-import { auth0 } from '@/lib/auth0';
-import { connectDB } from '@/lib/db';
-import { UserStatus } from '@/lib/enums';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { GatewayForm } from './form';
-import { IProfile, Profile } from '@/models/Profile';
-import { createSubscription } from '@/lib/subscription';
-import { sendPaymentEmail } from '@/lib/emailService';
+import { auth0 } from "@/lib/auth0";
+import { connectDB } from "@/lib/db";
+import { UserStatus } from "@/lib/enums";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { GatewayForm } from "./form";
+import { IProfile, Profile } from "@/models/Profile";
+import { createSubscription } from "@/lib/subscription";
+import { sendPaymentEmail } from "@/lib/emailService";
 import { log, LogLevel } from "@/lib/logger";
-import { Consent, ConsentEventStatus, IConsent } from '@/models/Consent';
-import { ITerm, Term } from '@/models/Term';
+import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
+import { ITerm, Term } from "@/models/Term";
 
 export default async function Gateway() {
   const session = await auth0.getSession();
@@ -28,7 +28,7 @@ export default async function Gateway() {
       <div className="bg-gray-100 min-h-screen text-gray-900">
         <Link
           href="/auth/logout"
-          className='absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900'
+          className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
         >
           Logout
         </Link>
@@ -44,82 +44,98 @@ export default async function Gateway() {
   }
 
   if (user && user.status === UserStatus.INACTIVE) {
+    let inactiveError = false;
     try {
-      await log(LogLevel.INFO, "User inactive, creating new subscription", { email: user.email, plan: user.plan });
+      await log(LogLevel.INFO, "User inactive, creating new subscription", {
+        email: user.email,
+        plan: user.plan,
+      });
       const subscription = await createSubscription({
         plan: user.plan,
         email: user.email!,
         profileId: String(user._id),
         externalAuthId: user.externalAuthId,
         stripeCustomerId: user.stripeCustomerId,
-      })
+      });
 
       await Profile.findByIdAndUpdate(user._id, {
         stripeCustomerId: subscription.stripeCustomerId,
         subscriptionId: subscription.stripeSubscriptionId || subscription.checkoutSessionId,
       });
 
-      await log(LogLevel.INFO, "Sending payment email", { email: user.email, plan: user.plan, paymentLink: subscription.checkoutUrl });
+      await log(LogLevel.INFO, "Sending payment email", {
+        email: user.email,
+        plan: user.plan,
+        paymentLink: subscription.checkoutUrl,
+      });
       await sendPaymentEmail({
         name: user.name!,
         to: user.email!,
         plan: user.plan,
-        paymentLink: subscription.checkoutUrl
-      })
+        paymentLink: subscription.checkoutUrl,
+      });
+    } catch (error: unknown) {
+      inactiveError = true;
+      await log(LogLevel.ERROR, "Failed to create subscription for inactive user", {
+        email: user.email,
+        error,
+      });
+    }
 
+    if (inactiveError) {
       return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
           <Link
             href="/auth/logout"
-            className='absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900'
-          >
-            Logout
-          </Link>
-          <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
-            <h1 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Conta Inativa</h1>
-            <p className="mb-4 text-gray-700">
-              Sua conta está inativa devido a problemas no pagamento. <br />
-              Te enviamos um novo link de pagamento por email.
-            </p>
-          </div>
-        </div>
-      )
-    } catch (error: any) {
-      await log(LogLevel.ERROR, "Failed to create subscription for inactive user", { email: user.email, error });
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-          <Link
-            href="/auth/logout"
-            className='absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900'
+            className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
           >
             Logout
           </Link>
           <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
             <h1 className="text-3xl font-bold mb-4 text-red-600">Erro</h1>
             <p className="mb-4 text-gray-700">
-              Não foi possível processar sua assinatura no momento.<br />
+              Não foi possível processar sua assinatura no momento.
+              <br />
               Por favor, tente novamente mais tarde.
             </p>
           </div>
         </div>
-      )
+      );
     }
+
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+        <Link
+          href="/auth/logout"
+          className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
+        >
+          Logout
+        </Link>
+        <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
+          <h1 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+            Conta Inativa
+          </h1>
+          <p className="mb-4 text-gray-700">
+            Sua conta está inativa devido a problemas no pagamento. <br />
+            Te enviamos um novo link de pagamento por email.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-
-    // Improve the validation below
+  // Improve the validation below
   if (user && user.status === UserStatus.ACTIVE) {
-
     const term = (await Term.findOne({}, {}, { sort: { createdAt: -1 } })) as ITerm;
-    const consent = await Consent.findOne({ 
+    const consent = (await Consent.findOne({
       email: user.email,
-      currentVersion: term.version
-    }) as IConsent | null
+      currentVersion: term.version,
+    })) as IConsent | null;
 
     if (!consent || consent.status != ConsentEventStatus.AGREED) {
-      redirect('/legal/terms')
+      redirect("/legal/terms");
     }
 
-    redirect('/profile/' + user._id)
+    redirect("/profile/" + user._id);
   }
 }

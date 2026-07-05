@@ -2,7 +2,11 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { log, LogLevel } from "@/lib/logger";
-import { getStripe, syncProfileFromStripeSubscription, upsertStripeSubscription } from "@/lib/subscription";
+import {
+  getStripe,
+  syncProfileFromStripeSubscription,
+  upsertStripeSubscription,
+} from "@/lib/subscription";
 import { Subscription } from "@/models/Subscription";
 import { HttpStatus } from "@/types/httpStatus";
 
@@ -16,7 +20,10 @@ async function handleSubscriptionEvent(event: Stripe.Event) {
   const stripeSubscription = event.data.object as Stripe.Subscription;
 
   if (await alreadyProcessed(event.id)) {
-    await log(LogLevel.INFO, "Stripe webhook event already processed", { eventId: event.id, type: event.type });
+    await log(LogLevel.INFO, "Stripe webhook event already processed", {
+      eventId: event.id,
+      type: event.type,
+    });
     return;
   }
 
@@ -28,7 +35,10 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   const checkout = event.data.object as Stripe.Checkout.Session;
 
   if (await alreadyProcessed(event.id)) {
-    await log(LogLevel.INFO, "Stripe webhook event already processed", { eventId: event.id, type: event.type });
+    await log(LogLevel.INFO, "Stripe webhook event already processed", {
+      eventId: event.id,
+      type: event.type,
+    });
     return;
   }
 
@@ -41,7 +51,8 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     return;
   }
 
-  const stripeSubscriptionId = typeof checkout.subscription === "string" ? checkout.subscription : checkout.subscription.id;
+  const stripeSubscriptionId =
+    typeof checkout.subscription === "string" ? checkout.subscription : checkout.subscription.id;
   const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
 
   await upsertStripeSubscription({
@@ -54,16 +65,18 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
 async function handleInvoicePaymentFailed(event: Stripe.Event) {
   const invoice = event.data.object as any;
-  const stripeSubscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  const stripeSubscriptionId =
+    typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
 
   await log(LogLevel.WARN, "Stripe invoice payment failed", {
     eventId: event.id,
-    stripeCustomerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
+    stripeCustomerId:
+      typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
     stripeSubscriptionId,
     invoiceId: invoice.id,
   });
 
-  if (!stripeSubscriptionId || await alreadyProcessed(event.id)) {
+  if (!stripeSubscriptionId || (await alreadyProcessed(event.id))) {
     return;
   }
 
@@ -74,16 +87,18 @@ async function handleInvoicePaymentFailed(event: Stripe.Event) {
 
 async function handleInvoicePaid(event: Stripe.Event) {
   const invoice = event.data.object as any;
-  const stripeSubscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  const stripeSubscriptionId =
+    typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
 
   await log(LogLevel.INFO, "Stripe invoice paid", {
     eventId: event.id,
-    stripeCustomerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
+    stripeCustomerId:
+      typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
     stripeSubscriptionId,
     invoiceId: invoice.id,
   });
 
-  if (!stripeSubscriptionId || await alreadyProcessed(event.id)) {
+  if (!stripeSubscriptionId || (await alreadyProcessed(event.id))) {
     return;
   }
 
@@ -105,7 +120,10 @@ export async function POST(req: Request) {
       hasSignature: !!signature,
       hasSecret: !!webhookSecret,
     });
-    return NextResponse.json({ error: "Invalid webhook configuration" }, { status: HttpStatus.BAD_REQUEST });
+    return NextResponse.json(
+      { error: "Invalid webhook configuration" },
+      { status: HttpStatus.BAD_REQUEST }
+    );
   }
 
   let event: Stripe.Event;
@@ -118,12 +136,15 @@ export async function POST(req: Request) {
     rawBody = Buffer.from(buf);
     await log(LogLevel.INFO, "Stripe webhook received", {
       bodyLength: rawBody.length,
-      bodyStart: rawBody.toString('utf8').slice(0, 100),
+      bodyStart: rawBody.toString("utf8").slice(0, 100),
       signaturePreview: signature.slice(0, 16) + "...",
       secretPreview,
     });
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-    await log(LogLevel.INFO, "Stripe webhook signature verified successfully", { eventId: event.id, type: event.type });
+    await log(LogLevel.INFO, "Stripe webhook signature verified successfully", {
+      eventId: event.id,
+      type: event.type,
+    });
   } catch (error: any) {
     await log(LogLevel.ERROR, "Stripe webhook signature verification failed", {
       errorMessage: error?.message,
@@ -161,12 +182,22 @@ export async function POST(req: Request) {
         await handleInvoicePaid(event);
         break;
       default:
-        await log(LogLevel.INFO, "Ignoring unsupported Stripe webhook event", { eventId: event.id, type: event.type });
+        await log(LogLevel.INFO, "Ignoring unsupported Stripe webhook event", {
+          eventId: event.id,
+          type: event.type,
+        });
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    await log(LogLevel.ERROR, "Stripe webhook processing failed", { error, eventId: event.id, type: event.type });
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
+    await log(LogLevel.ERROR, "Stripe webhook processing failed", {
+      error,
+      eventId: event.id,
+      type: event.type,
+    });
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: HttpStatus.INTERNAL_SERVER_ERROR }
+    );
   }
 }

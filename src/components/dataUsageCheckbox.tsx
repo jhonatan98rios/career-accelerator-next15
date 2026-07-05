@@ -1,27 +1,26 @@
-'use client'
+"use client";
 
 import { toggleConsent } from "@/app/actions/consent";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
-interface IDataUsageCheckbox { 
-  email: string, 
-  version: string,
-  consent?: boolean,
-  hasButton: boolean
+interface IDataUsageCheckbox {
+  email: string;
+  version: string;
+  consent?: boolean;
+  hasButton: boolean;
 }
 
 export default function DataUsageCheckbox(props: IDataUsageCheckbox) {
-
-  const { email, version, hasButton } = props
-  const [consent, setConsent] = useState(props.consent || false)
-  const [ isPending, startTransition ] = useTransition()
+  const { email, version, hasButton } = props;
+  const [consent, setConsent] = useState(props.consent || false);
+  const [isPending, startTransition] = useTransition();
 
   const handleChange = (checked: boolean) => {
-    setConsent(checked)
+    setConsent(checked);
     startTransition(async () => {
-      await toggleConsent(email, checked)
+      await toggleConsent(email, checked);
     });
   };
 
@@ -47,7 +46,7 @@ export default function DataUsageCheckbox(props: IDataUsageCheckbox) {
           id="consent"
           checked={consent}
           disabled={isPending}
-          onChange={(e) => handleChange(!consent)}
+          onChange={(_e) => handleChange(!consent)}
           className="w-5 h-5 accent-purple-500"
         />
         <span className="text-gray-800 font-medium">
@@ -55,26 +54,23 @@ export default function DataUsageCheckbox(props: IDataUsageCheckbox) {
         </span>
       </label>
 
-      {
-        hasButton && (
-          <button
-            disabled={!consent || isPending}
-            className={`
+      {hasButton && (
+        <button
+          disabled={!consent || isPending}
+          className={`
               mt-6 px-8 py-3 rounded-xl bg-gradient-to-r 
               ${
-                consent && !isPending ? 
-                "from-purple-500 to-indigo-500 hover:scale-105 transition-transform" : 
-                "bg-gray-500"
+                consent && !isPending
+                  ? "from-purple-500 to-indigo-500 hover:scale-105 transition-transform"
+                  : "bg-gray-500"
               }
               text-white font-bold 
-            `
-            }
-            onClick={() => redirect("/gateway")}
-          >
-            Aceitar e continuar
-          </button>  
-        )
-      }
+            `}
+          onClick={() => redirect("/gateway")}
+        >
+          Aceitar e continuar
+        </button>
+      )}
     </div>
   );
 }

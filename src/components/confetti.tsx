@@ -16,7 +16,6 @@ export function ConfettiOnComplete({ allDone }: Props) {
         particleCount: 400,
         spread: 250,
         origin: { y: 0.5 },
-
       });
       setHasFired(true);
     }
@@ -24,7 +23,7 @@ export function ConfettiOnComplete({ allDone }: Props) {
 
   useEffect(() => {
     if (hasFired) {
-        setHasFired(false);
+      setHasFired(false);
     }
   }, [allDone]);
 

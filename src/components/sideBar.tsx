@@ -4,8 +4,8 @@ import Link from "next/link";
 import { InsightGuardrailState } from "@/lib/ai-generation-guardrails";
 
 interface SideBarProps {
-  id: string
-  insightGuardrail: InsightGuardrailState
+  id: string;
+  insightGuardrail: InsightGuardrailState;
 }
 
 function formatDateTime(value: string | null) {
@@ -35,33 +35,24 @@ export default function SideBar({ id, insightGuardrail }: SideBarProps) {
         ? `Liberado em ${unlockAt}.`
         : "Aguarde o fim do intervalo para gerar outro plano.";
 
-  return (  
-    <aside className={
-      `fixed z-40 left-0 h-38 md:h-full w-full overflow-scroll md:overflow-hidden md:w-64 
-      bg-gradient-to-b from-purple-500 to-indigo-500 text-white flex md:flex-col justify-between`
-    }>
+  return (
+    <aside
+      className={`fixed z-40 left-0 h-38 md:h-full w-full overflow-scroll md:overflow-hidden md:w-64 
+      bg-gradient-to-b from-purple-500 to-indigo-500 text-white flex md:flex-col justify-between`}
+    >
       {/* Top menu */}
       <div>
         <nav className="mt-24 flex md:flex-col whitespace-nowrap space-y-4 px-4">
           <Link href={`/profile/${id}`} className="hover:bg-purple-600 p-2 rounded-lg">
             Início
           </Link>
-          <Link
-            href={`/profile/${id}/input`}
-            className="hover:bg-purple-600 p-2 rounded-lg"
-          >
+          <Link href={`/profile/${id}/input`} className="hover:bg-purple-600 p-2 rounded-lg">
             Novo Plano de Carreira
           </Link>
-          <Link
-            href={`/profile/${id}/roadmaps`}
-            className="hover:bg-purple-600 p-2 rounded-lg"
-          >
+          <Link href={`/profile/${id}/roadmaps`} className="hover:bg-purple-600 p-2 rounded-lg">
             Acompanhe seu Progresso
           </Link>
-          <Link
-            href={`/profile/${id}/config`}
-            className="hover:bg-purple-600 p-2 rounded-lg"
-          >
+          <Link href={`/profile/${id}/config`} className="hover:bg-purple-600 p-2 rounded-lg">
             Configurações
           </Link>
         </nav>
@@ -72,5 +63,5 @@ export default function SideBar({ id, insightGuardrail }: SideBarProps) {
         <p className="text-sm font-semibold leading-snug">{statusBody}</p>
       </div>
     </aside>
-  )
+  );
 }

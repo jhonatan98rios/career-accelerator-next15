@@ -3,9 +3,11 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main className="bg-gray-50 text-gray-900">
-
       <div className="w-full h-10 flex justify-end pr-6 py-2">
-        <Link href="/auth/login?returnTo=/gateway" className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+        <Link
+          href="/auth/login?returnTo=/gateway"
+          className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500"
+        >
           Log in
         </Link>
       </div>
@@ -16,10 +18,13 @@ export default function Home() {
           IA para acelerar sua carreira
         </h1>
         <p className="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
-          Estatísticas de mercado, plano de carreira, currículo otimizado e roadmap de estudos.
-          Tudo em um só lugar. Simples, rápido e inteligente.
+          Estatísticas de mercado, plano de carreira, currículo otimizado e roadmap de estudos. Tudo
+          em um só lugar. Simples, rápido e inteligente.
         </p>
-        <Link href="/auth/login?returnTo=/gateway" className="inline-block mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform">
+        <Link
+          href="/auth/login?returnTo=/gateway"
+          className="inline-block mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform"
+        >
           Comece agora
         </Link>
       </section>
@@ -59,19 +64,23 @@ export default function Home() {
             Planos para todos os objetivos
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-
             {/* Básico */}
             <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[460px]">
               <h3 className="text-2xl font-bold text-purple-500">Básico</h3>
-              <p className="mt-4 text-4xl font-extrabold">R$29,99<span className="text-base font-normal">/mês</span></p>
+              <p className="mt-4 text-4xl font-extrabold">
+                R$29,99<span className="text-base font-normal">/mês</span>
+              </p>
               <ul className="mt-6 space-y-3 text-gray-600">
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
                 <li>✅ 60 tokens mensais</li>
-								<li>✅ 7 dias grátis para testar </li>
+                <li>✅ 7 dias grátis para testar </li>
               </ul>
-              <Link href="/auth/login?returnTo=/gateway" className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform">
+              <Link
+                href="/auth/login?returnTo=/gateway"
+                className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform"
+              >
                 Ver mais
               </Link>
             </div>
@@ -87,7 +96,10 @@ export default function Home() {
                 <li>✅ Currículo otimizado para cada vaga</li>
                 <li>✅ 120 tokens mensais </li>
               </ul>
-              <button disabled className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
+              <button
+                disabled
+                className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed"
+              >
                 Em breve
               </button>
             </div>
@@ -103,7 +115,10 @@ export default function Home() {
                 <li>✅ Currículo otimizado para cada vaga</li>
                 <li>✅ 300 tokens mensais </li>
               </ul>
-              <button disabled className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
+              <button
+                disabled
+                className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed"
+              >
                 Em breve
               </button>
             </div>
@@ -111,8 +126,9 @@ export default function Home() {
         </div>
         <div className="disclaimer text-center mt-12 text-gray-500 max-w-4/5 m-auto">
           <p>
-						*Os tokens são utilizados somente para acessar as funcionalidades de IA. Os tokens são renovados mensalmente.
-					</p>
+            *Os tokens são utilizados somente para acessar as funcionalidades de IA. Os tokens são
+            renovados mensalmente.
+          </p>
         </div>
       </section>
 
@@ -120,7 +136,10 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-center">
         <h2 className="text-4xl font-bold">Pronto para acelerar sua carreira?</h2>
         <p className="mt-4 text-lg">Comece hoje mesmo e dê o próximo passo rumo ao seu futuro.</p>
-        <Link href="/auth/login?returnTo=/gateway" className="inline-block mt-8 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100">
+        <Link
+          href="/auth/login?returnTo=/gateway"
+          className="inline-block mt-8 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100"
+        >
           Criar conta grátis
         </Link>
       </section>

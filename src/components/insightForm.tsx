@@ -1,14 +1,13 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useTransition } from 'react';
-import { useFormContext } from '@/store/FormContext';
-import { useParams, useRouter } from 'next/navigation';
-import { InsightGuardrailState } from '@/lib/ai-generation-guardrails';
-
+import React, { useEffect, useState, useTransition } from "react";
+import { useFormContext } from "@/store/FormContext";
+import { useParams, useRouter } from "next/navigation";
+import { InsightGuardrailState } from "@/lib/ai-generation-guardrails";
 
 interface PageProps {
-  output_id: string
-  profile_id: string
+  output_id: string;
+  profile_id: string;
 }
 
 interface Props {
@@ -28,21 +27,15 @@ function formatDateTime(value: string | null) {
 }
 
 export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
+  const params = useParams();
+  const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const params = useParams()
-  const router = useRouter()
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const { profile_id } = params as unknown as PageProps;
+  const [isPending, startTransition] = useTransition();
 
-  const { profile_id } = params as unknown as PageProps
-  const [ isPending, startTransition ] = useTransition()
-
-  const {
-    manualDescription,
-    answers,
-    setManualDescription,
-    setAnswers,
-    resetForm,
-  } = useFormContext();
+  const { manualDescription, answers, setManualDescription, setAnswers, resetForm } =
+    useFormContext();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -51,66 +44,65 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
 
   const submit = async () => {
     try {
-      setErrorMessage(null)
-      console.log('Form submitted with data:', { answers, manualDescription });
-      const res = await fetch('/api/insight', {
-        method: 'POST',
+      setErrorMessage(null);
+
+      const res = await fetch("/api/insight", {
+        method: "POST",
         body: JSON.stringify({ answers, manualDescription, profile_id }),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwtToken}`
-        }
-      })
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      });
 
-      const payload = await res.json()
+      const payload = await res.json();
 
       if (!res.ok) {
-        const unlockAt = formatDateTime(payload.unlockAt ?? null)
+        const unlockAt = formatDateTime(payload.unlockAt ?? null);
         setErrorMessage(
           unlockAt
             ? `Seu proximo insight sera liberado em ${unlockAt}.`
-            : payload.error || 'Nao foi possivel gerar o insight agora.'
-        )
-        return
+            : payload.error || "Nao foi possivel gerar o insight agora."
+        );
+        return;
       }
-  
-      const { data } = payload
+
+      const { data } = payload;
 
       if (!data._id) {
-        throw new Error('No data returned from API')
+        throw new Error("No data returned from API");
       }
 
-      router.push(`/profile/${profile_id}/output/${data._id}`)
+      router.push(`/profile/${profile_id}/output/${data._id}`);
+    } catch (err) {
+      console.error("Error while generating the insight:", err);
+      setErrorMessage("Nao foi possivel gerar o insight agora. Tente novamente em instantes.");
     }
-    catch (err) {
-      console.log('Error while generating the insight:', err)
-      setErrorMessage('Nao foi possivel gerar o insight agora. Tente novamente em instantes.')
-    }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPending || !insightGuardrail.canGenerate) return
+    if (isPending || !insightGuardrail.canGenerate) return;
 
     startTransition(async () => {
-      await submit()
-    })
-  }
+      await submit();
+    });
+  };
 
   useEffect(() => {
-    resetForm()
+    resetForm();
   }, []);
 
   const helperMessage = insightGuardrail.bypassed
     ? "Sua conta ignora os limites de geracao."
     : insightGuardrail.canGenerate
       ? "Seu proximo plano pode ser gerado agora."
-      : `Seu proximo insight sera liberado em ${formatDateTime(insightGuardrail.unlockAt)}.`
+      : `Seu proximo insight sera liberado em ${formatDateTime(insightGuardrail.unlockAt)}.`;
 
   return (
     <form className="max-w-3xl mx-auto px-6 py-12 space-y-12" onSubmit={handleSubmit}>
       <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-20 block">
-        Comece falando um pouco sobre você 
+        Comece falando um pouco sobre você
       </h1>
 
       {/* Perguntas guiadas */}
@@ -127,7 +119,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">Quanto tempo de experiência você tem?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            Quanto tempo de experiência você tem?
+          </label>
           <input
             name="experience"
             type="text"
@@ -138,7 +132,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">Você tem formação superior? Se sim, qual?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            Você tem formação superior? Se sim, qual?
+          </label>
           <input
             name="education"
             type="text"
@@ -149,7 +145,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">Qual emprego você gostaria de ter?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            Qual emprego você gostaria de ter?
+          </label>
           <input
             name="dreamJob"
             type="text"
@@ -161,7 +159,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">Quais são suas principais soft skills?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            Quais são suas principais soft skills?
+          </label>
           <input
             name="softSkills"
             type="text"
@@ -173,7 +173,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">Quais são suas principais hard skills?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            Quais são suas principais hard skills?
+          </label>
           <input
             name="hardSkills"
             type="text"
@@ -185,7 +187,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?
+          </label>
           <textarea
             name="blockers"
             rows={3}
@@ -197,7 +201,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">O que você espera alcançar nos próximos 12 meses?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            O que você espera alcançar nos próximos 12 meses?
+          </label>
           <textarea
             name="1-year-goals"
             rows={3}
@@ -209,7 +215,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">O que você espera alcançar nos próximos 5 anos?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            O que você espera alcançar nos próximos 5 anos?
+          </label>
           <textarea
             name="5-years-goals"
             rows={3}
@@ -221,7 +229,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
         </div>
 
         <div>
-          <label className="block font-medium mb-2 text-gray-700">O que você espera alcançar nos próximos 10 anos?</label>
+          <label className="block font-medium mb-2 text-gray-700">
+            O que você espera alcançar nos próximos 10 anos?
+          </label>
           <textarea
             name="10-years-goals"
             rows={3}
@@ -235,7 +245,9 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
 
       {/* Observação */}
       <section className="space-y-4">
-        <label className="block font-medium text-gray-700">Deseja adicionar alguma informação extra? (Opcional)</label>
+        <label className="block font-medium text-gray-700">
+          Deseja adicionar alguma informação extra? (Opcional)
+        </label>
         <textarea
           rows={6}
           className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
@@ -264,7 +276,6 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
 }
 
 const Button = ({ isPending, disabled }: { isPending: boolean; disabled: boolean }) => {
-
   if (isPending) {
     return (
       <button
@@ -273,12 +284,12 @@ const Button = ({ isPending, disabled }: { isPending: boolean; disabled: boolean
       >
         Gerando...
       </button>
-    )
+    );
   }
 
   return (
-    <button 
-      type="submit" 
+    <button
+      type="submit"
       disabled={disabled}
       className={`px-6 py-3 text-white font-medium rounded-xl shadow-md transition ${
         disabled
@@ -288,5 +299,5 @@ const Button = ({ isPending, disabled }: { isPending: boolean; disabled: boolean
     >
       Gerar meu roadmap
     </button>
-  )
-}
+  );
+};

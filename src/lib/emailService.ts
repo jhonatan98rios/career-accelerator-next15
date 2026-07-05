@@ -51,7 +51,7 @@ type SendPaymentEmailParams = {
   name: string;
   plan: string;
   paymentLink: string;
-}
+};
 
 export async function sendPaymentEmail({ to, name, plan, paymentLink }: SendPaymentEmailParams) {
   const htmlBody = getEmailTemplate(name, plan, paymentLink);

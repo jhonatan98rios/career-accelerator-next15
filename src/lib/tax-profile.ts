@@ -84,7 +84,10 @@ export function isValidCpf(value: string | null | undefined) {
   return secondDigit === Number(cpf[10]);
 }
 
-export function normalizeTaxProfile(input: TaxProfileInput): { data?: NormalizedTaxProfile; errors: string[] } {
+export function normalizeTaxProfile(input: TaxProfileInput): {
+  data?: NormalizedTaxProfile;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   const name = input.name?.trim() || "";
@@ -97,7 +100,7 @@ export function normalizeTaxProfile(input: TaxProfileInput): { data?: Normalized
   const neighborhood = input.billingAddress?.neighborhood?.trim() || "";
   const city = input.billingAddress?.city?.trim() || "";
   const state = input.billingAddress?.state?.trim().toUpperCase() || "";
-  const country = (input.billingAddress?.country?.trim().toUpperCase() || "BR");
+  const country = input.billingAddress?.country?.trim().toUpperCase() || "BR";
 
   if (name.length < 2) errors.push("name");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)) errors.push("billingEmail");
@@ -148,13 +151,13 @@ export function normalizeTaxProfile(input: TaxProfileInput): { data?: Normalized
 export async function fetchIbgeCityCode(state: string, city: string): Promise<string | null> {
   try {
     const res = await fetch(
-      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${state}/municipios`,
+      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${state}/municipios`
     );
     if (!res.ok) return null;
 
     const municipios = (await res.json()) as { id: number; nome: string }[];
     const match = municipios.find(
-      (m) => m.nome.localeCompare(city, "pt-BR", { sensitivity: "base" }) === 0,
+      (m) => m.nome.localeCompare(city, "pt-BR", { sensitivity: "base" }) === 0
     );
     return match ? String(match.id) : null;
   } catch {

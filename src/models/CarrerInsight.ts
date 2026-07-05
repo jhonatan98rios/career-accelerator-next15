@@ -1,64 +1,63 @@
-import { Schema, Document, model, Types, models } from 'mongoose'
-
+import { Schema, Document, model, Types, models } from "mongoose";
 
 export interface ICareerInsight extends Document {
-  user_id: Types.ObjectId
+  user_id: Types.ObjectId;
   hero: {
-    title: string
-    subtitle: string
-    anchor: string
-  }
+    title: string;
+    subtitle: string;
+    anchor: string;
+  };
   marketSnapshot: {
-    title: string
+    title: string;
     items: {
-      icon: string
-      description: string
-    }[]
-  }
+      icon: string;
+      description: string;
+    }[];
+  };
   compensation: {
-    title: string
+    title: string;
     items: {
-      label: string
-      value: string
-    }[]
-  }
+      label: string;
+      value: string;
+    }[];
+  };
   globalOpportunities: {
-    title: string
-    subtitle: string
+    title: string;
+    subtitle: string;
     cards: {
-      title: string
-      description: string
-      bgColor: string
-    }[]
-  }
+      title: string;
+      description: string;
+      bgColor: string;
+    }[];
+  };
   bigTechHiring: {
-    title: string
+    title: string;
     items: {
-      company: string
-      details: string
-    }[]
-  }
+      company: string;
+      details: string;
+    }[];
+  };
   roadmap: {
-    title: string
-    subtitle: string
+    title: string;
+    subtitle: string;
     steps: {
-      step: number
-      title: string
-      description: string
-    }[]
-  }
+      step: number;
+      title: string;
+      description: string;
+    }[];
+  };
   finalCta: {
-    title: string
-    subtitle: string
+    title: string;
+    subtitle: string;
     cta: {
-      text: string
-      href: string
-    }
-  }
+      text: string;
+      href: string;
+    };
+  };
   footer: {
-    text: string
-  }
-  createdAt: Date
+    text: string;
+  };
+  createdAt: Date;
 }
 
 const CareerInsightSchema = new Schema<ICareerInsight>(
@@ -133,6 +132,7 @@ const CareerInsightSchema = new Schema<ICareerInsight>(
   {
     timestamps: true, // adds createdAt & updatedAt
   }
-)
+);
 
-export const CareerInsight = models.CareerInsight || model<ICareerInsight>("CareerInsight", CareerInsightSchema)
+export const CareerInsight =
+  models.CareerInsight || model<ICareerInsight>("CareerInsight", CareerInsightSchema);

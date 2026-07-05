@@ -9,23 +9,20 @@ import { Profile } from "@/models/Profile";
 import { getSessionCached } from "@/lib/auth0";
 
 type SerializedRoadmap = {
-  id: string
-  title: string
+  id: string;
+  title: string;
   steps: {
-    step: number
-    title: string
-    description: string
-    status: RoadmapStatus
-  }[]
-  createdAt: Date
-  updatedAt: Date
-}
+    step: number;
+    title: string;
+    description: string;
+    status: RoadmapStatus;
+  }[];
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export default async function Page() {
-  const [session] = await Promise.all([
-    getSessionCached(),
-    connectDB()
-  ])
+  const [session] = await Promise.all([getSessionCached(), connectDB()]);
 
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
@@ -33,38 +30,40 @@ export default async function Page() {
 
   const user = await Profile.findOne({ email: session.user.email });
 
-  // @ts-ignore
+  // @ts-expect-error lean returns plain object
   const roadmaps: ICareerRoadmap[] = await CareerRoadmap.find(
     { user_id: user.id },
-    { "title": 1, "_id": 1, "steps": 1, "createdAt": 1, "updatedAt": 1 }
+    { title: 1, _id: 1, steps: 1, createdAt: 1, updatedAt: 1 }
   ).lean();
 
-  const serializedRoadmaps: SerializedRoadmap[] = roadmaps.map(roadmap => ({
+  const serializedRoadmaps: SerializedRoadmap[] = roadmaps.map((roadmap) => ({
     ...roadmap,
     id: (roadmap._id as string | { toString(): string }).toString(),
-    progress: roadmap.steps.filter(step => step.status == RoadmapStatus.DONE).length,
-  }))
+    progress: roadmap.steps.filter((step) => step.status == RoadmapStatus.DONE).length,
+  }));
 
   return (
     <div className="flex flex-col items-center w-full min-h-96">
-      <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Roadmaps de carreira</h1>
-      {
-        serializedRoadmaps.length > 0
-          ? <RoadmapListRender roadmaps={serializedRoadmaps} user={user} />
-          : <EmptyListDisclaimer user={user} />
-      }
+      <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+        Roadmaps de carreira
+      </h1>
+      {serializedRoadmaps.length > 0 ? (
+        <RoadmapListRender roadmaps={serializedRoadmaps} user={user} />
+      ) : (
+        <EmptyListDisclaimer user={user} />
+      )}
     </div>
   );
 }
 
-function RoadmapListRender({ roadmaps, user }: { roadmaps: SerializedRoadmap[], user: User }) {
+function RoadmapListRender({ roadmaps, user }: { roadmaps: SerializedRoadmap[]; user: User }) {
   return (
     <ul className="w-full">
       {roadmaps.map((roadmap, index) => (
         <RoadmapListItem roadmap={roadmap} user={user} key={index} />
       ))}
     </ul>
-  )
+  );
 }
 
 function RoadmapListItem({ roadmap, user }: { roadmap: SerializedRoadmap; user: User }) {
@@ -93,5 +92,5 @@ function EmptyListDisclaimer({ user }: { user: User }) {
         Clique aqui para começar
       </Link>
     </div>
-  )
+  );
 }

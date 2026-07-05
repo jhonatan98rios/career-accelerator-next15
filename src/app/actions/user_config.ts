@@ -60,6 +60,6 @@ export async function updateUserData(formData: FormData) {
         address: normalizedTaxProfile.data.legacy.address,
         address2: normalizedTaxProfile.data.legacy.address2,
       },
-    },
+    }
   );
 }

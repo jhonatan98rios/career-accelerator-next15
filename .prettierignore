@@ -1,0 +1,8 @@
+.next
+node_modules
+dist
+build
+.next
+out
+*.min.js
+next-env.d.ts

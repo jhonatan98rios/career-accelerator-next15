@@ -1,5 +1,6 @@
-'use client';
+"use client";
 
+import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 import { Plan } from "@/lib/enums";
 import { formatCep, formatCpf, onlyDigits } from "@/lib/tax-profile";
@@ -121,7 +122,7 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
         throw new Error("Erro na requisicao");
       }
 
-      const data = await res.json() as ViaCepResponse;
+      const data = (await res.json()) as ViaCepResponse;
 
       if (data.erro) {
         setMessage("Nao encontramos esse CEP. Confira os dados do endereco.");
@@ -162,27 +163,36 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
     billingAddress.neighborhood &&
     billingAddress.city &&
     billingAddress.state &&
-    !isLoading,
+    !isLoading
   );
 
   return (
     <div className="max-w-2xl mx-auto p-8 justify-center items-center text-center mt-32">
       <div className="mb-8">
-        <img src={picture} alt="Foto do usuario" className="mx-auto mb-8 rounded-full" />
+        <Image
+          src={picture}
+          alt="Foto do usuario"
+          className="mx-auto mb-8 rounded-full"
+          width={128}
+          height={128}
+        />
       </div>
 
       <h2 className="text-2xl font-bold mb-4">Crie sua conta</h2>
 
       {!isLoading && (
         <p className="mb-8 text-gray-600">
-          Antes de prosseguir, preencha os dados da assinatura e os dados fiscais que vao para a nota emitida manualmente.
+          Antes de prosseguir, preencha os dados da assinatura e os dados fiscais que vao para a
+          nota emitida manualmente.
         </p>
       )}
 
       {!isLoading && (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">E-mail da conta</label>
+            <label className="block text-gray-700 font-semibold mb-2 text-left">
+              E-mail da conta
+            </label>
             <input
               className="w-full p-3 text-gray-400 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
               disabled
@@ -192,7 +202,9 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">Nome completo</label>
+            <label className="block text-gray-700 font-semibold mb-2 text-left">
+              Nome completo
+            </label>
             <input
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
@@ -203,7 +215,9 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">E-mail para faturamento</label>
+            <label className="block text-gray-700 font-semibold mb-2 text-left">
+              E-mail para faturamento
+            </label>
             <input
               value={billingEmail}
               onChange={(event) => setBillingEmail(event.target.value)}
@@ -263,7 +277,9 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
 
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-gray-700 font-semibold mb-2 text-left">Complemento</label>
+              <label className="block text-gray-700 font-semibold mb-2 text-left">
+                Complemento
+              </label>
               <input
                 value={billingAddress.complement}
                 onChange={(event) => updateBillingAddress("complement", event.target.value)}
@@ -299,17 +315,20 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
               <label className="block text-gray-700 font-semibold mb-2 text-left">UF</label>
               <input
                 value={billingAddress.state}
-                onChange={(event) => updateBillingAddress("state", event.target.value.toUpperCase().slice(0, 2))}
+                onChange={(event) =>
+                  updateBillingAddress("state", event.target.value.toUpperCase().slice(0, 2))
+                }
                 type="text"
                 placeholder="UF"
                 className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
-
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">Escolha seu plano</label>
+            <label className="block text-gray-700 font-semibold mb-2 text-left">
+              Escolha seu plano
+            </label>
             <select
               value={plan}
               onChange={(event) => setPlan(event.target.value)}
@@ -326,7 +345,9 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
             type="submit"
             disabled={!canSubmit}
             className={`w-full py-3 rounded-lg bg-gradient-to-r text-white font-bold transition-transform ${
-              canSubmit ? "from-purple-500 to-indigo-500 hover:scale-105 cursor-pointer" : "from-gray-400 to-gray-500"
+              canSubmit
+                ? "from-purple-500 to-indigo-500 hover:scale-105 cursor-pointer"
+                : "from-gray-400 to-gray-500"
             }`}
           >
             Criar Conta
@@ -334,12 +355,12 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
         </form>
       )}
 
-      {isLoading && !message && (
-        <p>Carregando...</p>
-      )}
+      {isLoading && !message && <p>Carregando...</p>}
 
       {!!message && (
-        <p className={messageTone === "error" ? "mt-6 text-red-600" : "mt-6 text-green-700"}>{message}</p>
+        <p className={messageTone === "error" ? "mt-6 text-red-600" : "mt-6 text-green-700"}>
+          {message}
+        </p>
       )}
     </div>
   );

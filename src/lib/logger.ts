@@ -1,7 +1,7 @@
 export enum LogLevel {
   INFO = "info",
   WARN = "warn",
-  ERROR = "error"
+  ERROR = "error",
 }
 
 export async function log(level: LogLevel, message: string, meta: Record<string, any> = {}) {

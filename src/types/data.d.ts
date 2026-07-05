@@ -1,57 +1,57 @@
 export type InsightType = {
   hero: {
-    title: string
-    subtitle: string
-    anchor: string
-  },
+    title: string;
+    subtitle: string;
+    anchor: string;
+  };
   marketSnapshot: {
-    title: string
+    title: string;
     items: {
-      icon: string
-      description: string
-    }[]
-  },
+      icon: string;
+      description: string;
+    }[];
+  };
   compensation: {
-    title: string
+    title: string;
     items: {
-      label: string
-      value: string
-    }[]
-  },
+      label: string;
+      value: string;
+    }[];
+  };
   globalOpportunities: {
-    title: string
-    subtitle: string
+    title: string;
+    subtitle: string;
     cards: {
-      title: string
-      description: string
-      bgColor: string
-    }[]
-  },
+      title: string;
+      description: string;
+      bgColor: string;
+    }[];
+  };
   bigTechHiring: {
-    title: string
+    title: string;
     items: {
-      company: string
-      details: string
-    }[]
-  },
+      company: string;
+      details: string;
+    }[];
+  };
   roadmap: {
-    title: string
-    subtitle: string
+    title: string;
+    subtitle: string;
     steps: {
-      step: number
-      title: string
-      description: string
-    }[]
-  },
+      step: number;
+      title: string;
+      description: string;
+    }[];
+  };
   finalCta: {
-    title: string
-    subtitle: string
+    title: string;
+    subtitle: string;
     cta: {
-      text: string
-      href: string
-    }
-  },
+      text: string;
+      href: string;
+    };
+  };
   footer: {
-    text: string
-  }
-}
+    text: string;
+  };
+};

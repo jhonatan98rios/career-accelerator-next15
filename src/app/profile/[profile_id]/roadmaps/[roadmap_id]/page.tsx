@@ -19,11 +19,7 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
-
-  const [session] = await Promise.all([
-    getSessionCached(),
-    connectDB()
-  ])
+  const [session] = await Promise.all([getSessionCached(), connectDB()]);
 
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
@@ -33,17 +29,19 @@ export default async function Page({ params }: PageProps) {
 
   const { roadmap_id } = await params;
 
-  const roadmapDoc  = await CareerRoadmap.findOne(
+  const roadmapDoc = (await CareerRoadmap.findOne(
     { _id: roadmap_id },
     { title: 1, _id: 1, steps: 1, createdAt: 1, updatedAt: 1 }
-  ).lean() as ICareerRoadmap | null;
+  ).lean()) as ICareerRoadmap | null;
 
   if (!roadmapDoc) {
     redirect(`/profile/${user.id}/roadmaps`);
   }
 
   const roadmap: ICareerRoadmap = JSON.parse(JSON.stringify(roadmapDoc));
-  const insight = await CareerInsight.findById(roadmap.insight_id, { createdAt: 1 }).lean() as { createdAt: Date } | null;
+  const insight = (await CareerInsight.findById(roadmap.insight_id, { createdAt: 1 }).lean()) as {
+    createdAt: Date;
+  } | null;
 
   if (!insight) {
     redirect(`/profile/${user.id}/roadmaps`);
@@ -52,11 +50,9 @@ export default async function Page({ params }: PageProps) {
   const roadmapGuardrail = getRoadmapGuardrailState(user, roadmap, insight.createdAt);
   const allDone = roadmap.steps.every((step) => step.status === RoadmapStatus.DONE);
   const progress = Math.round(
-    (
-      roadmap
-        .steps
-        .filter((step) => step.status === RoadmapStatus.DONE).length / roadmap.steps.length
-    ) * 100
+    (roadmap.steps.filter((step) => step.status === RoadmapStatus.DONE).length /
+      roadmap.steps.length) *
+      100
   );
 
   return (
@@ -68,50 +64,40 @@ export default async function Page({ params }: PageProps) {
       <h2 className="text-lg text-gray-700 mb-10">{roadmap.title}</h2>
 
       <ul className="flex flex-col gap-6 w-full">
-        {roadmap.steps.map(step => {
-            const id = step._id.toString();
+        {roadmap.steps.map((step) => {
+          const id = step._id.toString();
 
-            return (
-              <li
-                key={id}
-                className="p-6 bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition"
-              >
-                <label htmlFor={id} className="flex items-start gap-3 cursor-pointer">
-                  <RoadmapStepCheckbox
-                    roadmapId={roadmap._id.toString()}
-                    stepId={id}
-                    done={step.status == RoadmapStatus.DONE}
-                    key={id}
-                  />
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      {step.title}
-                    </h4>
-                    <p className="text-gray-600 text-sm mt-1">
-                      {step.description}
-                    </p>
-                  </div>
-                </label>
-              </li>
-            );
-          }
-        )}
+          return (
+            <li
+              key={id}
+              className="p-6 bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition"
+            >
+              <label htmlFor={id} className="flex items-start gap-3 cursor-pointer">
+                <RoadmapStepCheckbox
+                  roadmapId={roadmap._id.toString()}
+                  stepId={id}
+                  done={step.status == RoadmapStatus.DONE}
+                  key={id}
+                />
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800">{step.title}</h4>
+                  <p className="text-gray-600 text-sm mt-1">{step.description}</p>
+                </div>
+              </label>
+            </li>
+          );
+        })}
       </ul>
 
-      <ProgressBar
-        progress={progress}
-      />
+      <ProgressBar progress={progress} />
 
-      <RoadmapUpdateButton 
-        roadmapId={roadmap._id.toString() } 
+      <RoadmapUpdateButton
+        roadmapId={roadmap._id.toString()}
         jwtToken={session.tokenSet.accessToken!}
         guardrail={roadmapGuardrail}
       />
 
-      <ConfettiOnComplete 
-        allDone={allDone} 
-      />
-      
+      <ConfettiOnComplete allDone={allDone} />
     </div>
   );
 }

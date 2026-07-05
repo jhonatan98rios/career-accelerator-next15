@@ -4,12 +4,11 @@ import { LogoutButton } from "@/components/logoutButton";
 import { getSessionCached } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
-import { IProfile, Profile } from "@/models/Profile";
+
 import { ITerm, Term } from "@/models/Term";
 import { redirect } from "next/navigation";
 
 export default async function Terms() {
-
   // try {
   //   const version = '20250929' //new Date().toISOString().substring(0, 10).replaceAll("-", "");
 
@@ -21,26 +20,23 @@ export default async function Terms() {
   //   console.log("err: ", err);
   // }
 
-  const [session] = await Promise.all([
-    getSessionCached(),
-    connectDB()
-  ])
-  
+  const [session] = await Promise.all([getSessionCached(), connectDB()]);
+
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  const { email } = session.user
+  const { email } = session.user;
 
   if (!email) {
     redirect("/auth/login?returnTo=/gateway");
   }
 
   const term = (await Term.findOne({}, {}, { sort: { createdAt: -1 } })) as ITerm;
-  const consent = await Consent.findOne({ 
-    email, 
-    currentVersion: term.version
-  }) as IConsent | null
+  const consent = (await Consent.findOne({
+    email,
+    currentVersion: term.version,
+  })) as IConsent | null;
 
   return (
     <main className="bg-gray-50 text-gray-900 min-h-screen flex flex-col items-center justify-center px-6">
@@ -54,7 +50,8 @@ export default async function Terms() {
         <p className="mt-6 text-gray-600">
           Desculpe por interromper sua navegação, <br /> mas nosso termo de uso de dados foi
           atualizado. <br />
-          Para continuar utilizando nossa plataforma, <br /> pedimos que você leia e aceite o novo termo.
+          Para continuar utilizando nossa plataforma, <br /> pedimos que você leia e aceite o novo
+          termo.
         </p>
 
         <p className="text-gray-700">
@@ -63,9 +60,9 @@ export default async function Terms() {
 
         {/* Caixa com o checkbox */}
         <div className="mt-10 text-left">
-          <DataUsageCheckbox 
-            email={email} 
-            version={term?.version!} 
+          <DataUsageCheckbox
+            email={email}
+            version={term?.version ?? ""}
             consent={consent?.status == ConsentEventStatus.AGREED}
             hasButton={true}
           />

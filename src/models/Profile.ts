@@ -37,16 +37,19 @@ export interface IProfile extends Document {
   createdAt: Date;
 }
 
-const BillingAddressSchema = new Schema<BillingAddress>({
-  cep: { type: String, required: true },
-  street: { type: String, required: true },
-  number: { type: String, required: true },
-  complement: { type: String, required: false, default: null },
-  neighborhood: { type: String, required: true },
-  city: { type: String, required: true },
-  state: { type: String, required: true },
-  country: { type: String, required: true, default: "BR" },
-}, { _id: false });
+const BillingAddressSchema = new Schema<BillingAddress>(
+  {
+    cep: { type: String, required: true },
+    street: { type: String, required: true },
+    number: { type: String, required: true },
+    complement: { type: String, required: false, default: null },
+    neighborhood: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    country: { type: String, required: true, default: "BR" },
+  },
+  { _id: false }
+);
 
 const ProfileSchema = new Schema<IProfile>({
   email: { type: String, required: true, unique: true, index: true },
@@ -71,4 +74,5 @@ const ProfileSchema = new Schema<IProfile>({
   createdAt: { type: Date, required: false, default: Date.now },
 });
 
-export const Profile = mongoose.models.Profile || mongoose.model<IProfile>("Profile", ProfileSchema);
+export const Profile =
+  mongoose.models.Profile || mongoose.model<IProfile>("Profile", ProfileSchema);

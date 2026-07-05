@@ -72,20 +72,22 @@ describe("tax-profile helpers", () => {
 
   it("requires a complete billing profile to be marked complete", () => {
     expect(isBillingProfileComplete(null)).toBe(false);
-    expect(isBillingProfileComplete({
-      name: "Maria Silva",
-      email: "maria@example.com",
-      taxDocument: "52998224725",
-      billingProfileCompletedAt: new Date(),
-      billingAddress: {
-        cep: "69005100",
-        street: "Rua A",
-        number: "123",
-        neighborhood: "Centro",
-        city: "Manaus",
-        state: "AM",
-        country: "BR",
-      },
-    })).toBe(true);
+    expect(
+      isBillingProfileComplete({
+        name: "Maria Silva",
+        email: "maria@example.com",
+        taxDocument: "52998224725",
+        billingProfileCompletedAt: new Date(),
+        billingAddress: {
+          cep: "69005100",
+          street: "Rua A",
+          number: "123",
+          neighborhood: "Centro",
+          city: "Manaus",
+          state: "AM",
+          country: "BR",
+        },
+      })
+    ).toBe(true);
   });
 });

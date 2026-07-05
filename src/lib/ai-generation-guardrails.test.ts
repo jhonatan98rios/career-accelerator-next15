@@ -1,20 +1,11 @@
 import { describe, it, expect } from "vitest";
-import {
-  getInsightGuardrailState,
-  getRoadmapGuardrailState,
-} from "./ai-generation-guardrails";
+import { getInsightGuardrailState, getRoadmapGuardrailState } from "./ai-generation-guardrails";
 import { RoadmapStatus } from "./enums";
 
 // ---- helpers ----
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 function hoursAgo(h: number): Date {
   return new Date(Date.now() - h * 60 * 60 * 1000);
-}
-
-function hoursFromNow(h: number): Date {
-  return new Date(Date.now() + h * 60 * 60 * 1000);
 }
 
 // ---- Insight guardrail tests ----
@@ -47,9 +38,7 @@ describe("getInsightGuardrailState", () => {
     // unlockAt should be ~ 23h from now
     const unlock = new Date(state.unlockAt!);
     const expectedUnlock = new Date(Date.now() + 23 * 60 * 60 * 1000);
-    expect(Math.abs(unlock.getTime() - expectedUnlock.getTime())).toBeLessThan(
-      10_000,
-    );
+    expect(Math.abs(unlock.getTime() - expectedUnlock.getTime())).toBeLessThan(10_000);
   });
 
   it("allows generation after cooldown expires (> 24h since last)", () => {
@@ -62,10 +51,7 @@ describe("getInsightGuardrailState", () => {
   });
 
   it("allows generation at exact 24h boundary", () => {
-    const state = getInsightGuardrailState(
-      { lastInsightGeneratedAt: hoursAgo(24) },
-      new Date(),
-    );
+    const state = getInsightGuardrailState({ lastInsightGeneratedAt: hoursAgo(24) }, new Date());
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("allowed");
   });
@@ -83,9 +69,7 @@ describe("getInsightGuardrailState", () => {
 
 // ---- Roadmap guardrail tests ----
 
-function makeSteps(
-  ...statuses: RoadmapStatus[]
-): Array<{ status: RoadmapStatus }> {
+function makeSteps(...statuses: RoadmapStatus[]): Array<{ status: RoadmapStatus }> {
   return statuses.map((s) => ({ status: s }));
 }
 
@@ -97,7 +81,7 @@ describe("getRoadmapGuardrailState", () => {
     const state = getRoadmapGuardrailState(
       baseProfile,
       { steps: makeSteps(RoadmapStatus.DONE, RoadmapStatus.DONE) },
-      hoursAgo(1), // insight created 1h ago — still in retry window
+      hoursAgo(1) // insight created 1h ago — still in retry window
     );
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("complete");
@@ -110,7 +94,7 @@ describe("getRoadmapGuardrailState", () => {
       {
         steps: makeSteps(RoadmapStatus.DONE, RoadmapStatus.PENDING),
       },
-      hoursAgo(1),
+      hoursAgo(1)
     );
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("retry");
@@ -125,7 +109,7 @@ describe("getRoadmapGuardrailState", () => {
         steps: makeSteps(RoadmapStatus.DONE, RoadmapStatus.PENDING),
         correctiveRetryUsedAt: hoursAgo(1),
       },
-      hoursAgo(2),
+      hoursAgo(2)
     );
     expect(state.canGenerate).toBe(false);
     expect(state.reason).toBe("retry_used");
@@ -138,7 +122,7 @@ describe("getRoadmapGuardrailState", () => {
       {
         steps: makeSteps(RoadmapStatus.DONE, RoadmapStatus.PENDING),
       },
-      hoursAgo(25), // insight created > 24h ago
+      hoursAgo(25) // insight created > 24h ago
     );
     expect(state.canGenerate).toBe(false);
     expect(state.reason).toBe("retry_window_expired");
@@ -152,7 +136,7 @@ describe("getRoadmapGuardrailState", () => {
         steps: makeSteps(RoadmapStatus.DONE, RoadmapStatus.PENDING),
         correctiveRetryUsedAt: hoursAgo(1), // locked for normal users
       },
-      hoursAgo(25), // window expired
+      hoursAgo(25) // window expired
     );
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("bypassed");
@@ -167,7 +151,7 @@ describe("getRoadmapGuardrailState", () => {
         steps: makeSteps(RoadmapStatus.PENDING),
         correctiveRetryUsedAt: hoursAgo(1),
       },
-      hoursAgo(25),
+      hoursAgo(25)
     );
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("bypassed");

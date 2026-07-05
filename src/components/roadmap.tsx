@@ -4,9 +4,13 @@ import { toggleStepStatus } from "@/app/actions/career_roadmap";
 import { RoadmapGuardrailState } from "@/lib/ai-generation-guardrails";
 import { useState, useTransition } from "react";
 
-export function RoadmapStepCheckbox({ roadmapId, stepId, done }: { 
-  roadmapId: string; 
-  stepId: string; 
+export function RoadmapStepCheckbox({
+  roadmapId,
+  stepId,
+  done,
+}: {
+  roadmapId: string;
+  stepId: string;
   done: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -29,7 +33,6 @@ export function RoadmapStepCheckbox({ roadmapId, stepId, done }: {
   );
 }
 
-
 function formatDateTime(value: string | null) {
   if (!value) return null;
 
@@ -46,59 +49,55 @@ export function RoadmapUpdateButton({
   jwtToken,
   guardrail,
 }: {
-  roadmapId: string,
-  jwtToken: string,
-  guardrail: RoadmapGuardrailState,
+  roadmapId: string;
+  jwtToken: string;
+  guardrail: RoadmapGuardrailState;
 }) {
-
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const submit = async () => {
     try {
       setErrorMessage(null);
-      console.log('Form submitted with data:', { roadmapId });
 
-      const res = await fetch('/api/roadmap', {
-        method: 'POST',
+      const res = await fetch("/api/roadmap", {
+        method: "POST",
         body: JSON.stringify({ roadmapId }),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwtToken}`
-        }
-      })
-  
-      const data = await res.json()
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      });
+
+      const data = await res.json();
 
       if (!res.ok) {
         const retryWindowEndsAt = formatDateTime(data.retryWindowEndsAt ?? null);
         setErrorMessage(
           retryWindowEndsAt
             ? `Esse ajuste ficou disponivel ate ${retryWindowEndsAt}.`
-            : data.error || 'Nao foi possivel gerar novos passos agora.'
+            : data.error || "Nao foi possivel gerar novos passos agora."
         );
         return;
       }
 
       if (!data) {
-        throw new Error('No data returned from API')
+        throw new Error("No data returned from API");
       }
 
-      window.location.reload()
-
+      window.location.reload();
+    } catch (err) {
+      console.error("Error while generating the roadmap:", err);
+      setErrorMessage("Nao foi possivel gerar novos passos agora. Tente novamente em instantes.");
     }
-    catch (err) {
-      console.log('Error while generating the roadmap:', err)
-      setErrorMessage('Nao foi possivel gerar novos passos agora. Tente novamente em instantes.');
-    }
-  }
+  };
 
   const handleSubmit = () => {
-    if (isPending || !guardrail.canGenerate) return
+    if (isPending || !guardrail.canGenerate) return;
 
     startTransition(async () => {
-      await submit()
-    })
+      await submit();
+    });
   };
 
   const buttonLabel = guardrail.bypassed
@@ -139,5 +138,5 @@ export function RoadmapUpdateButton({
         {isPending ? "Carregando..." : buttonLabel}
       </button>
     </div>
-  )
+  );
 }

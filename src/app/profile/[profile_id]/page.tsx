@@ -1,18 +1,14 @@
 // profile/[profile_id]/page.tsx
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSessionCached } from '@/lib/auth0';
+import { getSessionCached } from "@/lib/auth0";
 import { CareerInsight, ICareerInsight } from "@/models/CarrerInsight";
 import { connectDB } from "@/lib/db";
 import { User } from "@/store/UserContext";
 import { Profile } from "@/models/Profile";
 
 export default async function Page() {
-
-  const [session] = await Promise.all([
-    getSessionCached(),
-    connectDB()
-  ])
+  const [session] = await Promise.all([getSessionCached(), connectDB()]);
 
   if (!session) {
     redirect("/auth/login?returnTo=/gateway");
@@ -22,29 +18,31 @@ export default async function Page() {
 
   const insights: ICareerInsight[] = await CareerInsight.find(
     { user_id: user._id },
-    { "hero.title": 1, "hero.subtitle": 1, "createdAt": 1, "_id": 1 }
+    { "hero.title": 1, "hero.subtitle": 1, createdAt: 1, _id: 1 }
   );
 
   return (
     <div className="flex flex-col items-center w-full min-h-96">
-      <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Insights de carreira</h1>
-      {
-        insights.length > 0
-          ? <InsightsListRender insights={insights} user={user} />
-          : <EmptyListDisclaimer user={user} />
-      }
+      <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+        Insights de carreira
+      </h1>
+      {insights.length > 0 ? (
+        <InsightsListRender insights={insights} user={user} />
+      ) : (
+        <EmptyListDisclaimer user={user} />
+      )}
     </div>
   );
 }
 
-function InsightsListRender({ insights, user }: { insights: ICareerInsight[], user: User }) {
+function InsightsListRender({ insights, user }: { insights: ICareerInsight[]; user: User }) {
   return (
     <ul>
       {insights.map((insight, index) => (
         <InsightListItem insight={insight} user={user} key={index} />
       ))}
     </ul>
-  )
+  );
 }
 
 function InsightListItem({ insight, user }: { insight: ICareerInsight; user: User }) {
@@ -74,5 +72,5 @@ function EmptyListDisclaimer({ user }: { user: User }) {
         Clique aqui para começar
       </Link>
     </div>
-  )
+  );
 }
