@@ -7,7 +7,7 @@ import { Profile } from "@/models/Profile";
 import { HttpStatus } from "@/types/httpStatus";
 import { log, LogLevel } from "@/lib/logger";
 import { isAuthenticated } from "@/lib/auth0";
-import { BillingAddressInput, normalizeTaxProfile } from "@/lib/tax-profile";
+import { BillingAddressInput, normalizeTaxProfile, fetchIbgeCityCode } from "@/lib/tax-profile";
 
 export type RegisterBody = {
   name: string;
@@ -38,11 +38,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required registration fields" }, { status: HttpStatus.BAD_REQUEST });
     }
 
+    // ponytail: fetch IBGE if city+state known but code missing
+    let resolvedBillingAddress = billingAddress;
+    if (!billingAddress.ibgeCityCode && billingAddress.city && billingAddress.state) {
+      const code = await fetchIbgeCityCode(billingAddress.state, billingAddress.city);
+      if (code) {
+        resolvedBillingAddress = { ...billingAddress, ibgeCityCode: code };
+      }
+    }
+
     const normalizedTaxProfile = normalizeTaxProfile({
       name,
       billingEmail,
       taxDocument,
-      billingAddress,
+      billingAddress: resolvedBillingAddress,
     });
 
     if (normalizedTaxProfile.errors.length > 0 || !normalizedTaxProfile.data) {

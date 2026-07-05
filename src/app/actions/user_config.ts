@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
 import { auth0 } from "@/lib/auth0";
 import { log, LogLevel } from "@/lib/logger";
-import { normalizeTaxProfile } from "@/lib/tax-profile";
+import { normalizeTaxProfile, fetchIbgeCityCode } from "@/lib/tax-profile";
 
 export async function updateUserData(formData: FormData) {
   const session = await auth0.getSession();
@@ -17,6 +17,15 @@ export async function updateUserData(formData: FormData) {
   const billingEmail = formData.get("billingEmail") as string;
   const taxDocument = formData.get("taxDocument") as string;
 
+  let ibgeCityCode = formData.get("billingAddress.ibgeCityCode") as string;
+  const city = formData.get("billingAddress.city") as string;
+  const state = formData.get("billingAddress.state") as string;
+
+  // ponytail: fetch IBGE if city+state known but code missing
+  if (!ibgeCityCode && city && state) {
+    ibgeCityCode = (await fetchIbgeCityCode(state, city)) || "";
+  }
+
   const normalizedTaxProfile = normalizeTaxProfile({
     name,
     billingEmail,
@@ -27,9 +36,9 @@ export async function updateUserData(formData: FormData) {
       number: formData.get("billingAddress.number") as string,
       complement: formData.get("billingAddress.complement") as string,
       neighborhood: formData.get("billingAddress.neighborhood") as string,
-      city: formData.get("billingAddress.city") as string,
-      state: formData.get("billingAddress.state") as string,
-      ibgeCityCode: formData.get("billingAddress.ibgeCityCode") as string,
+      city,
+      state,
+      ibgeCityCode,
       country: formData.get("billingAddress.country") as string,
     },
   });
