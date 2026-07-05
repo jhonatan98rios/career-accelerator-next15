@@ -166,7 +166,6 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
     billingAddress.neighborhood &&
     billingAddress.city &&
     billingAddress.state &&
-    billingAddress.ibgeCityCode &&
     !isLoading,
   );
 
@@ -314,10 +313,10 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
               <label className="block text-gray-700 font-semibold mb-2 text-left">Codigo IBGE</label>
               <input
                 value={billingAddress.ibgeCityCode}
-                onChange={(event) => updateBillingAddress("ibgeCityCode", onlyDigits(event.target.value).slice(0, 7))}
+                readOnly
                 type="text"
                 placeholder="Codigo do municipio"
-                className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="w-full p-3 text-gray-400 rounded-lg border border-gray-200 bg-gray-100 cursor-not-allowed"
               />
             </div>
           </div>

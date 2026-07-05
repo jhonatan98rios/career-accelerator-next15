@@ -46,7 +46,7 @@ const BillingAddressSchema = new Schema<BillingAddress>({
   neighborhood: { type: String, required: true },
   city: { type: String, required: true },
   state: { type: String, required: true },
-  ibgeCityCode: { type: String, required: true },
+  ibgeCityCode: { type: String, required: false, default: null },
   country: { type: String, required: true, default: "BR" },
 }, { _id: false });
 

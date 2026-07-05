@@ -110,7 +110,8 @@ export function normalizeTaxProfile(input: TaxProfileInput): { data?: Normalized
   if (!neighborhood) errors.push("billingAddress.neighborhood");
   if (!city) errors.push("billingAddress.city");
   if (!/^[A-Z]{2}$/.test(state)) errors.push("billingAddress.state");
-  if (ibgeCityCode.length !== 7) errors.push("billingAddress.ibgeCityCode");
+  // ponytail: IBGE fetched online if missing, so not required at submit time
+  if (ibgeCityCode && ibgeCityCode.length !== 7) errors.push("billingAddress.ibgeCityCode");
   if (country !== "BR") errors.push("billingAddress.country");
 
   if (errors.length > 0) {
@@ -146,6 +147,24 @@ export function normalizeTaxProfile(input: TaxProfileInput): { data?: Normalized
       },
     },
   };
+}
+
+/** Fetch IBGE city code from public API. Returns null on failure. */
+export async function fetchIbgeCityCode(state: string, city: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${state}/municipios`,
+    );
+    if (!res.ok) return null;
+
+    const municipios = (await res.json()) as { id: number; nome: string }[];
+    const match = municipios.find(
+      (m) => m.nome.localeCompare(city, "pt-BR", { sensitivity: "base" }) === 0,
+    );
+    return match ? String(match.id) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function isBillingProfileComplete(profile: Partial<IProfile> | null | undefined) {

@@ -10,7 +10,7 @@ import DataUsageCheckbox from "@/components/dataUsageCheckbox";
 import { ITerm, Term } from "@/models/Term";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import Link from "next/link";
-import { formatCep, formatCpf } from "@/lib/tax-profile";
+import { formatCep, formatCpf, fetchIbgeCityCode } from "@/lib/tax-profile";
 
 export default async function Page() {
 
@@ -36,7 +36,19 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  const billingAddress = user.billingAddress;
+  let billingAddress = user.billingAddress;
+
+  // ponytail: fetch IBGE code if city+state known but code missing
+  if (billingAddress?.city && billingAddress?.state && !billingAddress.ibgeCityCode) {
+    const code = await fetchIbgeCityCode(billingAddress.state, billingAddress.city);
+    if (code) {
+      await Profile.findOneAndUpdate(
+        { email },
+        { $set: { "billingAddress.ibgeCityCode": code } },
+      );
+      billingAddress = { ...billingAddress, ibgeCityCode: code };
+    }
+  }
 
   return (
     <main className="bg-gray-50 text-gray-900 min-h-screen">
@@ -219,8 +231,9 @@ export default async function Page() {
                 id="billing-ibge"
                 name="billingAddress.ibgeCityCode"
                 type="text"
+                readOnly
                 defaultValue={billingAddress?.ibgeCityCode ?? ""}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
           </div>
