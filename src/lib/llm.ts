@@ -74,7 +74,7 @@ export const generateRoadmap = async (oldSteps: IStep[]): Promise<string | null>
 
 // ── persona → prompt formatter ─────────────────────────────────────────
 
-function formatPersonaForPrompt(persona?: IPersona | null): string {
+export function formatPersonaForPrompt(persona?: IPersona | null): string {
   if (!persona) return "";
 
   const lines: string[] = [];
