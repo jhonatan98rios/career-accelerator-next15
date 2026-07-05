@@ -34,7 +34,6 @@ describe("tax-profile helpers", () => {
         neighborhood: "Centro",
         city: "Manaus",
         state: "am",
-        ibgeCityCode: "1302603",
       },
     });
 
@@ -57,7 +56,6 @@ describe("tax-profile helpers", () => {
         neighborhood: "",
         city: "",
         state: "",
-        ibgeCityCode: "2",
       },
     });
 
@@ -70,7 +68,6 @@ describe("tax-profile helpers", () => {
     expect(result.errors).toContain("billingAddress.neighborhood");
     expect(result.errors).toContain("billingAddress.city");
     expect(result.errors).toContain("billingAddress.state");
-    expect(result.errors).toContain("billingAddress.ibgeCityCode");
   });
 
   it("requires a complete billing profile to be marked complete", () => {
@@ -87,7 +84,6 @@ describe("tax-profile helpers", () => {
         neighborhood: "Centro",
         city: "Manaus",
         state: "AM",
-        ibgeCityCode: "1302603",
         country: "BR",
       },
     })).toBe(true);

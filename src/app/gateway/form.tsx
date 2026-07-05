@@ -20,7 +20,6 @@ type BillingAddressState = {
   neighborhood: string;
   city: string;
   state: string;
-  ibgeCityCode: string;
   country: string;
 };
 
@@ -32,7 +31,6 @@ const EMPTY_ADDRESS: BillingAddressState = {
   neighborhood: "",
   city: "",
   state: "",
-  ibgeCityCode: "",
   country: "BR",
 };
 
@@ -42,7 +40,6 @@ type ViaCepResponse = {
   bairro?: string;
   localidade?: string;
   uf?: string;
-  ibge?: string;
 };
 
 // TODO: Send only JWT token to the API
@@ -139,7 +136,6 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
         neighborhood: data.bairro || current.neighborhood,
         city: data.localidade || current.city,
         state: data.uf || current.state,
-        ibgeCityCode: data.ibge || current.ibgeCityCode,
         country: "BR",
       }));
     } catch (error) {
@@ -288,7 +284,7 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="md:col-span-1">
               <label className="block text-gray-700 font-semibold mb-2 text-left">Cidade</label>
               <input
@@ -309,16 +305,7 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
                 className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-2 text-left">Codigo IBGE</label>
-              <input
-                value={billingAddress.ibgeCityCode}
-                readOnly
-                type="text"
-                placeholder="Codigo do municipio"
-                className="w-full p-3 text-gray-400 rounded-lg border border-gray-200 bg-gray-100 cursor-not-allowed"
-              />
-            </div>
+
           </div>
 
           <div>

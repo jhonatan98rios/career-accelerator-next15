@@ -8,7 +8,6 @@ export type BillingAddressInput = {
   neighborhood?: string | null;
   city?: string | null;
   state?: string | null;
-  ibgeCityCode?: string | null;
   country?: string | null;
 };
 
@@ -98,7 +97,6 @@ export function normalizeTaxProfile(input: TaxProfileInput): { data?: Normalized
   const neighborhood = input.billingAddress?.neighborhood?.trim() || "";
   const city = input.billingAddress?.city?.trim() || "";
   const state = input.billingAddress?.state?.trim().toUpperCase() || "";
-  const ibgeCityCode = onlyDigits(input.billingAddress?.ibgeCityCode);
   const country = (input.billingAddress?.country?.trim().toUpperCase() || "BR");
 
   if (name.length < 2) errors.push("name");
@@ -110,8 +108,6 @@ export function normalizeTaxProfile(input: TaxProfileInput): { data?: Normalized
   if (!neighborhood) errors.push("billingAddress.neighborhood");
   if (!city) errors.push("billingAddress.city");
   if (!/^[A-Z]{2}$/.test(state)) errors.push("billingAddress.state");
-  // ponytail: IBGE fetched online if missing, so not required at submit time
-  if (ibgeCityCode && ibgeCityCode.length !== 7) errors.push("billingAddress.ibgeCityCode");
   if (country !== "BR") errors.push("billingAddress.country");
 
   if (errors.length > 0) {
@@ -135,7 +131,6 @@ export function normalizeTaxProfile(input: TaxProfileInput): { data?: Normalized
         neighborhood,
         city,
         state,
-        ibgeCityCode,
         country,
       },
       billingProfileCompletedAt: new Date(),
