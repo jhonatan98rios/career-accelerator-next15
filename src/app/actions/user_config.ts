@@ -23,7 +23,7 @@ export async function updateUserData(formData: FormData) {
 
   // ponytail: fetch IBGE if city+state known but code missing
   if (!ibgeCityCode && city && state) {
-    ibgeCityCode = (await fetchIbgeCityCode(state, city)) || "";
+    ibgeCityCode = (await fetchIbgeCityCode(state.trim().toUpperCase(), city.trim())) || "";
   }
 
   const normalizedTaxProfile = normalizeTaxProfile({

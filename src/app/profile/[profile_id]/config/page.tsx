@@ -40,7 +40,7 @@ export default async function Page() {
 
   // ponytail: fetch IBGE code if city+state known but code missing
   if (billingAddress?.city && billingAddress?.state && !billingAddress.ibgeCityCode) {
-    const code = await fetchIbgeCityCode(billingAddress.state, billingAddress.city);
+    const code = await fetchIbgeCityCode(billingAddress.state.trim().toUpperCase(), billingAddress.city.trim());
     if (code) {
       await Profile.findOneAndUpdate(
         { email },
