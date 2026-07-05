@@ -3,6 +3,7 @@ import { generateInsight } from "@/lib/llm";
 import { connectDB } from "@/lib/db";
 import { CareerInsight, ICareerInsight } from "@/models/CarrerInsight";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
+import { IPersona, Persona } from "@/models/Persona";
 import { RoadmapStatus, UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -63,7 +64,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const json = await generateInsight({ answers, manualDescription });
+    const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
+
+    const json = await generateInsight({
+      answers,
+      manualDescription,
+      persona,
+    });
 
     if (!json) {
       await log(LogLevel.ERROR, "POST /insight: Failed to generate insight", { payload });
@@ -107,6 +114,26 @@ export async function POST(req: Request) {
     user.lastInsightGeneratedAt = new Date();
     await user.save();
 
+    // CP-2: populate persona from form answers + increment counters
+    await Persona.findOneAndUpdate(
+      { profile_id: user._id },
+      {
+        $set: {
+          currentRole: answers.currentRole || undefined,
+          targetRole: answers.dreamJob || undefined,
+          yearsOfExperience: parseExperience(answers.experience),
+          softSkills: splitCsv(answers.softSkills),
+          hardSkills: splitCsv(answers.hardSkills),
+          shortTermGoal: answers["1-year-goals"] || undefined,
+          mediumTermGoal: answers["5-years-goals"] || undefined,
+          longTermGoal: answers["10-years-goals"] || undefined,
+          educationLevel: guessEducationLevel(answers.education),
+        },
+        $inc: { insightsGenerated: 1, completedRoadmaps: 1 },
+      },
+      { upsert: true }
+    );
+
     return NextResponse.json({ data: newInsight }, { status: 201 });
   } catch (err: any) {
     await log(LogLevel.ERROR, "POST /insight: Exception occurred", { error: err });
@@ -115,4 +142,53 @@ export async function POST(req: Request) {
       { status: HttpStatus.INTERNAL_SERVER_ERROR }
     );
   }
+}
+
+// ── answer-to-persona helpers ──────────────────────────────────────────
+
+function splitCsv(value?: string): string[] | undefined {
+  if (!value) return undefined;
+  const parts = value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return parts.length ? parts : undefined;
+}
+
+function parseExperience(value?: string): number | undefined {
+  if (!value) return undefined;
+  const match = value.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : undefined;
+}
+
+const EDUCATION_LEVEL_KEYWORDS: [string[], string][] = [
+  [["phd", "doutorado", "doutor"], "phd"],
+  [["mestrado", "masters", "master", "mba"], "masters"],
+  [
+    [
+      "graduação",
+      "graduacao",
+      "bacharel",
+      "bachelors",
+      "faculdade",
+      "universidade",
+      "superior",
+      "engenharia",
+      "ciência",
+      "ciencia",
+      "administração",
+    ],
+    "bachelors",
+  ],
+  [["bootcamp"], "bootcamp"],
+  [["ensino médio", "ensino medio", "colegial", "técnico", "tecnico"], "high_school"],
+];
+
+function guessEducationLevel(value?: string): string | undefined {
+  if (!value) return undefined;
+  const lower = value.toLowerCase();
+  for (const [keywords, level] of EDUCATION_LEVEL_KEYWORDS) {
+    if (keywords.some((kw) => lower.includes(kw))) return level;
+  }
+  return undefined;
 }

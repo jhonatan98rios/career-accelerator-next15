@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { generateRoadmap } from "@/lib/llm";
 import { connectDB } from "@/lib/db";
 import { CareerRoadmap, ICareerRoadmap, IStep } from "@/models/CareerRoadmap";
+import { Persona } from "@/models/Persona";
 import { RoadmapStatus, UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -117,6 +118,13 @@ export async function POST(req: Request) {
       });
       throw new Error("Failed to update the roadmap collection");
     }
+
+    // CP-4: increment completed roadmaps counter
+    await Persona.findOneAndUpdate(
+      { profile_id: user._id },
+      { $inc: { completedRoadmaps: 1 } },
+      { upsert: true }
+    );
 
     return NextResponse.json({ updatedRoadmap }, { status: 201 });
   } catch (err: any) {

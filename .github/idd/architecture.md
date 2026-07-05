@@ -12,13 +12,13 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 
 ## Projects
 
-| Name | Path | Role | Notes |
-|------|------|------|-------|
-| career-accelerator | `.` | monolith | Single Next.js app, App Router + Pages Router hybrid |
+| Name               | Path | Role     | Notes                                                |
+| ------------------ | ---- | -------- | ---------------------------------------------------- |
+| career-accelerator | `.`  | monolith | Single Next.js app, App Router + Pages Router hybrid |
 
 ## Capabilities
 
-- Career insight generation (LLM-powered market analysis, compensation, roadmap)
+- Career insight generation (LLM-powered market analysis, compensation, roadmap, persona-enriched prompts)
 - AI generation guardrails (24-hour insight cooldown, roadmap completion gate, one corrective retry, developer bypass flag)
 - User registration + Auth0 authentication
 - Stripe Checkout subscription lifecycle (create, activate, cancel via webhook)
@@ -30,40 +30,41 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 
 ## Runtime Topology
 
-| Component | Type | Runtime Or Host | Notes |
-|-----------|------|-----------------|-------|
-| Web app | Next.js 15 App Router | Vercel (serverless) | Turbopack dev, `next build` for production |
-| Pages Router | Legacy pages | Vercel | Single route: profile output `/profile/[id]/output/[output_id]` |
-| MongoDB | Database | Atlas / self-hosted | Mongoose ODM, connection cached globally |
-| Auth0 | Auth provider | Auth0 tenant | JWKS token validation, `@auth0/nextjs-auth0` v4 |
-| OpenAI | LLM | OpenAI API | `gpt-5-nano-2025-08-07`, LangChain integration |
-| Stripe | Payment processor | Stripe API | Checkout subscription, webhook-driven status |
-| AWS SES | Email | AWS | Transactional payment-activation emails |
-| Datadog | Logging | Datadog HTTP intake | Structured JSON logs from serverless functions |
-| ViaCEP | Address lookup | ViaCEP API | Client-side CEP auto-fill on registration form |
+| Component    | Type                  | Runtime Or Host     | Notes                                                           |
+| ------------ | --------------------- | ------------------- | --------------------------------------------------------------- |
+| Web app      | Next.js 15 App Router | Vercel (serverless) | Turbopack dev, `next build` for production                      |
+| Pages Router | Legacy pages          | Vercel              | Single route: profile output `/profile/[id]/output/[output_id]` |
+| MongoDB      | Database              | Atlas / self-hosted | Mongoose ODM, connection cached globally                        |
+| Auth0        | Auth provider         | Auth0 tenant        | JWKS token validation, `@auth0/nextjs-auth0` v4                 |
+| OpenAI       | LLM                   | OpenAI API          | `gpt-5-nano-2025-08-07`, LangChain integration                  |
+| Stripe       | Payment processor     | Stripe API          | Checkout subscription, webhook-driven status                    |
+| AWS SES      | Email                 | AWS                 | Transactional payment-activation emails                         |
+| Datadog      | Logging               | Datadog HTTP intake | Structured JSON logs from serverless functions                  |
+| ViaCEP       | Address lookup        | ViaCEP API          | Client-side CEP auto-fill on registration form                  |
 
 ## Data Stores
 
-| Name | Type | Used By | Notes |
-|------|------|---------|-------|
-| Profile | MongoDB/Mongoose | Auth, registration, user config | Email-indexed, linked to Auth0 `externalAuthId` |
-| CareerInsight | MongoDB/Mongoose | LLM output, insight display | Nested sections (hero, market snapshot, compensation, etc.) |
-| CareerRoadmap | MongoDB/Mongoose | LLM output, step tracking | Embedded steps array with status per step |
-| Subscription | MongoDB/Mongoose | Payment webhook, billing | Mirror of Stripe subscription state |
-| Consent | MongoDB/Mongoose | Legal compliance | Versioned event log per user |
-| Term | MongoDB/Mongoose | Legal compliance | Version registry of data-usage PDFs |
+| Name          | Type             | Used By                                  | Notes                                                                                                                                                                   |
+| ------------- | ---------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile       | MongoDB/Mongoose | Auth, registration, user config          | Email-indexed, linked to Auth0 `externalAuthId`                                                                                                                         |
+| CareerInsight | MongoDB/Mongoose | LLM output, insight display              | Nested sections (hero, market snapshot, compensation, etc.)                                                                                                             |
+| CareerRoadmap | MongoDB/Mongoose | LLM output, step tracking                | Embedded steps array with status per step                                                                                                                               |
+| Persona       | MongoDB/Mongoose | LLM prompt enrichment, progress tracking | Career profile with zero PII, populated at 4 checkpoints (registration, insight generation, step completion, roadmap extension); upsert-on-first-write for legacy users |
+| Subscription  | MongoDB/Mongoose | Payment webhook, billing                 | Mirror of Stripe subscription state                                                                                                                                     |
+| Consent       | MongoDB/Mongoose | Legal compliance                         | Versioned event log per user                                                                                                                                            |
+| Term          | MongoDB/Mongoose | Legal compliance                         | Version registry of data-usage PDFs                                                                                                                                     |
 
 ## Integrations
 
-| System | Direction | Purpose | Notes |
-|--------|-----------|---------|-------|
-| Auth0 | inbound | Auth flows, session, token validation | `@auth0/nextjs-auth0` v4 server SDK, jose for API route validation |
-| OpenAI | outbound | LLM career insight generation | LangChain ChatOpenAI with gpt-5-nano, structured prompt templates |
-| MongoDB | outbound | Persistence | Mongoose ODM, global connection cache pattern |
-| Stripe | outbound/inbound | Subscription creation and lifecycle | Stripe SDK for Checkout/subscriptions; signed webhook POST from Stripe |
-| AWS SES | outbound | Transactional email | SESClient via @aws-sdk/client-ses |
-| Datadog | outbound | Structured logging | HTTP POST to DD intake API |
-| ViaCEP | outbound | Address autocomplete | Public REST API, client-side `fetch` |
+| System  | Direction        | Purpose                               | Notes                                                                  |
+| ------- | ---------------- | ------------------------------------- | ---------------------------------------------------------------------- |
+| Auth0   | inbound          | Auth flows, session, token validation | `@auth0/nextjs-auth0` v4 server SDK, jose for API route validation     |
+| OpenAI  | outbound         | LLM career insight generation         | LangChain ChatOpenAI with gpt-5-nano, structured prompt templates      |
+| MongoDB | outbound         | Persistence                           | Mongoose ODM, global connection cache pattern                          |
+| Stripe  | outbound/inbound | Subscription creation and lifecycle   | Stripe SDK for Checkout/subscriptions; signed webhook POST from Stripe |
+| AWS SES | outbound         | Transactional email                   | SESClient via @aws-sdk/client-ses                                      |
+| Datadog | outbound         | Structured logging                    | HTTP POST to DD intake API                                             |
+| ViaCEP  | outbound         | Address autocomplete                  | Public REST API, client-side `fetch`                                   |
 
 ## Open Questions
 

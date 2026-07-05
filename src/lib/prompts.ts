@@ -158,13 +158,14 @@ export const getSystemPrompt = () => `
   {insightExample}
 
   Rules:
+  - The User Profile describes the user's current career state, skills, education, goals, and progress. Use it to avoid recommending skills the user already has and to calibrate roadmap difficulty to the user's experience level.
   - The language might respect the user's prompt language + english, like in "lang=pt&lang=en" or "lang=es&lang=en".
   - The default udemy format for "keyword+here" is using + as a word separator, like in "q=Machine+Learning", "q=Deep+Learning" e "q=Engenharia+de+dados".
   - The keywords might follow the market standard for the given profile, like "Machine+Learning", "Deep+Learning" and "Data+Engineering", even if the user's prompt language is different. Like in "q=Machine+Learning&lang=pt".
 
   You also need to generate a 6 months (short term) career roadmap based on the given career insight description. 
   You should always to create achievable steps, that can be completed in a month each. Be very descriptive in each step.
-  The user has no prior experience, so the roadmap should start from the basics and gradually progress to more advanced topics.
+  Calibrate the starting difficulty to the user's experience level from their User Profile.
   Do not repeat steps! The user is expecting to learn new things, not the same things again.
   The roadmap should be part of the json, inside the "roadmap" field.
   You also need to replace the <keyword-here> in the "finalCta.cta.href" field with a relevant keyword for the user to search on Udemy (single word with correct encoding for searching on URL).
@@ -175,6 +176,8 @@ export const getUserPrompt = () => `
   Generate a personalized and translated career insight based on the following data and language:
   - Answers: {answers}
   - Manual Description: {manualDescription}
+
+  {personaContext}
 
   Use the latest job market data and trends to provide a comprehensive overview of opportunities, challenges, and recommendations for the user.
 `;

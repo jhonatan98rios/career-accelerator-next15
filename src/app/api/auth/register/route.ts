@@ -4,6 +4,7 @@ import { Plan, UserStatus } from "@/lib/enums";
 import { sendPaymentEmail } from "@/lib/emailService";
 import { createSubscription } from "@/lib/subscription";
 import { Profile } from "@/models/Profile";
+import { Persona } from "@/models/Persona";
 import { HttpStatus } from "@/types/httpStatus";
 import { log, LogLevel } from "@/lib/logger";
 import { isAuthenticated } from "@/lib/auth0";
@@ -142,6 +143,8 @@ export async function POST(req: Request) {
       stripeCustomerId: subscription.stripeCustomerId,
       subscriptionId: subscription.stripeSubscriptionId || subscription.checkoutSessionId,
     });
+
+    await Persona.create({ profile_id: profile._id });
 
     await sendPaymentEmail({
       name: normalizedTaxProfile.data.name,
