@@ -10,6 +10,7 @@ import { ConfettiOnComplete } from "@/components/confetti";
 import { ProgressBar } from "@/components/progressBar";
 import { CareerInsight } from "@/models/CarrerInsight";
 import { getRoadmapGuardrailState } from "@/lib/ai-generation-guardrails";
+import { log, LogLevel } from "@/lib/logger";
 
 interface PageProps {
   params: Promise<{
@@ -31,10 +32,11 @@ export default async function Page({ params }: PageProps) {
 
   const roadmapDoc = (await CareerRoadmap.findOne(
     { _id: roadmap_id },
-    { title: 1, _id: 1, steps: 1, createdAt: 1, updatedAt: 1 }
+    { title: 1, _id: 1, steps: 1, insight_id: 1, createdAt: 1, updatedAt: 1 }
   ).lean()) as ICareerRoadmap | null;
 
   if (!roadmapDoc) {
+    await log(LogLevel.WARN, "Roadmap detail redirect: roadmap not found", { roadmap_id });
     redirect(`/profile/${user.id}/roadmaps`);
   }
 
@@ -44,6 +46,10 @@ export default async function Page({ params }: PageProps) {
   } | null;
 
   if (!insight) {
+    await log(LogLevel.WARN, "Roadmap detail redirect: insight not found", {
+      roadmap_id,
+      insight_id: roadmap.insight_id,
+    });
     redirect(`/profile/${user.id}/roadmaps`);
   }
 
