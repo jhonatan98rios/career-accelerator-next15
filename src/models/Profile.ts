@@ -34,6 +34,7 @@ export interface IProfile extends Document {
   stripeCustomerId?: string;
   lastInsightGeneratedAt?: Date | null;
   skipAiGenerationGuardrails?: boolean;
+  is_first_access?: boolean;
   createdAt: Date;
 }
 
@@ -71,6 +72,7 @@ const ProfileSchema = new Schema<IProfile>({
   picture: { type: String, required: false, default: null },
   lastInsightGeneratedAt: { type: Date, required: false, default: null },
   skipAiGenerationGuardrails: { type: Boolean, required: false, default: false },
+  is_first_access: { type: Boolean, required: false, default: true },
   createdAt: { type: Date, required: false, default: Date.now },
 });
 

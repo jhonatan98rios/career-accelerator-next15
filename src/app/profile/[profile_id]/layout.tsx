@@ -8,6 +8,7 @@ import { ITerm, Term } from "@/models/Term";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import { log, LogLevel } from "@/lib/logger";
 import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
+import OnboardingTour from "@/components/onboardingTour";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -56,6 +57,8 @@ export default async function ProfileLayout({ children, params }: LayoutProps) {
           {children}
         </main>
       </div>
+
+      {user.is_first_access !== false && <OnboardingTour />}
     </div>
   );
 }
