@@ -115,6 +115,12 @@ export async function POST(req: Request) {
     await user.save();
 
     // CP-2: populate persona from form answers + increment counters
+    const jobSearchKeyword = deriveJobSearchKeyword(
+      answers.dreamJob,
+      splitCsv(answers.hardSkills),
+      answers.currentRole
+    );
+
     await Persona.findOneAndUpdate(
       { profile_id: user._id },
       {
@@ -128,6 +134,7 @@ export async function POST(req: Request) {
           mediumTermGoal: answers["5-years-goals"] || undefined,
           longTermGoal: answers["10-years-goals"] || undefined,
           educationLevel: guessEducationLevel(answers.education),
+          jobSearchKeyword,
         },
         $inc: { insightsGenerated: 1, completedRoadmaps: 1 },
       },
@@ -183,6 +190,17 @@ const EDUCATION_LEVEL_KEYWORDS: [string[], string][] = [
   [["bootcamp"], "bootcamp"],
   [["ensino médio", "ensino medio", "colegial", "técnico", "tecnico"], "high_school"],
 ];
+
+function deriveJobSearchKeyword(
+  targetRole?: string,
+  hardSkills?: string[],
+  currentRole?: string
+): string | undefined {
+  const keyword = targetRole || hardSkills?.[0] || currentRole;
+  if (!keyword) return undefined;
+  // Extract the core term: take first word or hyphenated tech (e.g. "Engenheiro de Software" -> "engenheiro")
+  return keyword.split(/[,/\s]+/)[0].toLowerCase();
+}
 
 function guessEducationLevel(value?: string): string | undefined {
   if (!value) return undefined;

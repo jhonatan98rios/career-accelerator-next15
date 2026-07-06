@@ -49,6 +49,9 @@ export default function SideBar({ id, insightGuardrail }: SideBarProps) {
           <Link href={`/profile/${id}/input`} className="hover:bg-purple-600 p-2 rounded-lg">
             Novo Plano de Carreira
           </Link>
+          <Link href={`/profile/${id}/vagas`} className="hover:bg-purple-600 p-2 rounded-lg">
+            Encontrar Vagas
+          </Link>
           <Link href={`/profile/${id}/roadmaps`} className="hover:bg-purple-600 p-2 rounded-lg">
             Acompanhe seu Progresso
           </Link>

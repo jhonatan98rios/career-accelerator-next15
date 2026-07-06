@@ -105,6 +105,8 @@ export interface IPersona extends Document {
   targetSalary?: TargetSalary;
   willingToRelocate?: boolean;
   remotePreference?: RemotePreference;
+  // Job search
+  jobSearchKeyword?: string;
   // Progress tracking
   completedRoadmaps?: number;
   insightsGenerated?: number;
@@ -168,6 +170,7 @@ const PersonaSchema = new Schema<IPersona>(
     completedRoadmaps: { type: Number, required: false, default: 0 },
     insightsGenerated: { type: Number, required: false, default: 0 },
     skillsGained: { type: [String], required: false },
+    jobSearchKeyword: { type: String, required: false },
     lastRoleChange: { type: Date, required: false },
   },
   { timestamps: true }
