@@ -1,6 +1,7 @@
 // profile/[profile_id]/input/page.tsx
 import { redirect } from "next/navigation";
 import InsightForm from "@/components/insightForm";
+import FirstAccessWelcome from "@/components/firstAccessWelcome";
 import { connectDB } from "@/lib/db";
 import { getSessionCached } from "@/lib/auth0";
 import { Profile } from "@/models/Profile";
@@ -19,10 +20,16 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
+  const hasInsight = user.lastInsightGeneratedAt != null;
+
   return (
-    <InsightForm
-      jwtToken={session.tokenSet.accessToken!}
-      insightGuardrail={getInsightGuardrailState(user)}
-    />
+    <>
+      {!hasInsight && <FirstAccessWelcome />}
+      <InsightForm
+        jwtToken={session.tokenSet.accessToken!}
+        insightGuardrail={getInsightGuardrailState(user)}
+        compact={!hasInsight}
+      />
+    </>
   );
 }

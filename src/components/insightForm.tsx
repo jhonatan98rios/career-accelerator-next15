@@ -13,6 +13,7 @@ interface PageProps {
 interface Props {
   jwtToken: string;
   insightGuardrail: InsightGuardrailState;
+  compact?: boolean;
 }
 
 function formatDateTime(value: string | null) {
@@ -26,10 +27,11 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
-export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
+export default function InsightForm({ jwtToken, insightGuardrail, compact = false }: Props) {
   const params = useParams();
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showExtras, setShowExtras] = useState(false);
 
   const { profile_id } = params as unknown as PageProps;
   const [isPending, startTransition] = useTransition();
@@ -99,148 +101,301 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
       ? "Seu proximo plano pode ser gerado agora."
       : `Seu proximo insight sera liberado em ${formatDateTime(insightGuardrail.unlockAt)}.`;
 
+  // ponytail: count filled fields for progress bar
+  const essentialFields = compact
+    ? ["dreamJob", "experience", "hardSkills"]
+    : ["dreamJob", "experience", "hardSkills", "currentRole", "education", "softSkills", "blockers", "1-year-goals"];
+  const filledEssential = essentialFields.filter(
+    (k) => answers[k as keyof typeof answers]?.trim()
+  ).length;
+  const totalSteps = compact ? (showExtras ? 8 : 3) : 8;
+  const filledExtras = compact && showExtras
+    ? ["currentRole", "education", "softSkills", "blockers", "1-year-goals"].filter(
+        (k) => answers[k as keyof typeof answers]?.trim()
+      ).length
+    : 0;
+  const progressPct = Math.round(((filledEssential + filledExtras) / totalSteps) * 100);
+
   return (
     <form className="max-w-3xl mx-auto px-6 py-12 space-y-12" onSubmit={handleSubmit}>
-      <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-20 block">
-        Comece falando um pouco sobre você
-      </h1>
+      {!compact && (
+        <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-20 block">
+          Comece falando um pouco sobre você
+        </h1>
+      )}
+
+      {/* Progress bar */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <span className="text-sm text-gray-400 font-medium tabular-nums min-w-[3ch] text-right">
+          {progressPct}%
+        </span>
+      </div>
 
       {/* Perguntas guiadas */}
       <section className="space-y-8">
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">Qual é o seu cargo atual?</label>
-          <input
-            name="currentRole"
-            type="text"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            value={answers.currentRole}
-            onChange={handleChange}
-          />
-        </div>
-
+        {/* 1. Cargo desejado */}
         <div>
           <label className="block font-medium mb-2 text-gray-700">
-            Quanto tempo de experiência você tem?
-          </label>
-          <input
-            name="experience"
-            type="text"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            value={answers.experience}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            Você tem formação superior? Se sim, qual?
-          </label>
-          <input
-            name="education"
-            type="text"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            value={answers.education}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            Qual emprego você gostaria de ter?
+            {compact ? "Qual cargo você busca?" : "Qual emprego você gostaria de ter?"}
           </label>
           <input
             name="dreamJob"
             type="text"
             className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: Especialista em inteligência artificial."
+            placeholder={compact ? "ex.: Desenvolvedor Frontend, Product Manager" : "ex.: Especialista em inteligência artificial."}
             value={answers.dreamJob}
             onChange={handleChange}
           />
         </div>
 
+        {/* 2. Experiência */}
         <div>
           <label className="block font-medium mb-2 text-gray-700">
-            Quais são suas principais soft skills?
+            {compact
+              ? "Qual seu nível de experiência?"
+              : "Quanto tempo de experiência você tem?"}
           </label>
-          <input
-            name="softSkills"
-            type="text"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: Comunicação, liderança, adaptabilidade."
-            value={answers.softSkills}
-            onChange={handleChange}
-          />
+          {compact ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { label: "Júnior (0-2 anos)", value: "2 anos" },
+                { label: "Pleno (3-5 anos)", value: "4 anos" },
+                { label: "Sênior (6+ anos)", value: "8 anos" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setAnswers({ ...answers, experience: opt.value })}
+                  className={`px-3 py-3 text-sm rounded-xl border-2 transition font-medium ${
+                    answers.experience === opt.value
+                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <input
+              name="experience"
+              type="text"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+              value={answers.experience}
+              onChange={handleChange}
+            />
+          )}
         </div>
 
+        {/* 3. Hard skills */}
         <div>
           <label className="block font-medium mb-2 text-gray-700">
-            Quais são suas principais hard skills?
+            Quais são suas principais habilidades técnicas?
           </label>
           <input
             name="hardSkills"
             type="text"
             className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: JavaScript, SQL, computação em nuvem."
+            placeholder="ex.: JavaScript, SQL, Excel, Python"
             value={answers.hardSkills}
             onChange={handleChange}
           />
+          <p className="text-xs text-gray-400 mt-1">
+            Separe por vírgulas — quanto mais específico, melhores serão suas vagas.
+          </p>
         </div>
 
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?
-          </label>
-          <textarea
-            name="blockers"
-            rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área."
-            value={answers.blockers}
-            onChange={handleChange}
-          />
-        </div>
+        {/* Expandable extras (compact mode only) */}
+        {compact && (
+          <>
+            {!showExtras ? (
+              <button
+                type="button"
+                onClick={() => setShowExtras(true)}
+                className="w-full py-3 text-sm font-medium text-purple-600 hover:text-purple-700 border-2 border-dashed border-purple-200 hover:border-purple-300 rounded-xl transition"
+              >
+                ✨ Quero um plano ainda mais personalizado (5 perguntas extras)
+              </button>
+            ) : (
+              <div className="space-y-8 pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-400">
+                  Essas perguntas ajudam a deixar seu plano mais preciso para o seu momento.
+                </p>
 
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            O que você espera alcançar nos próximos 12 meses?
-          </label>
-          <textarea
-            name="1-year-goals"
-            rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: Começar uma faculdade."
-            value={answers["1-year-goals"]}
-            onChange={handleChange}
-          />
-        </div>
+                <div>
+                  <label className="block font-medium mb-2 text-gray-700">Qual é o seu cargo atual?</label>
+                  <input
+                    name="currentRole"
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                    value={answers.currentRole}
+                    onChange={handleChange}
+                  />
+                </div>
 
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            O que você espera alcançar nos próximos 5 anos?
-          </label>
-          <textarea
-            name="5-years-goals"
-            rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior."
-            value={answers["5-years-goals"]}
-            onChange={handleChange}
-          />
-        </div>
+                <div>
+                  <label className="block font-medium mb-2 text-gray-700">
+                    Você tem formação superior? Se sim, qual?
+                  </label>
+                  <input
+                    name="education"
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                    value={answers.education}
+                    onChange={handleChange}
+                  />
+                </div>
 
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            O que você espera alcançar nos próximos 10 anos?
-          </label>
-          <textarea
-            name="10-years-goals"
-            rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: Me tornar um especialista com carreira internacional."
-            value={answers["10-years-goals"]}
-            onChange={handleChange}
-          />
-        </div>
+                <div>
+                  <label className="block font-medium mb-2 text-gray-700">
+                    Quais são suas principais soft skills?
+                  </label>
+                  <input
+                    name="softSkills"
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                    placeholder="ex.: Comunicação, liderança, adaptabilidade."
+                    value={answers.softSkills}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-2 text-gray-700">
+                    O que está bloqueando seu crescimento hoje?
+                  </label>
+                  <textarea
+                    name="blockers"
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                    placeholder="ex.: Dificuldade em encontrar vagas remotas na minha área."
+                    value={answers.blockers}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-2 text-gray-700">
+                    O que você espera alcançar nos próximos 12 meses?
+                  </label>
+                  <textarea
+                    name="1-year-goals"
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                    placeholder="ex.: Conseguir um aumento ou mudar de área."
+                    value={answers["1-year-goals"]}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Full form (non-compact) — remaining fields */}
+        {!compact && (
+          <>
+            <div>
+              <label className="block font-medium mb-2 text-gray-700">Qual é o seu cargo atual?</label>
+              <input
+                name="currentRole"
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                value={answers.currentRole}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2 text-gray-700">
+                Você tem formação superior? Se sim, qual?
+              </label>
+              <input
+                name="education"
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                value={answers.education}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2 text-gray-700">
+                Quais são suas principais soft skills?
+              </label>
+              <input
+                name="softSkills"
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                placeholder="ex.: Comunicação, liderança, adaptabilidade."
+                value={answers.softSkills}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2 text-gray-700">
+                Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?
+              </label>
+              <textarea
+                name="blockers"
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área."
+                value={answers.blockers}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2 text-gray-700">
+                O que você espera alcançar nos próximos 12 meses?
+              </label>
+              <textarea
+                name="1-year-goals"
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                placeholder="ex.: Começar uma faculdade."
+                value={answers["1-year-goals"]}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2 text-gray-700">
+                O que você espera alcançar nos próximos 5 anos?
+              </label>
+              <textarea
+                name="5-years-goals"
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior."
+                value={answers["5-years-goals"]}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2 text-gray-700">
+                O que você espera alcançar nos próximos 10 anos?
+              </label>
+              <textarea
+                name="10-years-goals"
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                placeholder="ex.: Me tornar um especialista com carreira internacional."
+                value={answers["10-years-goals"]}
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        )}
       </section>
 
       {/* Observação */}
@@ -269,20 +424,32 @@ export default function InsightForm({ jwtToken, insightGuardrail }: Props) {
 
       {/* Botão de envio */}
       <div className="text-center">
-        <Button isPending={isPending} disabled={!insightGuardrail.canGenerate} />
+        <Button
+          isPending={isPending}
+          disabled={!insightGuardrail.canGenerate}
+          compact={compact}
+        />
       </div>
     </form>
   );
 }
 
-const Button = ({ isPending, disabled }: { isPending: boolean; disabled: boolean }) => {
+const Button = ({
+  isPending,
+  disabled,
+  compact,
+}: {
+  isPending: boolean;
+  disabled: boolean;
+  compact?: boolean;
+}) => {
   if (isPending) {
     return (
       <button
         disabled
         className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition cursor-not-allowed opacity-50"
       >
-        Gerando...
+        Gerando seu plano...
       </button>
     );
   }
@@ -291,13 +458,13 @@ const Button = ({ isPending, disabled }: { isPending: boolean; disabled: boolean
     <button
       type="submit"
       disabled={disabled}
-      className={`px-6 py-3 text-white font-medium rounded-xl shadow-md transition ${
+      className={`px-8 py-4 text-white font-bold rounded-xl shadow-lg transition text-lg ${
         disabled
           ? "bg-gray-400 cursor-not-allowed opacity-70"
-          : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90 cursor-pointer"
+          : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:scale-105 cursor-pointer"
       }`}
     >
-      Gerar meu roadmap
+      {compact ? "Gerar meu plano gratuito →" : "Gerar meu roadmap"}
     </button>
   );
 };

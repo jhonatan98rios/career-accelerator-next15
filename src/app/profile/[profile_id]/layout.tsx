@@ -9,6 +9,7 @@ import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import { log, LogLevel } from "@/lib/logger";
 import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
 import OnboardingTour from "@/components/onboardingTour";
+import { FirstAccessRedirect } from "./first-access-redirect";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -45,12 +46,14 @@ export default async function ProfileLayout({ children, params }: LayoutProps) {
   }
 
   const insightGuardrail = getInsightGuardrailState(user);
+  const hasInsight = user.lastInsightGeneratedAt != null;
 
   return (
     <div className="flex flex-col min-h-screen h-full bg-gray-50 text-gray-900">
       <Header />
       <div className="flex">
-        <SideBar id={user.id} insightGuardrail={insightGuardrail} />
+        <SideBar id={user.id} insightGuardrail={insightGuardrail} hasInsight={hasInsight} />
+        <FirstAccessRedirect profileId={user.id} hasInsight={hasInsight} />
 
         {/* Main content */}
         <main className="flex-1 mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-60 md:mt-30 mb-20 space-y-10">
@@ -58,7 +61,7 @@ export default async function ProfileLayout({ children, params }: LayoutProps) {
         </main>
       </div>
 
-      {user.is_first_access !== false && <OnboardingTour />}
+      {user.is_first_access !== false && hasInsight && <OnboardingTour />}
     </div>
   );
 }
