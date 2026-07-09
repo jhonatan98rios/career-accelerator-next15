@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { generate } from "@/resume";
+import { generate, type UserData } from "@/resume";
 import { isAuthenticated } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
+import { Persona } from "@/models/Persona";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -17,13 +18,35 @@ export async function POST(req: Request) {
       return NextResponse.json({}, { status: HttpStatus.UNAUTHORIZED });
     }
 
+    const persona = await Persona.findOne({ profile_id: user._id }).lean();
+
+    const userData: UserData = {
+      name: user.name ?? undefined,
+      email: user.email ?? undefined,
+      currentRole: persona?.currentRole,
+      targetRole: persona?.targetRole,
+      yearsOfExperience: persona?.yearsOfExperience,
+      careerStage: persona?.careerStage,
+      industries: persona?.industries,
+      employmentStatus: persona?.employmentStatus,
+      educationLevel: persona?.educationLevel,
+      fieldOfStudy: persona?.fieldOfStudy,
+      certifications: persona?.certifications,
+      hardSkills: persona?.hardSkills,
+      softSkills: persona?.softSkills,
+      languages: persona?.languages?.map((l) => ({ name: l.language, proficiency: l.proficiency })),
+      shortTermGoal: persona?.shortTermGoal,
+      mediumTermGoal: persona?.mediumTermGoal,
+      longTermGoal: persona?.longTermGoal,
+    };
+
     const { input }: { input: string } = await req.json();
 
     if (!input || input.trim().length === 0) {
       return NextResponse.json({ error: "Texto vazio." }, { status: 400 });
     }
 
-    const result = await generate(input);
+    const result = await generate(input, userData);
 
     if (!result.ok) {
       await log(LogLevel.ERROR, "Resume generation failed", { error: result.error });

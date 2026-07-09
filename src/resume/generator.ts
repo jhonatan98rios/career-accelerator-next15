@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
-import { getResumeSystemPrompt } from "./prompts";
+import { getResumeSystemPrompt, type UserData } from "./prompts";
 import { validate } from "./validator";
 import { normalize } from "./normalizer";
 import type { Resume } from "./schema";
@@ -19,15 +19,15 @@ export type GenerateResult =
  *
  * Flow: input → LLM → JSON parse → Zod validate → normalize → Resume
  */
-export async function generate(input: string): Promise<GenerateResult> {
-  console.warn("[resume] step=start inputLength=%d", input.length);
+export async function generate(input: string, userData?: UserData): Promise<GenerateResult> {
+  console.warn("[resume] step=start inputLength=%d hasUserData=%s", input.length, userData != null);
 
   // 1. LLM call — use raw messages to avoid LangChain template-parsing the JSON schema
   let raw: string;
   try {
     console.warn("[resume] step=llm-call");
     const response = await model.invoke([
-      new SystemMessage(getResumeSystemPrompt()),
+      new SystemMessage(getResumeSystemPrompt(userData)),
       new HumanMessage(input),
     ]);
     raw = (response.content as string) ?? "";
