@@ -17,7 +17,7 @@ export function FirstAccessRedirect({ profileId, hasInsight }: Props) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!hasInsight && !pathname.endsWith("/input")) {
+    if (!hasInsight && pathname && !pathname.endsWith("/input")) {
       router.replace(`/profile/${profileId}/input`);
     }
   }, [hasInsight, pathname, profileId, router]);
