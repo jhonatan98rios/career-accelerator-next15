@@ -207,7 +207,21 @@ function buildSection(
       if (!hasContent(resume.volunteer)) return [];
       elements.push(...sectionTitleComponent(title, t));
       for (const vol of resume.volunteer) {
-        elements.push(...experienceCardComponent(vol, t)); // ponytail: reuse experience card
+        elements.push(
+          ...experienceCardComponent(
+            {
+              company: vol.organization,
+              position: vol.role,
+              startDate: vol.startDate,
+              endDate: vol.endDate,
+              description: vol.description,
+              location: null,
+              current: false,
+              highlights: [],
+            },
+            t,
+          ),
+        );
       }
       break;
     }
