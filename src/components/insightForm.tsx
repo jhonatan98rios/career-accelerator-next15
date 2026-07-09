@@ -27,6 +27,62 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
+// ponytail: shared field wrappers to stay under max-lines-per-function
+const FieldInput = ({
+  label,
+  name,
+  value,
+  placeholder,
+  hint,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+  hint?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}) => (
+  <div>
+    <label className="block font-medium mb-2 text-gray-700">{label}</label>
+    <input
+      name={name}
+      type="text"
+      className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+    />
+    {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+  </div>
+);
+
+const FieldTextarea = ({
+  label,
+  name,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}) => (
+  <div>
+    <label className="block font-medium mb-2 text-gray-700">{label}</label>
+    <textarea
+      name={name}
+      rows={3}
+      className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+    />
+  </div>
+);
+
 export default function InsightForm({ jwtToken, insightGuardrail, compact = false }: Props) {
   const params = useParams();
   const router = useRouter();
@@ -140,19 +196,13 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
       {/* Perguntas guiadas */}
       <section className="space-y-8">
         {/* 1. Cargo desejado */}
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            {compact ? "Qual cargo você busca?" : "Qual emprego você gostaria de ter?"}
-          </label>
-          <input
-            name="dreamJob"
-            type="text"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder={compact ? "ex.: Desenvolvedor Frontend, Product Manager" : "ex.: Especialista em inteligência artificial."}
-            value={answers.dreamJob}
-            onChange={handleChange}
-          />
-        </div>
+        <FieldInput
+          label={compact ? "Qual cargo você busca?" : "Qual emprego você gostaria de ter?"}
+          name="dreamJob"
+          value={answers.dreamJob}
+          placeholder={compact ? "ex.: Desenvolvedor Frontend, Product Manager" : "ex.: Especialista em inteligência artificial."}
+          onChange={handleChange}
+        />
 
         {/* 2. Experiência */}
         <div>
@@ -194,22 +244,14 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
         </div>
 
         {/* 3. Hard skills */}
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            Quais são suas principais habilidades técnicas?
-          </label>
-          <input
-            name="hardSkills"
-            type="text"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            placeholder="ex.: JavaScript, SQL, Excel, Python"
-            value={answers.hardSkills}
-            onChange={handleChange}
-          />
-          <p className="text-xs text-gray-400 mt-1">
-            Separe por vírgulas — quanto mais específico, melhores serão suas vagas.
-          </p>
-        </div>
+        <FieldInput
+          label="Quais são suas principais habilidades técnicas?"
+          name="hardSkills"
+          value={answers.hardSkills}
+          placeholder="ex.: JavaScript, SQL, Excel, Python"
+          hint="Separe por vírgulas — quanto mais específico, melhores serão suas vagas."
+          onChange={handleChange}
+        />
 
         {/* Expandable extras (compact mode only) */}
         {compact && (
@@ -228,71 +270,11 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
                   Essas perguntas ajudam a deixar seu plano mais preciso para o seu momento.
                 </p>
 
-                <div>
-                  <label className="block font-medium mb-2 text-gray-700">Qual é o seu cargo atual?</label>
-                  <input
-                    name="currentRole"
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                    value={answers.currentRole}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2 text-gray-700">
-                    Você tem formação superior? Se sim, qual?
-                  </label>
-                  <input
-                    name="education"
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                    value={answers.education}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2 text-gray-700">
-                    Quais são suas principais soft skills?
-                  </label>
-                  <input
-                    name="softSkills"
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                    placeholder="ex.: Comunicação, liderança, adaptabilidade."
-                    value={answers.softSkills}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2 text-gray-700">
-                    O que está bloqueando seu crescimento hoje?
-                  </label>
-                  <textarea
-                    name="blockers"
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                    placeholder="ex.: Dificuldade em encontrar vagas remotas na minha área."
-                    value={answers.blockers}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2 text-gray-700">
-                    O que você espera alcançar nos próximos 12 meses?
-                  </label>
-                  <textarea
-                    name="1-year-goals"
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                    placeholder="ex.: Conseguir um aumento ou mudar de área."
-                    value={answers["1-year-goals"]}
-                    onChange={handleChange}
-                  />
-                </div>
+                <FieldInput label="Qual é o seu cargo atual?" name="currentRole" value={answers.currentRole} onChange={handleChange} />
+                <FieldInput label="Você tem formação superior? Se sim, qual?" name="education" value={answers.education} onChange={handleChange} />
+                <FieldInput label="Quais são suas principais soft skills?" name="softSkills" value={answers.softSkills} placeholder="ex.: Comunicação, liderança, adaptabilidade." onChange={handleChange} />
+                <FieldTextarea label="O que está bloqueando seu crescimento hoje?" name="blockers" value={answers.blockers} placeholder="ex.: Dificuldade em encontrar vagas remotas na minha área." onChange={handleChange} />
+                <FieldTextarea label="O que você espera alcançar nos próximos 12 meses?" name="1-year-goals" value={answers["1-year-goals"]} placeholder="ex.: Conseguir um aumento ou mudar de área." onChange={handleChange} />
               </div>
             )}
           </>
@@ -301,99 +283,13 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
         {/* Full form (non-compact) — remaining fields */}
         {!compact && (
           <>
-            <div>
-              <label className="block font-medium mb-2 text-gray-700">Qual é o seu cargo atual?</label>
-              <input
-                name="currentRole"
-                type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                value={answers.currentRole}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-2 text-gray-700">
-                Você tem formação superior? Se sim, qual?
-              </label>
-              <input
-                name="education"
-                type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                value={answers.education}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-2 text-gray-700">
-                Quais são suas principais soft skills?
-              </label>
-              <input
-                name="softSkills"
-                type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                placeholder="ex.: Comunicação, liderança, adaptabilidade."
-                value={answers.softSkills}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-2 text-gray-700">
-                Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?
-              </label>
-              <textarea
-                name="blockers"
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área."
-                value={answers.blockers}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-2 text-gray-700">
-                O que você espera alcançar nos próximos 12 meses?
-              </label>
-              <textarea
-                name="1-year-goals"
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                placeholder="ex.: Começar uma faculdade."
-                value={answers["1-year-goals"]}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-2 text-gray-700">
-                O que você espera alcançar nos próximos 5 anos?
-              </label>
-              <textarea
-                name="5-years-goals"
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior."
-                value={answers["5-years-goals"]}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-2 text-gray-700">
-                O que você espera alcançar nos próximos 10 anos?
-              </label>
-              <textarea
-                name="10-years-goals"
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                placeholder="ex.: Me tornar um especialista com carreira internacional."
-                value={answers["10-years-goals"]}
-                onChange={handleChange}
-              />
-            </div>
+            <FieldInput label="Qual é o seu cargo atual?" name="currentRole" value={answers.currentRole} onChange={handleChange} />
+            <FieldInput label="Você tem formação superior? Se sim, qual?" name="education" value={answers.education} onChange={handleChange} />
+            <FieldInput label="Quais são suas principais soft skills?" name="softSkills" value={answers.softSkills} placeholder="ex.: Comunicação, liderança, adaptabilidade." onChange={handleChange} />
+            <FieldTextarea label="Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?" name="blockers" value={answers.blockers} placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área." onChange={handleChange} />
+            <FieldTextarea label="O que você espera alcançar nos próximos 12 meses?" name="1-year-goals" value={answers["1-year-goals"]} placeholder="ex.: Começar uma faculdade." onChange={handleChange} />
+            <FieldTextarea label="O que você espera alcançar nos próximos 5 anos?" name="5-years-goals" value={answers["5-years-goals"]} placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior." onChange={handleChange} />
+            <FieldTextarea label="O que você espera alcançar nos próximos 10 anos?" name="10-years-goals" value={answers["10-years-goals"]} placeholder="ex.: Me tornar um especialista com carreira internacional." onChange={handleChange} />
           </>
         )}
       </section>
