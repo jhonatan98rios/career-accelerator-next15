@@ -20,7 +20,7 @@ export type GenerateResult =
  * Flow: input → LLM → JSON parse → Zod validate → normalize → Resume
  */
 export async function generate(input: string): Promise<GenerateResult> {
-  console.log("[resume] step=start inputLength=%d", input.length);
+  console.warn("[resume] step=start inputLength=%d", input.length);
 
   // 1. LLM call
   const prompt = ChatPromptTemplate.fromMessages([
@@ -32,10 +32,10 @@ export async function generate(input: string): Promise<GenerateResult> {
 
   let raw: string;
   try {
-    console.log("[resume] step=llm-call");
+    console.warn("[resume] step=llm-call");
     const response = await chain.invoke({ input });
     raw = (response.content as string) ?? "";
-    console.log("[resume] step=llm-done rawLength=%d", raw.length);
+    console.warn("[resume] step=llm-done rawLength=%d", raw.length);
   } catch (err) {
     console.error("[resume] step=llm-failed", err);
     return { ok: false, error: `LLM call failed: ${err instanceof Error ? err.message : String(err)}` };
@@ -47,20 +47,20 @@ export async function generate(input: string): Promise<GenerateResult> {
     console.error("[resume] step=extract-json-failed raw=%s", raw.slice(0, 500));
     return { ok: false, error: "LLM response doesn't contain valid JSON" };
   }
-  console.log("[resume] step=extract-json-done jsonLength=%d", json.length);
+  console.warn("[resume] step=extract-json-done jsonLength=%d", json.length);
 
   // 3. Parse JSON
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
-    console.log("[resume] step=parse-json-done");
-  } catch (err) {
+    console.warn("[resume] step=parse-json-done");
+  } catch {
     console.error("[resume] step=parse-json-failed json=%s", json.slice(0, 500));
     return { ok: false, error: "Failed to parse LLM output as JSON" };
   }
 
   // 4. Zod validation
-  console.log("[resume] step=validate");
+  console.warn("[resume] step=validate");
   const result = validate(parsed);
   if (!result.ok) {
     console.error("[resume] step=validate-failed errors=%o", result.errors);
@@ -69,12 +69,12 @@ export async function generate(input: string): Promise<GenerateResult> {
       error: `Validation failed:\n${result.errors.map((e) => `  - ${e.path}: ${e.message}`).join("\n")}`,
     };
   }
-  console.log("[resume] step=validate-done");
+  console.warn("[resume] step=validate-done");
 
   // 5. Normalize
-  console.log("[resume] step=normalize");
+  console.warn("[resume] step=normalize");
   const normalized = normalize(result.data);
-  console.log("[resume] step=done");
+  console.warn("[resume] step=done");
 
   return { ok: true, data: normalized };
 }
