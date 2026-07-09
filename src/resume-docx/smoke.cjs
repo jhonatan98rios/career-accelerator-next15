@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Standalone smoke test for resume-docx renderer.
  * Inlines a Resume object to avoid broken project dependencies.
  * Tests: all 4 templates, edge cases (empty, large), writes .docx to /tmp.
  */
-const { readFileSync, writeFileSync, mkdirSync } = require("fs");
+const { writeFileSync, mkdirSync } = require("fs");
 const path = require("path");
 
 // ── Inline Resume (full developer example) ──────────────────────────────

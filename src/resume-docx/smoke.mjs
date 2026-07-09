@@ -51,7 +51,6 @@ for (const example of EXAMPLES) {
 // Edge cases
 console.log("\nEdge cases:");
 try {
-  const resume = loadResume("developer");
   const minimal = {
     meta: { schemaVersion: "1.0.0", language: "pt", generatedAt: null },
     personal: { name: "Fulano", email: null, phone: null, location: null, linkedin: null, website: null, photo: null },

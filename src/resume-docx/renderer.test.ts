@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { describe, it, expect } from "vitest";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import path from "path";
@@ -52,8 +51,6 @@ describe("render", () => {
 
 describe("edge cases", () => {
   it("handles empty resume (only name)", async () => {
-    const resume = loadResume("developer");
-    // strip everything but name
     const minimal: Resume = {
       meta: { schemaVersion: "1.0.0", language: "pt", generatedAt: null },
       personal: {

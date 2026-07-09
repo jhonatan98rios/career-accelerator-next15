@@ -1,8 +1,6 @@
 import type {
   Paragraph,
   Table,
-  IRunOptions,
-  IParagraphOptions,
 } from "docx";
 
 // ── Component ───────────────────────────────────────────────────────────
@@ -60,9 +58,4 @@ export interface Template {
   bullet: string;
 }
 
-// ── Shared run/text helpers ─────────────────────────────────────────────
-export interface StyledRun extends IRunOptions {
-  text: string;
-}
 
-export interface StyledParagraph extends IParagraphOptions {}

@@ -7,7 +7,6 @@ import {
   headerComponent,
   sectionTitleComponent,
   summaryComponent,
-  bulletListComponent,
   skillListComponent,
   experienceCardComponent,
   educationCardComponent,
@@ -15,7 +14,6 @@ import {
   certificationCardComponent,
   languageCardComponent,
   referenceCardComponent,
-  dividerComponent,
   footerComponent,
 } from "./components";
 

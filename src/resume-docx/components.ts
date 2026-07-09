@@ -6,11 +6,10 @@ import {
   TableCell,
   BorderStyle,
   AlignmentType,
-  HeadingLevel,
   WidthType,
 } from "docx";
 import type { Resume } from "../resume/schema";
-import type { Template, DocxComponent, DocxElement } from "./types";
+import type { Template, DocxComponent } from "./types";
 import { formatDateRange, formatPhone, formatLocation, cleanUrl, ICONS } from "./helpers";
 
 // ── Shared factories ────────────────────────────────────────────────────

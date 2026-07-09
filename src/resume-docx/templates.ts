@@ -1,4 +1,4 @@
-import type { Template } from "../types";
+import type { Template } from "./types";
 
 // ── Modern ──────────────────────────────────────────────────────────────
 // ponytail: modern = blue bar header, clean sans-serif, compact
