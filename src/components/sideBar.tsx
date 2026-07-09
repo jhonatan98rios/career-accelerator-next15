@@ -52,6 +52,9 @@ export default function SideBar({ id, insightGuardrail, hasInsight }: SideBarPro
           <Link href={`/profile/${id}/input`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
             Novo Plano de Carreira
           </Link>
+          <Link href={`/profile/${id}/resume`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+            Gerar Currículo
+          </Link>
           <MenuItem
             href={`/profile/${id}/vagas`}
             label="Encontrar Vagas"
