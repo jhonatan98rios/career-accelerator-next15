@@ -32,11 +32,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data: result.data });
   } catch (err) {
-    await log(LogLevel.ERROR, "Resume API error", {
-      error: err instanceof Error ? err.message : String(err),
-    });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[resume] step=api-crash error=%s", message, err);
+    await log(LogLevel.ERROR, "Resume API error", { error: message });
     return NextResponse.json(
-      { error: "Erro ao gerar currículo." },
+      { error: message },
       { status: 500 },
     );
   }
