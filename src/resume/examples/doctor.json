@@ -1,0 +1,106 @@
+{
+  "meta": { "schemaVersion": "1.0.0", "language": "pt", "generatedAt": null },
+  "personal": {
+    "name": "Dr. Roberto Almeida",
+    "email": "dr.roberto@email.com",
+    "phone": null,
+    "location": { "city": "Brasília", "state": "DF", "country": "Brasil" },
+    "linkedin": null,
+    "website": null,
+    "photo": null
+  },
+  "summary": "Médico cardiologista com 12 anos de experiência clínica e hospitalar. Especialista em cardiologia intervencionista e ecocardiografia.",
+  "experience": [
+    {
+      "company": "Hospital Sírio-Libanês",
+      "position": "Cardiologista Intervencionista",
+      "startDate": "2020-03",
+      "endDate": null,
+      "current": true,
+      "location": { "city": "Brasília", "state": "DF", "country": "Brasil" },
+      "description": "Atendimento ambulatorial e hospitalar. Realização de cateterismos, angioplastias e procedimentos intervencionistas.",
+      "highlights": [
+        "Membro do comitê de qualidade e segurança do paciente",
+        "Preceptor da residência médica em cardiologia"
+      ]
+    },
+    {
+      "company": "Hospital de Base",
+      "position": "Médico Cardiologista",
+      "startDate": "2012-01",
+      "endDate": "2020-02",
+      "current": false,
+      "location": { "city": "Brasília", "state": "DF", "country": "Brasil" },
+      "description": "Plantão em UTI coronariana e enfermaria cardiológica.",
+      "highlights": []
+    }
+  ],
+  "education": [
+    {
+      "institution": "USP",
+      "degree": "Residência Médica",
+      "field": "Cardiologia",
+      "startDate": "2009-01",
+      "endDate": "2011-12",
+      "gpa": null,
+      "description": null
+    },
+    {
+      "institution": "USP",
+      "degree": "Residência Médica",
+      "field": "Clínica Médica",
+      "startDate": "2007-01",
+      "endDate": "2008-12",
+      "gpa": null,
+      "description": null
+    },
+    {
+      "institution": "UnB",
+      "degree": "Bacharelado",
+      "field": "Medicina",
+      "startDate": "2001-01",
+      "endDate": "2006-12",
+      "gpa": null,
+      "description": null
+    }
+  ],
+  "skills": {
+    "hard": [
+      { "name": "Ecocardiografia", "level": "expert" },
+      { "name": "Cateterismo Cardíaco", "level": "advanced" },
+      { "name": "Eletrocardiograma", "level": "expert" },
+      { "name": "Medicina Intensiva", "level": "advanced" }
+    ],
+    "soft": [
+      { "name": "Comunicação com pacientes", "level": "expert" },
+      { "name": "Tomada de decisão sob pressão", "level": "expert" },
+      { "name": "Trabalho em equipe multidisciplinar", "level": "advanced" }
+    ]
+  },
+  "languages": [
+    { "name": "Português", "proficiency": "native" },
+    { "name": "Inglês", "proficiency": "professional" }
+  ],
+  "certifications": [
+    {
+      "name": "Título de Especialista em Cardiologia",
+      "issuer": "Sociedade Brasileira de Cardiologia",
+      "date": "2012-02",
+      "url": null
+    }
+  ],
+  "projects": [],
+  "volunteer": [],
+  "awards": [],
+  "publications": [
+    {
+      "title": "Avaliação da função ventricular em pacientes pós-COVID-19",
+      "publisher": "Arquivos Brasileiros de Cardiologia",
+      "date": "2021-08",
+      "url": null,
+      "description": "Estudo observacional com 200 pacientes avaliando sequelas cardíacas."
+    }
+  ],
+  "references": [],
+  "social": {}
+}

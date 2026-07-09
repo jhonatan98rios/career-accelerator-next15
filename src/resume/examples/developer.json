@@ -1,0 +1,108 @@
+{
+  "meta": { "schemaVersion": "1.0.0", "language": "en", "generatedAt": null },
+  "personal": {
+    "name": "Ana Costa",
+    "email": "ana.costa@email.com",
+    "phone": null,
+    "location": { "city": "São Paulo", "state": "SP", "country": "Brasil" },
+    "linkedin": "https://linkedin.com/in/anacosta",
+    "website": "https://anacosta.dev",
+    "photo": null
+  },
+  "summary": "Senior full-stack developer with 8+ years building scalable web applications. Experienced in React, Node.js, AWS, and leading engineering teams.",
+  "experience": [
+    {
+      "company": "FinTech Brasil",
+      "position": "Tech Lead",
+      "startDate": "2023-03",
+      "endDate": null,
+      "current": true,
+      "location": { "city": "São Paulo", "state": "SP", "country": "Brasil" },
+      "description": "Leading a team of 6 engineers building a payments platform serving 2M+ users.",
+      "highlights": [
+        "Architected event-driven microservices with Kafka and AWS Lambda",
+        "Reduced P95 latency by 60% through query optimization and caching",
+        "Introduced trunk-based development and CI/CD, cutting release cycle from 2 weeks to daily"
+      ]
+    },
+    {
+      "company": "Ecommerce Pro",
+      "position": "Senior Software Engineer",
+      "startDate": "2020-06",
+      "endDate": "2023-02",
+      "current": false,
+      "location": { "city": "Rio de Janeiro", "state": "RJ", "country": "Brasil" },
+      "description": "Built core checkout and cart services for a platform with 500k daily active users.",
+      "highlights": [
+        "Migrated legacy PHP monolith to TypeScript microservices",
+        "Designed and implemented a feature flag system used by 12 teams"
+      ]
+    },
+    {
+      "company": "Startup Lab",
+      "position": "Full-stack Developer",
+      "startDate": "2017-01",
+      "endDate": "2020-05",
+      "current": false,
+      "location": { "city": "Belo Horizonte", "state": "MG", "country": "Brasil" },
+      "description": "Early engineer at a SaaS startup. Built core product features from zero to launch.",
+      "highlights": [
+        "Built the front-end with React and back-end with Express.js",
+        "Set up AWS infrastructure using Terraform"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "UFMG",
+      "degree": "Bacharelado",
+      "field": "Ciência da Computação",
+      "startDate": "2013-01",
+      "endDate": "2017-12",
+      "gpa": null,
+      "description": null
+    }
+  ],
+  "skills": {
+    "hard": [
+      { "name": "TypeScript", "level": "expert" },
+      { "name": "React", "level": "expert" },
+      { "name": "Node.js", "level": "expert" },
+      { "name": "AWS", "level": "advanced" },
+      { "name": "PostgreSQL", "level": "advanced" },
+      { "name": "Kafka", "level": "intermediate" },
+      { "name": "Docker", "level": "advanced" },
+      { "name": "Terraform", "level": "intermediate" }
+    ],
+    "soft": [
+      { "name": "Technical Leadership", "level": "advanced" },
+      { "name": "Mentoring", "level": "advanced" },
+      { "name": "System Design", "level": "expert" }
+    ]
+  },
+  "languages": [
+    { "name": "Português", "proficiency": "native" },
+    { "name": "Inglês", "proficiency": "professional" }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Solutions Architect Associate",
+      "issuer": "Amazon Web Services",
+      "date": "2021-08",
+      "url": null
+    }
+  ],
+  "projects": [],
+  "volunteer": [],
+  "awards": [],
+  "publications": [],
+  "references": [],
+  "social": {
+    "github": "https://github.com/anacosta",
+    "twitter": null,
+    "stackoverflow": null,
+    "medium": null,
+    "behance": null,
+    "dribbble": null
+  }
+}

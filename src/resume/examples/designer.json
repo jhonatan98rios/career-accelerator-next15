@@ -1,0 +1,94 @@
+{
+  "meta": { "schemaVersion": "1.0.0", "language": "en", "generatedAt": null },
+  "personal": {
+    "name": "Marina Lima",
+    "email": "marina@studiomarina.com",
+    "phone": null,
+    "location": { "city": "São Paulo", "state": "SP", "country": "Brasil" },
+    "linkedin": "https://linkedin.com/in/marinalima",
+    "website": "https://marinalima.design",
+    "photo": null
+  },
+  "summary": "Product designer with 6+ years crafting B2B SaaS experiences. Specialized in design systems, user research, and complex data visualization.",
+  "experience": [
+    {
+      "company": "Nubank",
+      "position": "Senior Product Designer",
+      "startDate": "2022-04",
+      "endDate": null,
+      "current": true,
+      "location": { "city": "São Paulo", "state": "SP", "country": "Brasil" },
+      "description": "Leading design for the business accounts platform. Conducting user research and building a design system from scratch.",
+      "highlights": [
+        "Launched the PJ account MVP in 4 months, reaching 100k customers in Q1",
+        "Built Nubank's first cross-platform design system used by 40+ designers"
+      ]
+    },
+    {
+      "company": "VTEX",
+      "position": "Product Designer",
+      "startDate": "2020-01",
+      "endDate": "2022-03",
+      "current": false,
+      "location": { "city": "Rio de Janeiro", "state": "RJ", "country": "Brasil" },
+      "description": "Designer for the order management dashboard used by 3k+ merchants.",
+      "highlights": [
+        "Redesigned the order flow, reducing support tickets by 25%",
+        "Led user interviews with 30+ merchants across 5 countries"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "FAAP",
+      "degree": "Bacharelado",
+      "field": "Design",
+      "startDate": "2014-01",
+      "endDate": "2017-12",
+      "gpa": null,
+      "description": null
+    }
+  ],
+  "skills": {
+    "hard": [
+      { "name": "Figma", "level": "expert" },
+      { "name": "Design Systems", "level": "expert" },
+      { "name": "User Research", "level": "advanced" },
+      { "name": "Prototyping", "level": "advanced" },
+      { "name": "Design Tokens", "level": "intermediate" }
+    ],
+    "soft": [
+      { "name": "Stakeholder Management", "level": "advanced" },
+      { "name": "Facilitation", "level": "advanced" },
+      { "name": "Design Critique", "level": "expert" }
+    ]
+  },
+  "languages": [
+    { "name": "Português", "proficiency": "native" },
+    { "name": "Inglês", "proficiency": "professional" },
+    { "name": "Espanhol", "proficiency": "basic" }
+  ],
+  "certifications": [],
+  "projects": [
+    {
+      "name": "Design System Open Source",
+      "description": "Open-source design token generator used by 200+ stars on GitHub.",
+      "url": "https://github.com/marinalima/tokens",
+      "highlights": ["React + Tailwind integration", "Figma plugin for token sync"],
+      "startDate": "2021-03",
+      "endDate": null
+    }
+  ],
+  "volunteer": [],
+  "awards": [],
+  "publications": [],
+  "references": [],
+  "social": {
+    "github": "https://github.com/marinalima",
+    "twitter": null,
+    "stackoverflow": null,
+    "medium": "https://medium.com/@marinalima",
+    "behance": "https://behance.net/marinalima",
+    "dribbble": "https://dribbble.com/marinalima"
+  }
+}

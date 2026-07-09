@@ -1,0 +1,90 @@
+{
+  "meta": { "schemaVersion": "1.0.0", "language": "pt", "generatedAt": null },
+  "personal": {
+    "name": "Rafael Torres",
+    "email": "rafael.torres@email.com",
+    "phone": null,
+    "location": { "city": "Salvador", "state": "BA", "country": "Brasil" },
+    "linkedin": null,
+    "website": "https://rafaeltorres.music",
+    "photo": null
+  },
+  "summary": "Violonista e compositor com 10 anos de carreira. Especializado em música instrumental brasileira, choro e samba. Experiência em produção musical e trilhas sonoras.",
+  "experience": [
+    {
+      "company": "Autônomo",
+      "position": "Violonista e Compositor",
+      "startDate": "2015-01",
+      "endDate": null,
+      "current": true,
+      "location": { "city": "Salvador", "state": "BA", "country": "Brasil" },
+      "description": "Apresentações em casas de shows, festivais e eventos corporativos. Composição de trilhas para cinema e publicidade.",
+      "highlights": [
+        "Lançou 2 álbuns autorais: Rios (2019) e Caminhos (2023)",
+        "Trilha sonora do curta-metragem Maré, vencedor do Festival de Brasília 2022"
+      ]
+    },
+    {
+      "company": "Conservatório de Música da Bahia",
+      "position": "Professor de Violão",
+      "startDate": "2015-03",
+      "endDate": "2020-12",
+      "current": false,
+      "location": { "city": "Salvador", "state": "BA", "country": "Brasil" },
+      "description": "Professor de violão popular e harmonia para alunos de nível iniciante a avançado.",
+      "highlights": []
+    }
+  ],
+  "education": [
+    {
+      "institution": "UFBA",
+      "degree": "Bacharelado",
+      "field": "Música — Violão",
+      "startDate": "2012-01",
+      "endDate": "2016-12",
+      "gpa": null,
+      "description": null
+    }
+  ],
+  "skills": {
+    "hard": [
+      { "name": "Violão Clássico", "level": "expert" },
+      { "name": "Violão 7 Cordas", "level": "advanced" },
+      { "name": "Produção Musical (Logic Pro)", "level": "advanced" },
+      { "name": "Teoria Musical", "level": "expert" },
+      { "name": "Arranjo", "level": "advanced" }
+    ],
+    "soft": [
+      { "name": "Criatividade", "level": "expert" },
+      { "name": "Performance ao vivo", "level": "expert" },
+      { "name": "Colaboração artística", "level": "advanced" }
+    ]
+  },
+  "languages": [
+    { "name": "Português", "proficiency": "native" },
+    { "name": "Inglês", "proficiency": "conversational" }
+  ],
+  "certifications": [],
+  "projects": [
+    {
+      "name": "Álbum Caminhos",
+      "description": "Segundo álbum autoral com 10 faixas instrumentais explorando ritmos brasileiros.",
+      "url": "https://open.spotify.com/album/caminhos",
+      "highlights": ["Gravado ao vivo no Teatro Castro Alves", "Participação de músicos renomados"],
+      "startDate": "2022-06",
+      "endDate": "2023-03"
+    }
+  ],
+  "volunteer": [],
+  "awards": [],
+  "publications": [],
+  "references": [],
+  "social": {
+    "github": null,
+    "twitter": null,
+    "stackoverflow": null,
+    "medium": null,
+    "behance": null,
+    "dribbble": null
+  }
+}

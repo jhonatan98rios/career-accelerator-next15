@@ -1,0 +1,96 @@
+{
+  "meta": { "schemaVersion": "1.0.0", "language": "pt", "generatedAt": null },
+  "personal": {
+    "name": "Carlos Mendes",
+    "email": "carlos.mendes@email.com",
+    "phone": null,
+    "location": { "city": "Porto Alegre", "state": "RS", "country": "Brasil" },
+    "linkedin": null,
+    "website": null,
+    "photo": null
+  },
+  "summary": "Professor de matemática com 15 anos de experiência no ensino fundamental e médio. Especialista em metodologias ativas e uso de tecnologia em sala de aula.",
+  "experience": [
+    {
+      "company": "Colégio Estadual Paulo Freire",
+      "position": "Professor de Matemática",
+      "startDate": "2010-02",
+      "endDate": null,
+      "current": true,
+      "location": { "city": "Porto Alegre", "state": "RS", "country": "Brasil" },
+      "description": "Professor titular de matemática para turmas do 6º ao 9º ano e ensino médio.",
+      "highlights": [
+        "Implementou projeto de gamificação que aumentou a participação dos alunos em 40%",
+        "Coordenador da Olimpíada de Matemática da escola por 5 anos consecutivos"
+      ]
+    },
+    {
+      "company": "Escola Municipal Dom Pedro",
+      "position": "Professor de Matemática",
+      "startDate": "2008-02",
+      "endDate": "2009-12",
+      "current": false,
+      "location": { "city": "Canoas", "state": "RS", "country": "Brasil" },
+      "description": "Professor de matemática para ensino fundamental II.",
+      "highlights": []
+    }
+  ],
+  "education": [
+    {
+      "institution": "UFRGS",
+      "degree": "Mestrado",
+      "field": "Educação Matemática",
+      "startDate": "2015-03",
+      "endDate": "2017-12",
+      "gpa": null,
+      "description": null
+    },
+    {
+      "institution": "UFRGS",
+      "degree": "Licenciatura",
+      "field": "Matemática",
+      "startDate": "2004-01",
+      "endDate": "2008-12",
+      "gpa": null,
+      "description": null
+    }
+  ],
+  "skills": {
+    "hard": [
+      { "name": "Didática da Matemática", "level": "expert" },
+      { "name": "Metodologias Ativas", "level": "advanced" },
+      { "name": "GeoGebra", "level": "advanced" },
+      { "name": "Google Classroom", "level": "advanced" }
+    ],
+    "soft": [
+      { "name": "Comunicação", "level": "expert" },
+      { "name": "Paciência", "level": "expert" },
+      { "name": "Liderança de equipe pedagógica", "level": "advanced" }
+    ]
+  },
+  "languages": [
+    { "name": "Português", "proficiency": "native" },
+    { "name": "Inglês", "proficiency": "conversational" }
+  ],
+  "certifications": [
+    {
+      "name": "Metodologias Ativas na Educação",
+      "issuer": "Instituto Singularidades",
+      "date": "2019-06",
+      "url": null
+    }
+  ],
+  "projects": [],
+  "volunteer": [],
+  "awards": [
+    {
+      "title": "Professor Destaque 2021",
+      "issuer": "Secretaria Estadual de Educação",
+      "date": "2021-12",
+      "description": "Reconhecimento por inovação no ensino remoto durante a pandemia."
+    }
+  ],
+  "publications": [],
+  "references": [],
+  "social": {}
+}
