@@ -1,5 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { getResumeSystemPrompt } from "./prompts";
 import { validate } from "./validator";
 import { normalize } from "./normalizer";
@@ -22,18 +22,14 @@ export type GenerateResult =
 export async function generate(input: string): Promise<GenerateResult> {
   console.warn("[resume] step=start inputLength=%d", input.length);
 
-  // 1. LLM call
-  const prompt = ChatPromptTemplate.fromMessages([
-    ["system", getResumeSystemPrompt()],
-    ["user", "{input}"],
-  ]);
-
-  const chain = prompt.pipe(model);
-
+  // 1. LLM call — use raw messages to avoid LangChain template-parsing the JSON schema
   let raw: string;
   try {
     console.warn("[resume] step=llm-call");
-    const response = await chain.invoke({ input });
+    const response = await model.invoke([
+      new SystemMessage(getResumeSystemPrompt()),
+      new HumanMessage(input),
+    ]);
     raw = (response.content as string) ?? "";
     console.warn("[resume] step=llm-done rawLength=%d", raw.length);
   } catch (err) {
