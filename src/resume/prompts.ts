@@ -57,7 +57,7 @@ export const resumeExample: Resume = {
   awards: [],
   publications: [],
   references: [],
-  social: {},
+  social: { github: null, twitter: null, stackoverflow: null, medium: null, behance: null, dribbble: null },
 };
 
 export const getResumeSystemPrompt = () => `
