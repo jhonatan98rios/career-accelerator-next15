@@ -3,7 +3,7 @@ import { generate, type UserData } from "@/resume";
 import { isAuthenticated } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
-import { Persona } from "@/models/Persona";
+import { Persona, type IPersona } from "@/models/Persona";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({}, { status: HttpStatus.UNAUTHORIZED });
     }
 
-    const persona = await Persona.findOne({ profile_id: user._id }).lean();
+    const persona = await Persona.findOne({ profile_id: user._id }).lean() as IPersona | null;
 
     const userData: UserData = {
       name: user.name ?? undefined,
