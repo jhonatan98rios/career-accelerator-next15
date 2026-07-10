@@ -72,6 +72,10 @@ export function RoadmapUpdateButton({
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = "/auth/logout";
+          return;
+        }
         const retryWindowEndsAt = formatDateTime(data.retryWindowEndsAt ?? null);
         setErrorMessage(
           retryWindowEndsAt

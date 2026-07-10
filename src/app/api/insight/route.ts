@@ -7,7 +7,7 @@ import { IPersona, Persona } from "@/models/Persona";
 import { RoadmapStatus, UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
-import { isAuthenticated } from "@/lib/auth0";
+import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { IProfile, Profile } from "@/models/Profile";
 import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
 
@@ -143,6 +143,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data: newInsight }, { status: 201 });
   } catch (err: any) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: HttpStatus.UNAUTHORIZED }
+      );
+    }
     await log(LogLevel.ERROR, "POST /insight: Exception occurred", { error: err });
     return NextResponse.json(
       { error: err.message || "Internal Server Error" },

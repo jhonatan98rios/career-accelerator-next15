@@ -32,6 +32,10 @@ export default function ResumeGenerator({ jwtToken }: Props) {
         const payload = await res.json();
 
         if (!res.ok) {
+          if (res.status === 401) {
+            window.location.href = "/auth/logout";
+            return;
+          }
           setError(payload.error || "Erro ao gerar currículo.");
           return;
         }

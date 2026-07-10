@@ -24,6 +24,16 @@ export const getSessionCached = cache(async () => {
   return auth0.getSession();
 });
 
+export class AuthError extends Error {
+  constructor(
+    message: string,
+    public readonly code: "token_expired" | "token_missing" | "token_invalid"
+  ) {
+    super(message);
+    this.name = "AuthError";
+  }
+}
+
 const JWKS = createRemoteJWKSet(
   new URL(`https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`)
 );
@@ -33,7 +43,7 @@ export async function isAuthenticated(headers: Headers): Promise<JWTVerifyResult
     const authHeader = headers.get("Authorization");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new Error("Authorization header missing or malformed");
+      throw new AuthError("Authorization header missing or malformed", "token_missing");
     }
 
     const token = authHeader.split(" ")[1];
@@ -45,7 +55,14 @@ export async function isAuthenticated(headers: Headers): Promise<JWTVerifyResult
 
     return payload;
   } catch (err) {
+    if (err instanceof AuthError) throw err;
+
+    const message = err instanceof Error ? err.message : String(err);
+    const code = message.includes('"exp" claim timestamp check failed')
+      ? "token_expired"
+      : "token_invalid";
+
     await log(LogLevel.ERROR, `Failed to authenticate the user`, { err });
-    throw new Error(`Failed to authenticate the user: ${err}`);
+    throw new AuthError(`Failed to authenticate the user: ${message}`, code as "token_expired" | "token_invalid");
   }
 }

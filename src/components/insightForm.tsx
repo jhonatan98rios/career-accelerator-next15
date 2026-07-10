@@ -116,6 +116,10 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
       const payload = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = "/auth/logout";
+          return;
+        }
         const unlockAt = formatDateTime(payload.unlockAt ?? null);
         setErrorMessage(
           unlockAt

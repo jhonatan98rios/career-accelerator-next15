@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generate, type UserData } from "@/resume";
-import { isAuthenticated } from "@/lib/auth0";
+import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
 import { Persona, type IPersona } from "@/models/Persona";
@@ -55,6 +55,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data: result.data });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: 401 }
+      );
+    }
     const message = err instanceof Error ? err.message : String(err);
     console.error("[resume] step=api-crash error=%s", message, err);
     await log(LogLevel.ERROR, "Resume API error", { error: message });
