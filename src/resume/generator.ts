@@ -56,7 +56,8 @@ export async function generate(input: string, userData?: UserData): Promise<Gene
   }
 
   // 4. Sanitize — strip entries where required fields are null
-  sanitize(parsed);
+  const obj = parsed as Record<string, unknown>;
+  sanitize(obj);
   console.warn("[resume] step=sanitize-done");
 
   // 5. Zod validation
