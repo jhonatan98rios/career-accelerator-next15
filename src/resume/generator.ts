@@ -55,7 +55,11 @@ export async function generate(input: string, userData?: UserData): Promise<Gene
     return { ok: false, error: "Failed to parse LLM output as JSON" };
   }
 
-  // 4. Zod validation
+  // 4. Sanitize — strip entries where required fields are null
+  sanitize(parsed);
+  console.warn("[resume] step=sanitize-done");
+
+  // 5. Zod validation
   console.warn("[resume] step=validate");
   const result = validate(parsed);
   if (!result.ok) {
@@ -67,12 +71,52 @@ export async function generate(input: string, userData?: UserData): Promise<Gene
   }
   console.warn("[resume] step=validate-done");
 
-  // 5. Normalize
+  // 6. Normalize
   console.warn("[resume] step=normalize");
   const normalized = normalize(result.data);
   console.warn("[resume] step=done");
 
   return { ok: true, data: normalized };
+}
+
+/**
+ * Strip array entries where required fields are null (common LLM artifact).
+ * Mutates in place — runs before Zod validation.
+ */
+function sanitize(obj: Record<string, unknown>): void {
+  // ponytail: filter arrays by checking if all required fields are non-null strings
+  const requiredArrays: Array<{ key: string; required: string[] }> = [
+    { key: "experience", required: ["company", "position"] },
+    { key: "education", required: ["institution", "degree", "field"] },
+    { key: "projects", required: ["name"] },
+    { key: "certifications", required: ["name"] },
+    { key: "languages", required: ["name"] },
+    { key: "volunteer", required: ["organization", "role"] },
+    { key: "awards", required: ["title"] },
+    { key: "publications", required: ["title"] },
+    { key: "references", required: ["name"] },
+  ];
+
+  for (const { key, required } of requiredArrays) {
+    const arr = obj[key];
+    if (!Array.isArray(arr)) continue;
+    obj[key] = arr.filter((item: Record<string, unknown>) =>
+      required.every((f) => typeof item[f] === "string" && item[f].trim().length > 0),
+    );
+  }
+
+  // Skills: filter individual skill entries
+  const skills = obj["skills"] as Record<string, unknown> | undefined;
+  if (skills) {
+    for (const cat of ["hard", "soft"]) {
+      const arr = skills[cat];
+      if (Array.isArray(arr)) {
+        skills[cat] = arr.filter(
+          (s: Record<string, unknown>) => typeof s.name === "string" && s.name.trim().length > 0,
+        );
+      }
+    }
+  }
 }
 
 /**
