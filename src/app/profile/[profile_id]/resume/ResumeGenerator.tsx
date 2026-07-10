@@ -2,6 +2,29 @@
 
 import { useState, useTransition } from "react";
 
+async function downloadDocx(resume: Record<string, unknown>, jwtToken: string) {
+  const res = await fetch("/api/resume/docx", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwtToken}`,
+    },
+    body: JSON.stringify({ resume }),
+  });
+
+  if (!res.ok) throw new Error("Falha ao gerar DOCX");
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "curriculo.docx";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 interface Props {
   jwtToken: string;
 }
@@ -11,6 +34,7 @@ export default function ResumeGenerator({ jwtToken }: Props) {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [downloading, setDownloading] = useState(false);
 
   const handleGenerate = () => {
     if (!input.trim()) return;
@@ -87,8 +111,27 @@ export default function ResumeGenerator({ jwtToken }: Props) {
       )}
 
       {result && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Currículo Gerado</h2>
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Currículo Gerado</h2>
+            <button
+              type="button"
+              disabled={downloading}
+              onClick={async () => {
+                setDownloading(true);
+                try {
+                  await downloadDocx(result, jwtToken);
+                } catch {
+                  setError("Erro ao baixar DOCX.");
+                } finally {
+                  setDownloading(false);
+                }
+              }}
+              className="px-4 py-2 rounded-lg font-semibold text-white bg-green-600 hover:bg-green-700 transition disabled:opacity-50"
+            >
+              {downloading ? "Baixando..." : "Baixar DOCX"}
+            </button>
+          </div>
           <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded-lg overflow-auto max-h-96">
             {JSON.stringify(result, null, 2)}
           </pre>

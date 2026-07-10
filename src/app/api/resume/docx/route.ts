@@ -1,0 +1,35 @@
+import { NextResponse } from "next/server";
+import { render } from "@/resume-docx";
+import type { Resume } from "@/resume";
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+
+    const { resume, template = "modern" } = body as {
+      resume: Resume;
+      template?: "modern" | "classic" | "ats" | "academic";
+    };
+
+    if (!resume?.personal?.name) {
+      return NextResponse.json(
+        { error: "Dados de currículo inválidos" },
+        { status: 400 },
+      );
+    }
+
+    const buffer = await render(resume, template);
+
+    return new NextResponse(buffer, {
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Disposition": `attachment; filename="curriculo-${resume.personal.name.replace(/\s+/g, "-").toLowerCase()}.docx"`,
+        "Content-Length": String(buffer.length),
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
