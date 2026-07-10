@@ -1,12 +1,8 @@
 import {
   Paragraph,
   TextRun,
-  Table,
-  TableRow,
-  TableCell,
   BorderStyle,
   AlignmentType,
-  WidthType,
 } from "docx";
 import type { Resume } from "../resume/schema";
 import type { Template, DocxComponent } from "./types";
@@ -162,55 +158,39 @@ export function skillListComponent(
   skills: Resume["skills"],
   t: Template,
 ): DocxComponent {
-  const all = [
-    ...skills.hard.map((s) => ({ name: s.name, level: s.level, type: "Hard" })),
-    ...skills.soft.map((s) => ({ name: s.name, level: s.level, type: "Soft" })),
-  ];
+  const result: DocxComponent = [];
 
-  if (all.length === 0) return [];
-
-  // ponytail: 3-column table for skills
-  const chunkSize = Math.ceil(all.length / 3);
-  const columns: typeof all[] = [[], [], []];
-  all.forEach((s, i) => {
-    columns[Math.floor(i / chunkSize) % 3].push(s);
-  });
-
-  const rows = Math.max(...columns.map((c) => c.length));
-  const tableRows: TableRow[] = [];
-
-  for (let i = 0; i < rows; i++) {
-    tableRows.push(
-      new TableRow({
-        children: columns.map((col) => {
-          const skill = col[i];
-          return new TableCell({
-            width: { size: 33, type: WidthType.PERCENTAGE },
-            children: skill
-              ? [
-                  new Paragraph({
-                    spacing: { before: 0, after: 20 },
-                    children: [
-                      run(skill.name, t, { bold: true, size: 18 }),
-                      skill.level
-                        ? run(`  (${skill.level})`, t, { color: t.colors.muted, size: 16, italics: true })
-                        : new TextRun({ text: "" }),
-                    ],
-                  }),
-                ]
-              : [new Paragraph({ children: [] })],
-          });
-        }),
+  if (skills.hard.length > 0) {
+    const names = skills.hard.map((s) =>
+      s.level ? `${s.name} (${s.level})` : s.name,
+    );
+    result.push(
+      new Paragraph({
+        spacing: { before: 0, after: t.spacing.after },
+        children: [
+          run("Hard: ", t, { bold: true }),
+          run(names.join(", "), t),
+        ],
       }),
     );
   }
 
-  return [
-    new Table({
-      rows: tableRows,
-      width: { size: 100, type: WidthType.PERCENTAGE },
-    }),
-  ];
+  if (skills.soft.length > 0) {
+    const names = skills.soft.map((s) =>
+      s.level ? `${s.name} (${s.level})` : s.name,
+    );
+    result.push(
+      new Paragraph({
+        spacing: { before: 0, after: t.spacing.after },
+        children: [
+          run("Soft: ", t, { bold: true }),
+          run(names.join(", "), t),
+        ],
+      }),
+    );
+  }
+
+  return result;
 }
 
 // ── Experience Card ─────────────────────────────────────────────────────
