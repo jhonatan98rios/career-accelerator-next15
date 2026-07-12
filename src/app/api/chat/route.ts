@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { generateChatResponse, type ChatMessage } from "@/lib/chat-service";
+import { generateChatResponse, type ChatMessage, type PersonaSnapshot } from "@/lib/chat-service";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
+import { connectDB } from "@/lib/db";
+import { Profile, IProfile } from "@/models/Profile";
+import { Persona, IPersona } from "@/models/Persona";
+import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 
@@ -12,7 +16,17 @@ interface ChatRequestBody {
 
 export async function POST(req: Request) {
   try {
-    await isAuthenticated(req.headers);
+    const { sub } = await isAuthenticated(req.headers);
+
+    await connectDB();
+
+    const user = (await Profile.findOne({ externalAuthId: sub })) as IProfile | null;
+    if (!user || user.status === UserStatus.INACTIVE) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: HttpStatus.UNAUTHORIZED }
+      );
+    }
 
     const body: ChatRequestBody = await req.json();
 
@@ -23,7 +37,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate each message
     for (const msg of body.messages) {
       if (!msg.role || !["user", "assistant"].includes(msg.role)) {
         return NextResponse.json(
@@ -47,7 +60,47 @@ export async function POST(req: Request) {
       );
     }
 
-    const content = await generateChatResponse(body.messages);
+    // Fetch persona for richer coaching context
+    let personaSnapshot: PersonaSnapshot | undefined;
+    try {
+      const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
+      if (persona) {
+        personaSnapshot = {
+          currentRole: persona.currentRole,
+          targetRole: persona.targetRole,
+          yearsOfExperience: persona.yearsOfExperience,
+          careerStage: persona.careerStage,
+          industries: persona.industries,
+          employmentStatus: persona.employmentStatus,
+          educationLevel: persona.educationLevel,
+          fieldOfStudy: persona.fieldOfStudy,
+          certifications: persona.certifications,
+          hardSkills: persona.hardSkills,
+          softSkills: persona.softSkills,
+          languages: persona.languages?.map((l) => ({
+            language: l.language,
+            proficiency: l.proficiency,
+          })),
+          tools: persona.tools,
+          weeklyStudyHours: persona.weeklyStudyHours,
+          studySchedule: persona.studySchedule,
+          preferredContentFormat: persona.preferredContentFormat,
+          shortTermGoal: persona.shortTermGoal,
+          mediumTermGoal: persona.mediumTermGoal,
+          longTermGoal: persona.longTermGoal,
+          careerMotivation: persona.careerMotivation,
+          willingToRelocate: persona.willingToRelocate,
+          remotePreference: persona.remotePreference,
+        };
+      }
+    } catch (dbErr) {
+      // ponytail: persona fetch is best-effort — chat still works without it
+      await log(LogLevel.WARN, "POST /api/chat: Failed to fetch persona, continuing without", {
+        error: dbErr instanceof Error ? dbErr.message : String(dbErr),
+      });
+    }
+
+    const content = await generateChatResponse(body.messages, personaSnapshot);
 
     return NextResponse.json({
       message: {
