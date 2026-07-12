@@ -32,6 +32,7 @@ export default function ChatComposer({ value, onChange, onSend, disabled }: Chat
           onKeyDown={handleKeyDown}
           placeholder="Digite sua mensagem..."
           rows={2}
+          maxLength={MAX_CHARS}
           disabled={disabled}
           className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent disabled:opacity-50"
         />

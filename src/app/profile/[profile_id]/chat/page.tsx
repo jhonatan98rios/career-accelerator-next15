@@ -5,56 +5,7 @@ import ChatSidebar, { type ChatSession } from "@/components/ChatSidebar";
 import ChatMessage, { type ChatMessageData } from "@/components/ChatMessage";
 import ChatComposer from "@/components/ChatComposer";
 import TypingIndicator from "@/components/TypingIndicator";
-
-// ── Mock data ──────────────────────────────────────────────
-
-const MOCK_SESSIONS: ChatSession[] = [
-  { id: "1", title: "Plano para Big Tech" },
-  { id: "2", title: "Currículo" },
-  { id: "3", title: "Entrevista" },
-];
-
-const MOCK_MESSAGES: Record<string, ChatMessageData[]> = {
-  "1": [
-    {
-      id: "m1",
-      role: "user",
-      content: "Quero montar um plano para entrar no Google como engenheiro sênior.",
-    },
-    {
-      id: "m2",
-      role: "assistant",
-      content: "Ótimo! Vamos traçar um plano estruturado. Primeiro, me conte: qual sua experiência atual com system design e algoritmos?",
-    },
-  ],
-  "2": [
-    {
-      id: "m3",
-      role: "user",
-      content: "Preciso melhorar meu currículo para vagas de tech lead.",
-    },
-    {
-      id: "m4",
-      role: "assistant",
-      content: "Claro! Vou te ajudar a destacar as habilidades certas. Você pode compartilhar seu currículo atual ou me contar sobre suas experiências mais relevantes?",
-    },
-  ],
-  "3": [
-    {
-      id: "m5",
-      role: "user",
-      content: "Tenho uma entrevista amanhã na AWS, me ajude a me preparar.",
-    },
-    {
-      id: "m6",
-      role: "assistant",
-      content: "Excelente! A AWS valoriza muito os Leadership Principles. Vamos revisar os principais e preparar respostas no formato STAR. Qual é a posição?",
-    },
-  ],
-};
-
-const MOCK_RESPONSE =
-  "Essa é uma resposta simulada.\nNa próxima etapa ela será gerada pela IA.";
+import { sendChatMessage, type ChatMessage as ApiChatMessage } from "@/lib/chat-api";
 
 let nextId = 100;
 
@@ -65,12 +16,16 @@ function newId(): string {
 // ── Page component ─────────────────────────────────────────
 
 export default function ChatPage() {
-  const [sessions, setSessions] = useState<ChatSession[]>(MOCK_SESSIONS);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessageData[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // ponytail: plain object ref — Map overkill for in-memory session messages
+  const sessionMessagesRef = useRef<Record<string, ChatMessageData[]>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +36,8 @@ export default function ChatPage() {
 
   const handleSelectSession = useCallback((id: string) => {
     setSelectedId(id);
-    setMessages(MOCK_MESSAGES[id] ?? []);
+    setMessages(sessionMessagesRef.current[id] ?? []);
+    setError(null);
   }, []);
 
   const handleNewSession = useCallback(() => {
@@ -91,9 +47,10 @@ export default function ChatPage() {
     setSelectedId(id);
     setMessages([]);
     setInput("");
+    setError(null);
   }, []);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
@@ -103,29 +60,45 @@ export default function ChatPage() {
       content: trimmed,
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput("");
+    setError(null);
     setLoading(true);
 
     // Update session title if it's the first message
     if (selectedId && messages.length === 0) {
       setSessions((prev) =>
         prev.map((s) =>
-          s.id === selectedId ? { ...s, title: trimmed.slice(0, 40) + (trimmed.length > 40 ? "…" : "") } : s
+          s.id === selectedId
+            ? { ...s, title: trimmed.slice(0, 40) + (trimmed.length > 40 ? "…" : "") }
+            : s
         )
       );
     }
 
-    setTimeout(() => {
+    const apiMessages: ApiChatMessage[] = updatedMessages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    try {
+      const response = await sendChatMessage(apiMessages);
       const assistantMsg: ChatMessageData = {
         id: newId(),
         role: "assistant",
-        content: MOCK_RESPONSE,
+        content: response.content,
       };
-      setMessages((prev) => [...prev, assistantMsg]);
+
+      const final = [...updatedMessages, assistantMsg];
+      setMessages(final);
+      sessionMessagesRef.current[selectedId!] = final;
       setLoading(false);
-    }, 1000);
-  }, [input, loading, selectedId, messages.length]);
+    } catch {
+      setLoading(false);
+      setError("Não foi possível obter uma resposta. Tente novamente em instantes.");
+    }
+  }, [input, loading, selectedId, messages]);
 
   const selectedSession = sessions.find((s) => s.id === selectedId) ?? null;
 
@@ -175,6 +148,20 @@ export default function ChatPage() {
             ))}
 
             {loading && <TypingIndicator />}
+
+            {error && (
+              <div className="flex justify-center my-3">
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm text-center max-w-md">
+                  <p>{error}</p>
+                  <button
+                    onClick={() => setError(null)}
+                    className="mt-1.5 text-xs underline text-red-600 hover:text-red-800"
+                  >
+                    Dispensar
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div ref={messagesEndRef} />
           </div>
