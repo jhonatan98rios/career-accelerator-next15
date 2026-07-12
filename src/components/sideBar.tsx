@@ -70,6 +70,9 @@ export default function SideBar({ id, insightGuardrail, hasInsight }: SideBarPro
             label="Configurações"
             disabled={!hasInsight}
           />
+          <Link href={`/profile/${id}/chat`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+            Coach de Carreira
+          </Link>
         </nav>
       </div>
 
