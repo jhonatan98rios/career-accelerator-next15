@@ -1,6 +1,6 @@
 # Feature: Chat UI (Career Coach)
 
-> **Status**: `etapa-2`
+> **Status**: `etapa-2` (persona enrichment active)
 
 Chat interface for the Career Coach with real AI integration via LangChain/OpenAI. No persistence — all conversation history is in-memory only, lost on page refresh.
 
@@ -20,8 +20,8 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
       Verify: `grep "sessionMessagesRef\|useRef" src/app/profile/\[profile_id\]/chat/page.tsx` — sessionMessagesRef stores messages per session
 - [x] Atualizar página reinicia conversa.
       Verify: manual — all state is useState/useRef, no persistence
-- [x] Backend utiliza LangChain para construir prompt.
-      Verify: `grep "SystemMessage\|HumanMessage\|AIMessage\|ChatOpenAI\|prompt" src/lib/chat-service.ts` — uses LangChain messages + ChatOpenAI
+- [x] Backend utiliza LangChain para construir prompt com dados da Persona.
+      Verify: `grep "SystemMessage\|HumanMessage\|AIMessage\|ChatOpenAI" src/lib/chat-service.ts` — uses LangChain messages + ChatOpenAI; `grep "Persona\|PersonaSnapshot" src/app/api/chat/route.ts` — fetches persona, passes to chat service
 - [x] System Prompt enviado em todas as requisições.
       Verify: `grep "SystemMessage" src/lib/chat-service.ts` — always first in invoke array
 - [x] Histórico completo enviado ao modelo.
@@ -50,8 +50,8 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
       Verify: manual — desktop shows fixed sidebar; mobile shows hamburger + drawer
 - [x] Código organizado em componentes reutilizáveis.
       Verify: `ls src/components/Chat*.tsx src/components/TypingIndicator.tsx` — ChatComposer.tsx, ChatMessage.tsx, ChatSidebar.tsx, TypingIndicator.tsx exist
-- [x] Sem persistência (MongoDB, sessões, histórico salvo).
-      Verify: `grep -r "mongoose\|MongoDB\|connectDB\|CareerInsight\|CareerRoadmap\|Persona" src/lib/chat-service.ts src/app/api/chat/route.ts src/lib/chat-api.ts src/app/profile/\[profile_id\]/chat/page.tsx 2>/dev/null; echo "exit: $?"` — no matches (exit 1)
+- [x] Sem persistência de chat (mensagens não salvas em MongoDB). Persona é apenas lida.
+      Verify: chat route reads Persona via `Persona.findOne`, no `.create` or `.save` on chat-related models
 - [x] Arquitetura preparada para sessões persistidas.
       Verify: chat-api.ts is an abstraction layer; sessionMessagesRef is a drop-in target for future session store
 
@@ -60,7 +60,8 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
 ### Constraints
 
 - All chat state is local (useState + useRef), no Context or global stores
-- No MongoDB, no persistence of any kind
+- Chat messages are NOT persisted (no chat history in MongoDB)
+- Persona is READ from MongoDB to enrich the system prompt — no writes to persona from chat
 - No streaming — full response returned at once via POST
 - Must use existing Tailwind v4 design system (purple-to-indigo brand gradient)
 - Components follow existing conventions: flat `src/components/`, PascalCase filenames
@@ -69,10 +70,10 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
 
 ### Out of Scope
 
-- MongoDB / persistence
+- MongoDB / chat persistence (persona is only read, not written)
 - Sessões persistidas
 - Histórico salvo
-- Persona persistente
+- Escrita na Persona
 - Notas da Persona
 - Recuperação de conversas anteriores
 - Sumarização
@@ -128,5 +129,6 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
 | `code::src/components/TypingIndicator.tsx::TypingIndicator` | source | Animated loading dots indicator |
 | `code::src/lib/chat-api.ts::sendChatMessage` | source | Frontend API client — POST /api/chat |
 | `code::src/lib/chat-api.ts::ChatApiError` | source | Custom error class for API failures |
-| `code::src/lib/chat-service.ts::generateChatResponse` | source | LangChain chat service — builds prompt, invokes LLM, truncates output |
-| `code::src/app/api/chat/route.ts::POST` | source | API endpoint — validates input, delegates to chat-service, returns { message: { role, content } } |
+| `code::src/lib/chat-service.ts::generateChatResponse` | source | LangChain chat service — builds prompt with persona data, invokes LLM, truncates output |
+| `code::src/lib/chat-service.ts::PersonaSnapshot` | source | Flat persona fields passed into the system prompt |
+| `code::src/app/api/chat/route.ts::POST` | source | API endpoint — auth, fetches profile+persona from MongoDB, delegates to chat-service |
