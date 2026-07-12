@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { InsightGuardrailState } from "@/lib/ai-generation-guardrails";
 
@@ -20,7 +21,7 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
-export default function SideBar({ id, insightGuardrail, hasInsight }: SideBarProps) {
+function SideBarContent({ id, insightGuardrail, hasInsight }: SideBarProps) {
   const unlockAt = formatDateTime(insightGuardrail.unlockAt);
   const statusTitle = insightGuardrail.bypassed
     ? "Modo livre"
@@ -37,47 +38,41 @@ export default function SideBar({ id, insightGuardrail, hasInsight }: SideBarPro
         : "Aguarde o fim do intervalo para gerar outro plano.";
 
   return (
-    <aside
-      className={`fixed z-40 left-0 h-38 md:h-full w-full overflow-scroll md:overflow-hidden md:w-64 
-      bg-gradient-to-b from-purple-500 to-indigo-500 text-white flex md:flex-col justify-between`}
-    >
-      {/* Top menu */}
-      <div>
-        <nav className="mt-24 flex md:flex-col whitespace-nowrap space-y-4 px-4">
-          <MenuItem
-            href={`/profile/${id}`}
-            label="Início"
-            disabled={!hasInsight}
-          />
-          <Link href={`/profile/${id}/input`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
-            Novo Plano de Carreira
-          </Link>
-          <Link href={`/profile/${id}/resume`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
-            Gerar Currículo
-          </Link>
-          <MenuItem
-            href={`/profile/${id}/vagas`}
-            label="Encontrar Vagas"
-            disabled={!hasInsight}
-          />
-          <MenuItem
-            href={`/profile/${id}/roadmaps`}
-            label="Acompanhe seu Progresso"
-            disabled={!hasInsight}
-          />
-          <MenuItem
-            href={`/profile/${id}/config`}
-            label="Configurações"
-            disabled={!hasInsight}
-          />
-          <Link href={`/profile/${id}/chat`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
-            Coach de Carreira
-          </Link>
-        </nav>
-      </div>
+    <>
+      <nav className="flex flex-col space-y-4 px-4">
+        <MenuItem
+          href={`/profile/${id}`}
+          label="Início"
+          disabled={!hasInsight}
+        />
+        <Link href={`/profile/${id}/input`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+          Novo Plano de Carreira
+        </Link>
+        <Link href={`/profile/${id}/resume`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+          Gerar Currículo
+        </Link>
+        <MenuItem
+          href={`/profile/${id}/vagas`}
+          label="Encontrar Vagas"
+          disabled={!hasInsight}
+        />
+        <MenuItem
+          href={`/profile/${id}/roadmaps`}
+          label="Acompanhe seu Progresso"
+          disabled={!hasInsight}
+        />
+        <MenuItem
+          href={`/profile/${id}/config`}
+          label="Configurações"
+          disabled={!hasInsight}
+        />
+        <Link href={`/profile/${id}/chat`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+          Coach de Carreira
+        </Link>
+      </nav>
 
-      <div className="p-4 bg-purple-600/40 m-4 rounded-lg shadow-inner min-h-10 mt-auto flex md:flex-col items-center md:items-start gap-1">
-        <p className="text-sm opacity-80 whitespace-nowrap mr-2 md:mr-0">{statusTitle}</p>
+      <div className="p-4 bg-purple-600/40 m-4 rounded-lg shadow-inner mt-auto flex flex-col items-start gap-1">
+        <p className="text-sm opacity-80">{statusTitle}</p>
         <p className="text-sm font-semibold leading-snug">{statusBody}</p>
       </div>
 
@@ -86,7 +81,48 @@ export default function SideBar({ id, insightGuardrail, hasInsight }: SideBarPro
           👀 Suas vagas personalizadas estão a 1 insight de distância.
         </div>
       )}
-    </aside>
+    </>
+  );
+}
+
+export default function SideBar(props: SideBarProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile: hamburger button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed z-50 top-4 left-4 p-2 rounded-lg bg-purple-600 text-white shadow-lg"
+        aria-label="Abrir menu"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 6h18M3 12h18M3 18h18" />
+        </svg>
+      </button>
+
+      {/* Mobile: overlay */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/30 z-40"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile: drawer */}
+      <aside
+        className={`md:hidden fixed z-50 inset-y-0 left-0 w-64 bg-gradient-to-b from-purple-500 to-indigo-500 text-white flex flex-col pt-16 pb-4 transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <SideBarContent {...props} />
+      </aside>
+
+      {/* Desktop: fixed sidebar */}
+      <aside className="hidden md:flex fixed z-40 left-0 h-full w-64 bg-gradient-to-b from-purple-500 to-indigo-500 text-white flex-col pt-24 pb-4">
+        <SideBarContent {...props} />
+      </aside>
+    </>
   );
 }
 
