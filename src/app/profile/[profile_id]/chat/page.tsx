@@ -94,7 +94,8 @@ export default function ChatPage() {
       setMessages(final);
       sessionMessagesRef.current[selectedId!] = final;
       setLoading(false);
-    } catch {
+    } catch (err) {
+      console.error("[chat-page] send failed", err);
       setLoading(false);
       setError("Não foi possível obter uma resposta. Tente novamente em instantes.");
     }
