@@ -2,6 +2,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 
 const MAX_OUTPUT_CHARS = 500;
+const EMERGENCY_GUARDRAIL = 2000; // ponytail: hard cutoff only if model ignores the prompt
 
 const model = new ChatOpenAI({
   model: "gpt-5-nano-2025-08-07",
@@ -120,8 +121,9 @@ export async function generateChatResponse(
 
   let content = (response.content as string) ?? "";
 
-  if (content.length > MAX_OUTPUT_CHARS) {
-    content = content.slice(0, MAX_OUTPUT_CHARS).trimEnd();
+  // ponytail: trust the prompt for ~500 chars; emergency guardrail only
+  if (content.length > EMERGENCY_GUARDRAIL) {
+    content = content.slice(0, EMERGENCY_GUARDRAIL).trimEnd() + "…";
   }
 
   return content;

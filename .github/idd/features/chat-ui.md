@@ -28,8 +28,8 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
       Verify: `grep "\.\.\.messages\.map" src/lib/chat-service.ts` — all messages passed to model.invoke
 - [x] Limite de 500 caracteres para entrada.
       Verify: `grep "maxLength\|MAX_CHARS\|MAX_INPUT_CHARS" src/components/ChatComposer.tsx src/app/api/chat/route.ts` — textarea maxLength + API validation
-- [x] Respostas limitadas a ~500 caracteres.
-      Verify: `grep "MAX_OUTPUT_CHARS\|500" src/lib/chat-service.ts` — truncation logic
+- [x] Respostas limitadas a ~500 caracteres (soft via prompt, hard guardrail em 2000).
+      Verify: `grep "MAX_OUTPUT_CHARS\|EMERGENCY_GUARDRAIL" src/lib/chat-service.ts` — prompt limit + emergency cutoff
 - [x] Tratamento de erros no frontend e backend.
       Verify: `grep "try\|catch\|ChatApiError\|AuthError" src/lib/chat-api.ts src/app/api/chat/route.ts src/app/profile/\[profile_id\]/chat/page.tsx` — try/catch in all layers
 - [x] Navegação entre conversas.
