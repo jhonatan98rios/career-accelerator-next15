@@ -1,8 +1,8 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 
-const MAX_OUTPUT_CHARS = 500;
-const EMERGENCY_GUARDRAIL = 2000; // ponytail: hard cutoff only if model ignores the prompt
+const MAX_OUTPUT_CHARS = 2000;
+const EMERGENCY_GUARDRAIL = 5000; // ponytail: hard cutoff only if model ignores the prompt
 
 const model = new ChatOpenAI({
   model: "gpt-5-nano-2025-08-07",
