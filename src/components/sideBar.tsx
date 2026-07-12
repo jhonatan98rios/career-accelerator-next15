@@ -21,7 +21,12 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
-function SideBarContent({ id, insightGuardrail, hasInsight }: SideBarProps) {
+function SideBarContent({
+  id,
+  insightGuardrail,
+  hasInsight,
+  onLinkClick,
+}: SideBarProps & { onLinkClick?: () => void }) {
   const unlockAt = formatDateTime(insightGuardrail.unlockAt);
   const statusTitle = insightGuardrail.bypassed
     ? "Modo livre"
@@ -44,29 +49,33 @@ function SideBarContent({ id, insightGuardrail, hasInsight }: SideBarProps) {
           href={`/profile/${id}`}
           label="Início"
           disabled={!hasInsight}
+          onClick={onLinkClick}
         />
-        <Link href={`/profile/${id}/input`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+        <Link href={`/profile/${id}/input`} onClick={onLinkClick} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
           Novo Plano de Carreira
         </Link>
-        <Link href={`/profile/${id}/resume`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+        <Link href={`/profile/${id}/resume`} onClick={onLinkClick} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
           Gerar Currículo
         </Link>
         <MenuItem
           href={`/profile/${id}/vagas`}
           label="Encontrar Vagas"
           disabled={!hasInsight}
+          onClick={onLinkClick}
         />
         <MenuItem
           href={`/profile/${id}/roadmaps`}
           label="Acompanhe seu Progresso"
           disabled={!hasInsight}
+          onClick={onLinkClick}
         />
         <MenuItem
           href={`/profile/${id}/config`}
           label="Configurações"
           disabled={!hasInsight}
+          onClick={onLinkClick}
         />
-        <Link href={`/profile/${id}/chat`} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+        <Link href={`/profile/${id}/chat`} onClick={onLinkClick} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
           Coach de Carreira
         </Link>
       </nav>
@@ -115,7 +124,7 @@ export default function SideBar(props: SideBarProps) {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <SideBarContent {...props} />
+        <SideBarContent {...props} onLinkClick={() => setMobileOpen(false)} />
       </aside>
 
       {/* Desktop: fixed sidebar */}
@@ -130,10 +139,12 @@ function MenuItem({
   href,
   label,
   disabled,
+  onClick,
 }: {
   href: string;
   label: string;
   disabled: boolean;
+  onClick?: () => void;
 }) {
   if (disabled) {
     return (
@@ -144,7 +155,7 @@ function MenuItem({
   }
 
   return (
-    <Link href={href} className="hover:bg-purple-600 p-2 rounded-lg">
+    <Link href={href} onClick={onClick} className="hover:bg-purple-600 p-2 rounded-lg">
       {label}
     </Link>
   );

@@ -20,8 +20,10 @@ export default async function Header() {
     "https://images.icon-icons.com/1736/PNG/512/4043233-anime-away-face-no-nobody-spirited_113254.png";
 
   return (
-    <header className="w-full fixed z-50 flex justify-between items-center px-6 bg-white shadow-sm  overflow-x-scroll md:overflow-hidden">
-      <h1 className="p-6 text-2xl font-extrabold whitespace-nowrap">🚀 AcelerAi </h1>
+    <header className="w-full fixed z-50 flex items-center px-6 pl-16 md:pl-6 bg-white shadow-sm">
+      <h1 className="flex-1 md:flex-none text-center md:text-left p-4 md:p-6 text-2xl font-extrabold whitespace-nowrap">
+        🚀 AcelerAi
+      </h1>
 
       <Link
         href={`/profile/${user?.id}/config`}
@@ -34,7 +36,9 @@ export default async function Header() {
           height={40}
           className="rounded-full"
         />
-        <span className="font-medium text-gray-700 whitespace-nowrap">{user?.name}</span>
+        <span className="hidden md:inline font-medium text-gray-700 whitespace-nowrap">
+          {user?.name}
+        </span>
       </Link>
     </header>
   );
