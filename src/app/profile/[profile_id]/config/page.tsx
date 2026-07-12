@@ -35,10 +35,8 @@ export default async function Page() {
   const billingAddress = user.billingAddress;
 
   return (
-    <main className="bg-gray-50 text-gray-900 min-h-screen">
-      {/* Formulário */}
-      <section className="container mx-auto px-6 py-12 max-w-2xl">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+    <div className="max-w-3xl mx-auto space-y-8">
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
           Ajuste as informações da sua conta
         </h2>
 
@@ -255,7 +253,6 @@ export default async function Page() {
           {/* Cancel Subscription */}
           <CancelSubscriptionButton />
         </form>
-      </section>
-    </main>
+    </div>
   );
 }

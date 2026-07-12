@@ -104,7 +104,7 @@ export default function ChatPage() {
   const selectedSession = sessions.find((s) => s.id === selectedId) ?? null;
 
   return (
-    <div className="flex min-h-[75vh] rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+    <div className="max-w-3xl mx-auto flex min-h-[75vh] rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
       {/* Sidebar */}
       <ChatSidebar
         sessions={sessions}

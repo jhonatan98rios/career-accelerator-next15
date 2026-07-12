@@ -177,7 +177,7 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
   const progressPct = Math.round(((filledEssential + filledExtras) / totalSteps) * 100);
 
   return (
-    <form className="max-w-3xl mx-auto px-6 py-12 space-y-12" onSubmit={handleSubmit}>
+    <form className="max-w-3xl mx-auto space-y-12" onSubmit={handleSubmit}>
       {!compact && (
         <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-20 block">
           Comece falando um pouco sobre você

@@ -43,7 +43,7 @@ export default async function Page() {
   }));
 
   return (
-    <div className="flex flex-col items-center w-full min-h-96">
+    <div className="max-w-3xl mx-auto w-full min-h-96">
       <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
         Roadmaps de carreira
       </h1>

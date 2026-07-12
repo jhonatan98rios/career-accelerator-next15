@@ -62,7 +62,7 @@ export default async function Page({ params }: PageProps) {
   );
 
   return (
-    <div className="flex flex-col items-center w-full min-h-screen px-6 py-12 bg-gray-50">
+    <div className="max-w-3xl mx-auto w-full">
       <h1 className="text-3xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
         Roadmap de carreira
       </h1>
