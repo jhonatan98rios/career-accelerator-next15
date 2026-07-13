@@ -42,25 +42,32 @@ export interface PersonaSnapshot {
   remotePreference?: string;
 }
 
-export async function generateChatResponse(
+export async function* generateChatResponse(
   messages: ChatMessage[],
   persona?: PersonaSnapshot,
-): Promise<string> {
+): AsyncGenerator<string> {
   const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
 
-  const response = await model.invoke([
+  const stream = await model.stream([
     new SystemMessage(systemPrompt),
     ...messages.map((m) =>
       m.role === "user" ? new HumanMessage(m.content) : new AIMessage(m.content)
     ),
   ]);
 
-  let content = (response.content as string) ?? "";
+  let total = 0;
+  for await (const chunk of stream) {
+    const token = (chunk.content as string) ?? "";
+    if (!token) continue;
 
-  // ponytail: trust the prompt for ~500 chars; emergency guardrail only
-  if (content.length > EMERGENCY_GUARDRAIL) {
-    content = content.slice(0, EMERGENCY_GUARDRAIL).trimEnd() + "…";
+    if (total >= EMERGENCY_GUARDRAIL) break;
+
+    const remaining = EMERGENCY_GUARDRAIL - total;
+    const safe = token.length > remaining ? token.slice(0, remaining) + "…" : token;
+
+    total += safe.length;
+    yield safe;
+
+    if (safe.endsWith("…")) break;
   }
-
-  return content;
 }

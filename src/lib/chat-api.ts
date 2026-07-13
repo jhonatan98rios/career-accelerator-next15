@@ -64,3 +64,75 @@ export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatMess
   console.log("[chat-api] received response", { contentLength: data.message.content.length });
   return data.message;
 }
+
+export async function streamChatMessage(
+  messages: ChatMessage[],
+  onToken: (token: string) => void,
+  onError: (error: string) => void,
+  onDone: () => void,
+): Promise<void> {
+  const token = await getAccessToken();
+
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!res.ok) {
+    let msg = "Não foi possível obter uma resposta.";
+    try {
+      const body = await res.json();
+      if (body.error) msg = body.error;
+    } catch { /* body parse failed, use default */ }
+    onError(msg);
+    return;
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) {
+    onError("Stream não disponível.");
+    return;
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const payload = line.slice(6);
+
+        if (payload === "[DONE]") {
+          onDone();
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(payload);
+          if (parsed.error) {
+            onError(parsed.error);
+            return;
+          }
+          if (parsed.token) onToken(parsed.token);
+        } catch { /* malformed SSE line, skip */ }
+      }
+    }
+
+    // Stream closed without [DONE]
+    onDone();
+  } catch (err) {
+    onError(err instanceof Error ? err.message : "Erro no stream.");
+  }
+}

@@ -100,12 +100,32 @@ export async function POST(req: Request) {
       });
     }
 
-    const content = await generateChatResponse(body.messages, personaSnapshot);
+    const encoder = new TextEncoder();
 
-    return NextResponse.json({
-      message: {
-        role: "assistant" as const,
-        content,
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const generator = generateChatResponse(body.messages, personaSnapshot);
+          for await (const token of generator) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } catch (err) {
+          await log(LogLevel.ERROR, "POST /api/chat: Stream generation failed", {
+            error: err instanceof Error ? err.message : String(err),
+          });
+          const msg = err instanceof Error ? err.message : "Internal Server Error";
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+        }
+        controller.close();
+      },
+    });
+
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
       },
     });
   } catch (err: unknown) {

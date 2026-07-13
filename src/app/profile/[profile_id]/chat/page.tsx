@@ -4,8 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import ChatSidebar, { type ChatSession } from "@/components/ChatSidebar";
 import ChatMessage, { type ChatMessageData } from "@/components/ChatMessage";
 import ChatComposer from "@/components/ChatComposer";
-import TypingIndicator from "@/components/TypingIndicator";
-import { sendChatMessage, type ChatMessage as ApiChatMessage } from "@/lib/chat-api";
+import { streamChatMessage, type ChatMessage as ApiChatMessage } from "@/lib/chat-api";
 
 let nextId = 100;
 
@@ -60,8 +59,13 @@ export default function ChatPage() {
       content: trimmed,
     };
 
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
+    const conversationMessages = [...messages, userMsg];
+    const assistantId = newId();
+
+    setMessages([
+      ...conversationMessages,
+      { id: assistantId, role: "assistant" as const, content: "" },
+    ]);
     setInput("");
     setError(null);
     setLoading(true);
@@ -77,25 +81,36 @@ export default function ChatPage() {
       );
     }
 
-    const apiMessages: ApiChatMessage[] = updatedMessages.map((m) => ({
+    const apiMessages: ApiChatMessage[] = conversationMessages.map((m) => ({
       role: m.role,
       content: m.content,
     }));
 
     try {
-      const response = await sendChatMessage(apiMessages);
-      const assistantMsg: ChatMessageData = {
-        id: newId(),
-        role: "assistant",
-        content: response.content,
-      };
-
-      const final = [...updatedMessages, assistantMsg];
-      setMessages(final);
-      sessionMessagesRef.current[selectedId!] = final;
-      setLoading(false);
+      await streamChatMessage(
+        apiMessages,
+        (token) => {
+          setMessages((prev) => {
+            const next = [...prev];
+            const idx = next.findIndex((m) => m.id === assistantId);
+            if (idx !== -1) next[idx] = { ...next[idx], content: next[idx].content + token };
+            return next;
+          });
+        },
+        (err) => {
+          setError(err);
+          setLoading(false);
+        },
+        () => {
+          setMessages((prev) => {
+            sessionMessagesRef.current[selectedId!] = prev;
+            return prev;
+          });
+          setLoading(false);
+        }
+      );
     } catch (err) {
-      console.error("[chat-page] send failed", err);
+      console.error("[chat-page] stream failed", err);
       setLoading(false);
       setError("Não foi possível obter uma resposta. Tente novamente em instantes.");
     }
@@ -147,8 +162,6 @@ export default function ChatPage() {
             {messages.map((m) => (
               <ChatMessage key={m.id} message={m} />
             ))}
-
-            {loading && <TypingIndicator />}
 
             {error && (
               <div className="flex justify-center my-3">
