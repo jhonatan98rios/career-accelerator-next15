@@ -98,6 +98,25 @@ export async function streamChatMessage(
     return;
   }
 
+  // ponytail: extract SSE line processing to stay within max-depth (4)
+  const processSSELine = (line: string): boolean => {
+    if (!line.startsWith("data: ")) return false;
+    const payload = line.slice(6);
+
+    if (payload === "[DONE]") {
+      onDone();
+      return true;
+    }
+
+    try {
+      const parsed = JSON.parse(payload);
+      if (parsed.error) { onError(parsed.error); return true; }
+      if (parsed.token) onToken(parsed.token);
+    } catch { /* malformed SSE line, skip */ }
+
+    return false;
+  };
+
   const decoder = new TextDecoder();
   let buffer = "";
 
@@ -111,22 +130,7 @@ export async function streamChatMessage(
       buffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const payload = line.slice(6);
-
-        if (payload === "[DONE]") {
-          onDone();
-          return;
-        }
-
-        try {
-          const parsed = JSON.parse(payload);
-          if (parsed.error) {
-            onError(parsed.error);
-            return;
-          }
-          if (parsed.token) onToken(parsed.token);
-        } catch { /* malformed SSE line, skip */ }
+        if (processSSELine(line)) return;
       }
     }
 

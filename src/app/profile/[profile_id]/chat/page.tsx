@@ -49,6 +49,32 @@ export default function ChatPage() {
     setError(null);
   }, []);
 
+  // ponytail: extract stream call to keep callback nesting within lint limit
+  const runStream = async (apiMessages: ApiChatMessage[], assistantId: string) => {
+    await streamChatMessage(
+      apiMessages,
+      (token) => {
+        setMessages((prev) => {
+          const next = [...prev];
+          const idx = next.findIndex((m) => m.id === assistantId);
+          if (idx !== -1) next[idx] = { ...next[idx], content: next[idx].content + token };
+          return next;
+        });
+      },
+      (err) => {
+        setError(err);
+        setLoading(false);
+      },
+      () => {
+        setMessages((prev) => {
+          sessionMessagesRef.current[selectedId!] = prev;
+          return prev;
+        });
+        setLoading(false);
+      }
+    );
+  };
+
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
@@ -87,28 +113,7 @@ export default function ChatPage() {
     }));
 
     try {
-      await streamChatMessage(
-        apiMessages,
-        (token) => {
-          setMessages((prev) => {
-            const next = [...prev];
-            const idx = next.findIndex((m) => m.id === assistantId);
-            if (idx !== -1) next[idx] = { ...next[idx], content: next[idx].content + token };
-            return next;
-          });
-        },
-        (err) => {
-          setError(err);
-          setLoading(false);
-        },
-        () => {
-          setMessages((prev) => {
-            sessionMessagesRef.current[selectedId!] = prev;
-            return prev;
-          });
-          setLoading(false);
-        }
-      );
+      await runStream(apiMessages, assistantId);
     } catch (err) {
       console.error("[chat-page] stream failed", err);
       setLoading(false);
