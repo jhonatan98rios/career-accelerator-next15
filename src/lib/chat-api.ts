@@ -71,6 +71,10 @@ export async function streamChatMessage(
   onError: (error: string) => void,
   onDone: () => void,
 ): Promise<void> {
+  // [DIAGNOSTIC] mark connection start
+  const t0 = Date.now();
+  console.log("[chat-api] opening stream connection", { time: t0, messageCount: messages.length });
+
   const token = await getAccessToken();
 
   const res = await fetch("/api/chat", {
@@ -116,24 +120,52 @@ export async function streamChatMessage(
 
   const decoder = new TextDecoder();
   let buffer = "";
+  let firstChunk = true;
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
+      // [DIAGNOSTIC] track first chunk latency
+      if (firstChunk) {
+        firstChunk = false;
+        console.log("[chat-api] first chunk received", {
+          time: Date.now(),
+          latencyMs: Date.now() - t0,
+          chunkSize: value?.length ?? 0,
+        });
+      }
+
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split("\n\n");
       buffer = lines.pop() ?? "";
 
       for (const line of lines) {
+        if (line.startsWith("data: ") && !line.startsWith("data: [DONE]")) {
+          // [DIAGNOSTIC] log parsed token before passing to callback
+          const entry = line.slice(6);
+          try {
+            const parsed = JSON.parse(entry);
+            if (parsed.token) {
+              console.log("[chat-api] parsed token", {
+                time: Date.now(),
+                length: parsed.token.length,
+                content: parsed.token.slice(0, 60),
+              });
+            }
+          } catch { /* parse error, next line */ }
+        }
+
         if (processSSELine(line)) return;
       }
     }
 
     // Stream closed without [DONE]
+    console.log("[chat-api] stream closed (no [DONE])", { time: Date.now(), elapsedMs: Date.now() - t0 });
     onDone();
   } catch (err) {
+    console.error("[chat-api] stream error", { time: Date.now(), err });
     onError(err instanceof Error ? err.message : "Erro no stream.");
   }
 }

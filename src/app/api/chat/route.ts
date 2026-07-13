@@ -8,6 +8,9 @@ import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const MAX_INPUT_CHARS = 500;
 
 interface ChatRequestBody {
@@ -100,6 +103,9 @@ export async function POST(req: Request) {
       });
     }
 
+    // [DIAGNOSTIC] STREAM_DEBUG mode — artificial stream, no OpenAI call
+    const DEBUG = process.env.STREAM_DEBUG === "true";
+
     const encoder = new TextEncoder();
 
     let cancelled = false;
@@ -108,37 +114,66 @@ export async function POST(req: Request) {
       start(controller) {
         (async () => {
           try {
-            const generator = generateChatResponse(body.messages, personaSnapshot);
-          for await (const token of generator) {
-            if (cancelled) break;
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+            console.log("[route] stream started", { time: Date.now(), debug: DEBUG });
+
+            if (DEBUG) {
+              // Artificial stream: 10 tokens, 1 per second, same SSE format
+              for (let i = 1; i <= 10; i++) {
+                if (cancelled) break;
+                const token = `Token ${i} `;
+                const payload = `data: ${JSON.stringify({ token })}\n\n`;
+                console.log("[route] enqueue (debug)", {
+                  time: Date.now(),
+                  tokenLength: token.length,
+                  token,
+                });
+                controller.enqueue(encoder.encode(payload));
+                await new Promise((r) => setTimeout(r, 1000));
+              }
+            } else {
+              const generator = generateChatResponse(body.messages, personaSnapshot);
+              for await (const token of generator) {
+                if (cancelled) break;
+                const payload = `data: ${JSON.stringify({ token })}\n\n`;
+                console.log("[route] enqueue", {
+                  time: Date.now(),
+                  tokenLength: token.length,
+                  content: token.slice(0, 80),
+                });
+                controller.enqueue(encoder.encode(payload));
+              }
+            }
+
+            if (!cancelled) {
+              console.log("[route] sending [DONE]", { time: Date.now() });
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            }
+          } catch (err) {
+            if (!cancelled) {
+              await log(LogLevel.ERROR, "POST /api/chat: Stream generation failed", {
+                error: err instanceof Error ? err.message : String(err),
+              });
+              const msg = err instanceof Error ? err.message : "Internal Server Error";
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+            }
+          } finally {
+            console.log("[route] closing controller", { time: Date.now() });
+            controller.close();
           }
-          if (!cancelled) {
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          }
-        } catch (err) {
-          if (!cancelled) {
-            await log(LogLevel.ERROR, "POST /api/chat: Stream generation failed", {
-              error: err instanceof Error ? err.message : String(err),
-            });
-            const msg = err instanceof Error ? err.message : "Internal Server Error";
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
-          }
-        } finally {
-          controller.close();
-        }
         })();
       },
       cancel() {
         cancelled = true;
+        console.log("[route] client cancelled stream", { time: Date.now() });
       },
     });
 
-    return new NextResponse(stream, {
+    return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
       },
     });
   } catch (err: unknown) {

@@ -59,6 +59,14 @@ export async function* generateChatResponse(
   let total = 0;
   for await (const chunk of stream) {
     const token = (chunk.content as string) ?? "";
+
+    // [DIAGNOSTIC] verify LangChain stream yields tokens incrementally
+    console.log("[chat-service] token", {
+      time: Date.now(),
+      length: token.length,
+      content: token.slice(0, 80),
+    });
+
     if (!token) continue;
 
     if (total >= EMERGENCY_GUARDRAIL) break;
