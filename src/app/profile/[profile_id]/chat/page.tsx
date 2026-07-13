@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { flushSync } from "react-dom";
 import ChatSidebar, { type ChatSession } from "@/components/ChatSidebar";
 import ChatMessage, { type ChatMessageData } from "@/components/ChatMessage";
 import ChatComposer from "@/components/ChatComposer";
@@ -54,11 +55,13 @@ export default function ChatPage() {
     await streamChatMessage(
       apiMessages,
       (token) => {
-        setMessages((prev) => {
-          const next = [...prev];
-          const idx = next.findIndex((m) => m.id === assistantId);
-          if (idx !== -1) next[idx] = { ...next[idx], content: next[idx].content + token };
-          return next;
+        flushSync(() => {
+          setMessages((prev) => {
+            const next = [...prev];
+            const idx = next.findIndex((m) => m.id === assistantId);
+            if (idx !== -1) next[idx] = { ...next[idx], content: next[idx].content + token };
+            return next;
+          });
         });
       },
       (err) => {

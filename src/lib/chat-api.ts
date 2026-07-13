@@ -98,9 +98,8 @@ export async function streamChatMessage(
     return;
   }
 
-  // ponytail: extract SSE line processing to stay within max-depth (4).
-  // Returns true if the stream should stop (done/error).
-  const processSSELine = async (line: string): Promise<boolean> => {
+  // ponytail: extract SSE line processing to stay within max-depth (4)
+  const processSSELine = (line: string): boolean => {
     if (!line.startsWith("data: ")) return false;
     const payload = line.slice(6);
 
@@ -109,11 +108,7 @@ export async function streamChatMessage(
     try {
       const parsed = JSON.parse(payload);
       if (parsed.error) { onError(parsed.error); return true; }
-      if (parsed.token) {
-        onToken(parsed.token);
-        // Yield to event loop so React renders each token progressively
-        await new Promise((r) => setTimeout(r, 0));
-      }
+      if (parsed.token) onToken(parsed.token);
     } catch { /* malformed SSE line, skip */ }
 
     return false;
@@ -132,7 +127,7 @@ export async function streamChatMessage(
       buffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        if (await processSSELine(line)) return;
+        if (processSSELine(line)) return;
       }
     }
 

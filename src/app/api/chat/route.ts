@@ -103,9 +103,10 @@ export async function POST(req: Request) {
     const encoder = new TextEncoder();
 
     const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          const generator = generateChatResponse(body.messages, personaSnapshot);
+      start(controller) {
+        (async () => {
+          try {
+            const generator = generateChatResponse(body.messages, personaSnapshot);
           for await (const token of generator) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
           }
@@ -116,8 +117,10 @@ export async function POST(req: Request) {
           });
           const msg = err instanceof Error ? err.message : "Internal Server Error";
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+        } finally {
+          controller.close();
         }
-        controller.close();
+        })();
       },
     });
 
