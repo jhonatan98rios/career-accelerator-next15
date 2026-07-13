@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { flushSync } from "react-dom";
 import ChatSidebar, { type ChatSession } from "@/components/ChatSidebar";
 import ChatMessage, { type ChatMessageData } from "@/components/ChatMessage";
 import ChatComposer from "@/components/ChatComposer";
@@ -50,30 +49,42 @@ export default function ChatPage() {
     setError(null);
   }, []);
 
-  // ponytail: extract stream call to keep callback nesting within lint limit
+  // ponytail: rAF-based streaming — flushSync is ignored by React 19 in async context.
+  // Accumulate tokens in a closure var, flush at animation-frame cadence so every
+  // browser paint shows incremental content.
   const runStream = async (apiMessages: ApiChatMessage[], assistantId: string) => {
+    let content = "";
+    let rafId: number | null = null;
+
+    const flush = () => {
+      rafId = null;
+      setMessages((prev) => {
+        const next = [...prev];
+        for (let i = 0; i < next.length; i++) {
+          if (next[i].id === assistantId) {
+            next[i] = { ...next[i], content };
+            break;
+          }
+        }
+        return next;
+      });
+    };
+
     await streamChatMessage(
       apiMessages,
       (token) => {
-        flushSync(() => {
-          setMessages((prev) => {
-            // ponytail: for-loop avoids 4th-level callback from findIndex
-            const next = [...prev];
-            for (let i = 0; i < next.length; i++) {
-              if (next[i].id === assistantId) {
-                next[i] = { ...next[i], content: next[i].content + token };
-                break;
-              }
-            }
-            return next;
-          });
-        });
+        content += token;
+        if (rafId === null) {
+          rafId = requestAnimationFrame(flush);
+        }
       },
       (err) => {
         setError(err);
         setLoading(false);
       },
       () => {
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        flush();
         setMessages((prev) => {
           sessionMessagesRef.current[selectedId!] = prev;
           return prev;

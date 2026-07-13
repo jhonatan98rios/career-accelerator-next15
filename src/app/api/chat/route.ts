@@ -102,25 +102,35 @@ export async function POST(req: Request) {
 
     const encoder = new TextEncoder();
 
+    let cancelled = false;
+
     const stream = new ReadableStream({
       start(controller) {
         (async () => {
           try {
             const generator = generateChatResponse(body.messages, personaSnapshot);
           for await (const token of generator) {
+            if (cancelled) break;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
           }
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          if (!cancelled) {
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          }
         } catch (err) {
-          await log(LogLevel.ERROR, "POST /api/chat: Stream generation failed", {
-            error: err instanceof Error ? err.message : String(err),
-          });
-          const msg = err instanceof Error ? err.message : "Internal Server Error";
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+          if (!cancelled) {
+            await log(LogLevel.ERROR, "POST /api/chat: Stream generation failed", {
+              error: err instanceof Error ? err.message : String(err),
+            });
+            const msg = err instanceof Error ? err.message : "Internal Server Error";
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+          }
         } finally {
           controller.close();
         }
         })();
+      },
+      cancel() {
+        cancelled = true;
       },
     });
 

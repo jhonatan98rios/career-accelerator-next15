@@ -6,11 +6,6 @@ const EMERGENCY_GUARDRAIL = 5000; // ponytail: hard cutoff only if model ignores
 
 const promptBuilder = new PromptBuilder();
 
-const model = new ChatOpenAI({
-  model: "gpt-5-nano-2025-08-07",
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -47,6 +42,12 @@ export async function* generateChatResponse(
   persona?: PersonaSnapshot,
 ): AsyncGenerator<string> {
   const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
+
+  // ponytail: per-request model avoids stale connections from module-level singleton
+  const model = new ChatOpenAI({
+    model: "gpt-5-nano-2025-08-07",
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
   const stream = await model.stream([
     new SystemMessage(systemPrompt),
