@@ -57,9 +57,14 @@ export default function ChatPage() {
       (token) => {
         flushSync(() => {
           setMessages((prev) => {
+            // ponytail: for-loop avoids 4th-level callback from findIndex
             const next = [...prev];
-            const idx = next.findIndex((m) => m.id === assistantId);
-            if (idx !== -1) next[idx] = { ...next[idx], content: next[idx].content + token };
+            for (let i = 0; i < next.length; i++) {
+              if (next[i].id === assistantId) {
+                next[i] = { ...next[i], content: next[i].content + token };
+                break;
+              }
+            }
             return next;
           });
         });
