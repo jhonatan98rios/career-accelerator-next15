@@ -112,7 +112,15 @@ export async function streamChatMessage(
     try {
       const parsed = JSON.parse(payload);
       if (parsed.error) { onError(parsed.error); return true; }
-      if (parsed.token) onToken(parsed.token);
+      if (parsed.token) {
+        // [DIAGNOSTIC] log parsed token before passing to callback
+        console.log("[chat-api] parsed token", {
+          time: Date.now(),
+          length: parsed.token.length,
+          content: parsed.token.slice(0, 60),
+        });
+        onToken(parsed.token);
+      }
     } catch { /* malformed SSE line, skip */ }
 
     return false;
@@ -142,21 +150,6 @@ export async function streamChatMessage(
       buffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        if (line.startsWith("data: ") && !line.startsWith("data: [DONE]")) {
-          // [DIAGNOSTIC] log parsed token before passing to callback
-          const entry = line.slice(6);
-          try {
-            const parsed = JSON.parse(entry);
-            if (parsed.token) {
-              console.log("[chat-api] parsed token", {
-                time: Date.now(),
-                length: parsed.token.length,
-                content: parsed.token.slice(0, 60),
-              });
-            }
-          } catch { /* parse error, next line */ }
-        }
-
         if (processSSELine(line)) return;
       }
     }
