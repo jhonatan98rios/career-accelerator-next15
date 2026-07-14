@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateChatResponse, type ChatMessage, type PersonaSnapshot } from "@/lib/chat-service";
-import type { TokenUsage } from "@/lib/chat-service";
+import { generateChatResponse, type ChatMessage, type PersonaSnapshot, type TokenUsage } from "@/lib/chat-service";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";

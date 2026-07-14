@@ -123,12 +123,15 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
 | Location | Type | Description |
 |----------|------|-------------|
 | `code::src/app/profile/[profile_id]/chat/page.tsx::ChatPage` | source | Main chat page with all local state, wired to real API |
-| `code::src/components/ChatSidebar.tsx::ChatSidebar` | source | Conversation list sidebar with mobile drawer toggle |
+| `code::src/components/ChatSidebar.tsx::ChatSidebar` | source | Conversation list sidebar with mobile drawer toggle and usage-aware new-session gating |
 | `code::src/components/ChatMessage.tsx::ChatMessage` | source | Reusable message bubble (user/assistant) |
 | `code::src/components/ChatComposer.tsx::ChatComposer` | source | Textarea, character counter, send button with maxLength |
 | `code::src/components/TypingIndicator.tsx::TypingIndicator` | source | Animated loading dots indicator |
-| `code::src/lib/chat-api.ts::sendChatMessage` | source | Frontend API client — POST /api/chat |
+| `code::src/lib/chat-api.ts::sendChatMessage` | source | Frontend API client — POST /api/chat (non-streaming, legacy) |
+| `code::src/lib/chat-api.ts::streamChatMessage` | source | Frontend API client — SSE streaming POST /api/chat |
+| `code::src/lib/chat-api.ts::fetchChatUsage` | source | Frontend API client — GET /api/chat/usage |
 | `code::src/lib/chat-api.ts::ChatApiError` | source | Custom error class for API failures |
+| `code::src/lib/chat-api.ts::ChatUsage` | source | Response type for usage endpoint |
 | `code::src/lib/chat-service.ts::generateChatResponse` | source | LangChain chat service — builds prompt with persona data, invokes LLM, truncates output |
 | `code::src/lib/chat-service.ts::PersonaSnapshot` | source | Flat persona fields passed into the system prompt |
-| `code::src/app/api/chat/route.ts::POST` | source | API endpoint — auth, fetches profile+persona from MongoDB, delegates to chat-service |
+| `code::src/app/api/chat/route.ts::POST` | source | API endpoint — auth, profile+persona fetch, daily session limit enforcement, delegates to chat-service |
