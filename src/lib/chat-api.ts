@@ -145,7 +145,7 @@ export async function streamChatMessage(
     if (!line.startsWith("data: ")) return false;
     const payload = line.slice(6);
 
-    if (payload === "[DONE]") { return true; }
+    if (payload === "[DONE]") { onDone(sessionData); return true; }
 
     try {
       const parsed = JSON.parse(payload);
