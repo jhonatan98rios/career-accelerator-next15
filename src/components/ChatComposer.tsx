@@ -7,9 +7,13 @@ interface ChatComposerProps {
   onChange: (value: string) => void;
   onSend: () => void;
   disabled: boolean;
+  tokenLimit: number | null;
+  totalTokens: number | null;
+  promptTokens: number | null;
+  completionTokens: number | null;
 }
 
-export default function ChatComposer({ value, onChange, onSend, disabled }: ChatComposerProps) {
+export default function ChatComposer({ value, onChange, onSend, disabled, tokenLimit, totalTokens, promptTokens, completionTokens }: ChatComposerProps) {
   const canSend = value.trim().length > 0 && !disabled;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -50,6 +54,36 @@ export default function ChatComposer({ value, onChange, onSend, disabled }: Chat
           {value.length} / {MAX_CHARS}
         </span>
       </div>
+
+      {tokenLimit != null && tokenLimit > 0 && (
+        <div className="max-w-3xl mx-auto mt-1">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ease-out ${
+                  (totalTokens ?? 0) >= tokenLimit ? "bg-red-500" : "bg-teal-400"
+                }`}
+                style={{ width: `${Math.min(((totalTokens ?? 0) / tokenLimit) * 100, 100)}%` }}
+              />
+            </div>
+            <span className={`text-xs font-medium whitespace-nowrap ${
+              (totalTokens ?? 0) >= tokenLimit ? "text-red-500" : "text-gray-500"
+            }`}>
+              {Math.round(((totalTokens ?? 0) / tokenLimit) * 100)}%
+            </span>
+          </div>
+          <div className="flex justify-between mt-0.5">
+            <span className="text-xs text-gray-400">
+              {(totalTokens ?? 0).toLocaleString("pt-BR")} / {tokenLimit.toLocaleString("pt-BR")} tokens
+            </span>
+            {promptTokens != null && completionTokens != null && (
+              <span className="text-xs text-gray-400">
+                prompt: {promptTokens.toLocaleString("pt-BR")} · resp: {completionTokens.toLocaleString("pt-BR")}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

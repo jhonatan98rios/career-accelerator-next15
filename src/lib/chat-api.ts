@@ -69,6 +69,26 @@ export interface ChatUsage {
   sessionsStarted: number;
   sessionsLimit: number;
   canStartSession: boolean;
+  tokenLimit: number;
+}
+
+export interface ChatSessionData {
+  sessionId: string;
+  tokenLimit: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+export async function fetchSessionTokens(sessionId: string): Promise<ChatSessionData> {
+  const token = await getAccessToken();
+
+  const res = await fetch(`/api/chat/session?sessionId=${encodeURIComponent(sessionId)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch session tokens");
+  return res.json();
 }
 
 export async function fetchChatUsage(): Promise<ChatUsage> {
@@ -87,7 +107,7 @@ export async function streamChatMessage(
   sessionId: string | undefined,
   onToken: (token: string) => void,
   onError: (error: string) => void,
-  onDone: () => void,
+  onDone: (sessionData: ChatSessionData | null) => void,
 ): Promise<void> {
   // [DIAGNOSTIC] mark connection start
   const t0 = Date.now();
@@ -125,13 +145,12 @@ export async function streamChatMessage(
     if (!line.startsWith("data: ")) return false;
     const payload = line.slice(6);
 
-    if (payload === "[DONE]") { onDone(); return true; }
+    if (payload === "[DONE]") { return true; }
 
     try {
       const parsed = JSON.parse(payload);
       if (parsed.error) { onError(parsed.error); return true; }
       if (parsed.token) {
-        // [DIAGNOSTIC] log parsed token before passing to callback
         console.log("[chat-api] parsed token", {
           time: Date.now(),
           length: parsed.token.length,
@@ -139,10 +158,15 @@ export async function streamChatMessage(
         });
         onToken(parsed.token);
       }
+      if (parsed.session) {
+        sessionData = parsed.session;
+      }
     } catch { /* malformed SSE line, skip */ }
 
     return false;
   };
+
+  let sessionData: ChatSessionData | null = null;
 
   const decoder = new TextDecoder();
   let buffer = "";
@@ -174,7 +198,7 @@ export async function streamChatMessage(
 
     // Stream closed without [DONE]
     console.log("[chat-api] stream closed (no [DONE])", { time: Date.now(), elapsedMs: Date.now() - t0 });
-    onDone();
+    onDone(sessionData);
   } catch (err) {
     console.error("[chat-api] stream error", { time: Date.now(), err });
     onError(err instanceof Error ? err.message : "Erro no stream.");

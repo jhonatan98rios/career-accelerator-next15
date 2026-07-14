@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { generateChatResponse, type ChatMessage, type PersonaSnapshot } from "@/lib/chat-service";
+import type { TokenUsage } from "@/lib/chat-service";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";
 import { Persona, IPersona } from "@/models/Persona";
+import { ChatSession } from "@/models/ChatSession";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 import { canStartChatSession, registerChatSession } from "@/lib/usage-service";
+import { getPlanLimits } from "@/lib/plan-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,19 +36,47 @@ export async function POST(req: Request) {
       );
     }
 
+    const profileId = user._id as string;
+    const limits = getPlanLimits(user.plan);
+
     const body: ChatRequestBody = await req.json();
 
-    // New session: enforce daily limit
-    if (!body.sessionId) {
-      const allowed = await canStartChatSession(user._id as string, user.plan);
+    let chatSession;
+    const clientSid = body.sessionId;
+
+    if (clientSid) {
+      // Lookup existing session
+      chatSession = await ChatSession.findOne({ profileId, sessionId: clientSid });
+    }
+
+    if (!chatSession) {
+      // New session (no sessionId or not found): enforce daily limit
+      const allowed = await canStartChatSession(profileId, user.plan);
       if (!allowed) {
         return NextResponse.json(
           { error: "Daily chat session limit reached" },
           { status: HttpStatus.TOO_MANY_REQUESTS }
         );
       }
-      await registerChatSession(user._id as string);
+
+      chatSession = await ChatSession.create({
+        profileId,
+        sessionId: clientSid || `cs_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        tokenLimit: limits.chatSessionTokenLimit,
+      });
+
+      await registerChatSession(profileId);
+    } else {
+      // Existing session: enforce token limit
+      if (chatSession.totalTokens >= chatSession.tokenLimit) {
+        return NextResponse.json(
+          { error: "Token limit reached for this session" },
+          { status: HttpStatus.TOO_MANY_REQUESTS }
+        );
+      }
     }
+
+    const csId = chatSession.sessionId;
 
     if (!body.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
       return NextResponse.json(
@@ -130,6 +161,8 @@ export async function POST(req: Request) {
           try {
             console.log("[route] stream started", { time: Date.now(), debug: DEBUG });
 
+            let usage: TokenUsage | undefined;
+
             if (DEBUG) {
               // Artificial stream: 10 tokens, 1 per second, same SSE format
               for (let i = 1; i <= 10; i++) {
@@ -144,8 +177,11 @@ export async function POST(req: Request) {
                 controller.enqueue(encoder.encode(payload));
                 await new Promise((r) => setTimeout(r, 1000));
               }
+              // ponytail: fake usage for debug mode
+              usage = { promptTokens: 50, completionTokens: 30, totalTokens: 80 };
             } else {
-              const generator = generateChatResponse(body.messages, personaSnapshot);
+              const out = {} as { usage?: TokenUsage };
+              const generator = generateChatResponse(body.messages, personaSnapshot, out);
               for await (const token of generator) {
                 if (cancelled) break;
                 const payload = `data: ${JSON.stringify({ token })}\n\n`;
@@ -156,9 +192,41 @@ export async function POST(req: Request) {
                 });
                 controller.enqueue(encoder.encode(payload));
               }
+              usage = out.usage;
             }
 
             if (!cancelled) {
+              // Persist token usage
+              if (usage) {
+                await ChatSession.findOneAndUpdate(
+                  { profileId, sessionId: csId },
+                  {
+                    $inc: {
+                      promptTokens: usage.promptTokens,
+                      completionTokens: usage.completionTokens,
+                      totalTokens: usage.totalTokens,
+                    },
+                  },
+                  { new: true }
+                );
+              }
+
+              const updatedSession = await ChatSession.findOne({ profileId, sessionId: csId });
+
+              // Send session data before [DONE]
+              const sessionPayload = JSON.stringify({
+                session: updatedSession
+                  ? {
+                      sessionId: updatedSession.sessionId,
+                      tokenLimit: updatedSession.tokenLimit,
+                      promptTokens: updatedSession.promptTokens,
+                      completionTokens: updatedSession.completionTokens,
+                      totalTokens: updatedSession.totalTokens,
+                    }
+                  : null,
+              });
+              controller.enqueue(encoder.encode(`data: ${sessionPayload}\n\n`));
+
               console.log("[route] sending [DONE]", { time: Date.now() });
               controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             }

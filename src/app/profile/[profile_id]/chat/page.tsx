@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import ChatSidebar, { type ChatSession } from "@/components/ChatSidebar";
 import ChatMessage, { type ChatMessageData } from "@/components/ChatMessage";
 import ChatComposer from "@/components/ChatComposer";
-import { streamChatMessage, type ChatMessage as ApiChatMessage, fetchChatUsage, type ChatUsage } from "@/lib/chat-api";
+import { streamChatMessage, type ChatMessage as ApiChatMessage, fetchChatUsage, type ChatUsage, type ChatSessionData } from "@/lib/chat-api";
 
 let nextId = 100;
 
@@ -23,6 +23,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [usage, setUsage] = useState<ChatUsage | null>(null);
+  const [sessionTokens, setSessionTokens] = useState<ChatSessionData | null>(null);
 
   // ponytail: plain object ref — Map overkill for in-memory session messages
   const sessionMessagesRef = useRef<Record<string, ChatMessageData[]>>({});
@@ -43,6 +44,9 @@ export default function ChatPage() {
     setSelectedId(id);
     setMessages(sessionMessagesRef.current[id] ?? []);
     setError(null);
+    // ponytail: reset token state on session switch — existing sessions start
+    // with unknown consumption until first message response arrives
+    setSessionTokens(null);
   }, []);
 
   const canStartNew = !usage || usage.canStartSession;
@@ -56,7 +60,11 @@ export default function ChatPage() {
     setMessages([]);
     setInput("");
     setError(null);
-  }, [canStartNew]);
+    // New session starts at zero tokens, limit from plan
+    setSessionTokens(usage
+      ? { sessionId: id, tokenLimit: usage.tokenLimit, promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+      : null);
+  }, [canStartNew, usage]);
 
   // ponytail: rAF-based streaming — flushSync is ignored by React 19 in async context.
   // Accumulate tokens in a closure var, flush at animation-frame cadence so every
@@ -92,7 +100,7 @@ export default function ChatPage() {
         setError(err);
         setLoading(false);
       },
-      () => {
+      (sessionData) => {
         if (rafId !== null) cancelAnimationFrame(rafId);
         flush();
         setMessages((prev) => {
@@ -100,6 +108,7 @@ export default function ChatPage() {
           return prev;
         });
         setLoading(false);
+        if (sessionData) setSessionTokens(sessionData);
       }
     );
   };
@@ -250,6 +259,10 @@ export default function ChatPage() {
             onChange={setInput}
             onSend={handleSend}
             disabled={loading}
+            tokenLimit={sessionTokens?.tokenLimit ?? null}
+            totalTokens={sessionTokens?.totalTokens ?? null}
+            promptTokens={sessionTokens?.promptTokens ?? null}
+            completionTokens={sessionTokens?.completionTokens ?? null}
           />
         )}
       </div>

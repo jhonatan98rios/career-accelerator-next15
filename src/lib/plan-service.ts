@@ -1,8 +1,7 @@
 import { Plan } from "@/lib/enums";
 
-// ponytail: single source of truth for plan limits, add tokensUsed limit here later
-const PLAN_LIMITS: Record<Plan, { chatSessionsPerDay: number }> = {
-  [Plan.BASIC]: { chatSessionsPerDay: 1 },
+const PLAN_LIMITS: Record<Plan, { chatSessionsPerDay: number; chatSessionTokenLimit: number }> = {
+  [Plan.BASIC]: { chatSessionsPerDay: 1, chatSessionTokenLimit: 15000 },
 };
 
 export function getPlanLimits(plan: Plan) {

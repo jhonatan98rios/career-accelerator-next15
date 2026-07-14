@@ -37,9 +37,16 @@ export interface PersonaSnapshot {
   remotePreference?: string;
 }
 
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 export async function* generateChatResponse(
   messages: ChatMessage[],
   persona?: PersonaSnapshot,
+  out?: { usage?: TokenUsage },
 ): AsyncGenerator<string> {
   const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
 
@@ -58,6 +65,16 @@ export async function* generateChatResponse(
 
   let total = 0;
   for await (const chunk of stream) {
+    // OpenAI returns usage_metadata on the final chunk
+    const meta = (chunk as any).usage_metadata;
+    if (meta && out) {
+      out.usage = {
+        promptTokens: meta.input_tokens,
+        completionTokens: meta.output_tokens,
+        totalTokens: meta.total_tokens,
+      };
+    }
+
     const token = (chunk.content as string) ?? "";
 
     // [DIAGNOSTIC] verify LangChain stream yields tokens incrementally
