@@ -65,8 +65,26 @@ export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatMess
   return data.message;
 }
 
+export interface ChatUsage {
+  sessionsStarted: number;
+  sessionsLimit: number;
+  canStartSession: boolean;
+}
+
+export async function fetchChatUsage(): Promise<ChatUsage> {
+  const token = await getAccessToken();
+
+  const res = await fetch("/api/chat/usage", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch usage");
+  return res.json();
+}
+
 export async function streamChatMessage(
   messages: ChatMessage[],
+  sessionId: string | undefined,
   onToken: (token: string) => void,
   onError: (error: string) => void,
   onDone: () => void,
@@ -83,7 +101,7 @@ export async function streamChatMessage(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, sessionId }),
   });
 
   if (!res.ok) {

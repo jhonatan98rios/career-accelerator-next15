@@ -7,6 +7,7 @@ import { Persona, IPersona } from "@/models/Persona";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
+import { canStartChatSession, registerChatSession } from "@/lib/usage-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ const MAX_INPUT_CHARS = 500;
 
 interface ChatRequestBody {
   messages: ChatMessage[];
+  sessionId?: string;
 }
 
 export async function POST(req: Request) {
@@ -32,6 +34,18 @@ export async function POST(req: Request) {
     }
 
     const body: ChatRequestBody = await req.json();
+
+    // New session: enforce daily limit
+    if (!body.sessionId) {
+      const allowed = await canStartChatSession(user._id as string, user.plan);
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "Daily chat session limit reached" },
+          { status: HttpStatus.TOO_MANY_REQUESTS }
+        );
+      }
+      await registerChatSession(user._id as string);
+    }
 
     if (!body.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
       return NextResponse.json(

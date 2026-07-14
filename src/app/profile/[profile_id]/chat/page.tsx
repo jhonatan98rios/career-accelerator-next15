@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import ChatSidebar, { type ChatSession } from "@/components/ChatSidebar";
 import ChatMessage, { type ChatMessageData } from "@/components/ChatMessage";
 import ChatComposer from "@/components/ChatComposer";
-import { streamChatMessage, type ChatMessage as ApiChatMessage } from "@/lib/chat-api";
+import { streamChatMessage, type ChatMessage as ApiChatMessage, fetchChatUsage, type ChatUsage } from "@/lib/chat-api";
 
 let nextId = 100;
 
@@ -22,11 +22,17 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [usage, setUsage] = useState<ChatUsage | null>(null);
 
   // ponytail: plain object ref — Map overkill for in-memory session messages
   const sessionMessagesRef = useRef<Record<string, ChatMessageData[]>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch usage on mount
+  useEffect(() => {
+    fetchChatUsage().then(setUsage).catch(() => setUsage(null));
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -39,7 +45,10 @@ export default function ChatPage() {
     setError(null);
   }, []);
 
+  const canStartNew = !usage || usage.canStartSession;
+
   const handleNewSession = useCallback(() => {
+    if (!canStartNew) return;
     const id = `s${nextId}`;
     const session: ChatSession = { id, title: "Nova conversa" };
     setSessions((prev) => [session, ...prev]);
@@ -47,12 +56,12 @@ export default function ChatPage() {
     setMessages([]);
     setInput("");
     setError(null);
-  }, []);
+  }, [canStartNew]);
 
   // ponytail: rAF-based streaming — flushSync is ignored by React 19 in async context.
   // Accumulate tokens in a closure var, flush at animation-frame cadence so every
   // browser paint shows incremental content.
-  const runStream = async (apiMessages: ApiChatMessage[], assistantId: string) => {
+  const runStream = async (apiMessages: ApiChatMessage[], assistantId: string, sessionId?: string) => {
     let content = "";
     let rafId: number | null = null;
 
@@ -72,6 +81,7 @@ export default function ChatPage() {
 
     await streamChatMessage(
       apiMessages,
+      sessionId,
       (token) => {
         content += token;
         if (rafId === null) {
@@ -132,7 +142,7 @@ export default function ChatPage() {
     }));
 
     try {
-      await runStream(apiMessages, assistantId);
+      await runStream(apiMessages, assistantId, selectedId ?? undefined);
     } catch (err) {
       console.error("[chat-page] stream failed", err);
       setLoading(false);
@@ -149,9 +159,11 @@ export default function ChatPage() {
         sessions={sessions}
         selectedId={selectedId}
         onSelect={handleSelectSession}
-        onNew={handleNewSession}
+        onNew={canStartNew ? handleNewSession : () => {}}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        canCreate={canStartNew}
+        sessionsRemaining={usage ? usage.sessionsLimit - usage.sessionsStarted : null}
       />
 
       {/* Main chat area */}
@@ -215,12 +227,18 @@ export default function ChatPage() {
                 <br />
                 entrevistas ou planejamento profissional.
               </p>
-              <button
-                onClick={handleNewSession}
-                className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
-              >
-                + Nova conversa
-              </button>
+              {canStartNew ? (
+                <button
+                  onClick={handleNewSession}
+                  className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
+                >
+                  + Nova conversa
+                </button>
+              ) : (
+                <p className="mt-6 text-sm text-gray-400">
+                  Limite diário de conversas atingido.
+                </p>
+              )}
             </div>
           </div>
         )}

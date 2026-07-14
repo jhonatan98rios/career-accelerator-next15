@@ -12,6 +12,8 @@ interface ChatSidebarProps {
   onNew: () => void;
   open: boolean;
   onClose: () => void;
+  canCreate?: boolean;
+  sessionsRemaining?: number | null;
 }
 
 export default function ChatSidebar({
@@ -21,6 +23,8 @@ export default function ChatSidebar({
   onNew,
   open,
   onClose,
+  canCreate = true,
+  sessionsRemaining = null,
 }: ChatSidebarProps) {
   return (
     <>
@@ -40,12 +44,23 @@ export default function ChatSidebar({
       >
         {/* Header */}
         <div className="p-4 pt-14 md:pt-4">
-          <button
-            onClick={onNew}
-            className="w-full py-2.5 rounded-xl border border-white/40 text-white text-sm font-semibold hover:bg-white/10 transition"
-          >
-            + Nova conversa
-          </button>
+          {canCreate ? (
+            <button
+              onClick={onNew}
+              className="w-full py-2.5 rounded-xl border border-white/40 text-white text-sm font-semibold hover:bg-white/10 transition"
+            >
+              + Nova conversa
+            </button>
+          ) : (
+            <p className="text-white/70 text-xs text-center">
+              Limite diário atingido
+            </p>
+          )}
+          {sessionsRemaining != null && sessionsRemaining > 0 && (
+            <p className="text-white/60 text-xs text-center mt-1">
+              {sessionsRemaining} restante{sessionsRemaining !== 1 ? "s" : ""}
+            </p>
+          )}
         </div>
 
         {/* Session list */}
