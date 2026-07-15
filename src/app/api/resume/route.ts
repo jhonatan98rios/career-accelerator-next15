@@ -7,8 +7,7 @@ import { Persona, type IPersona } from "@/models/Persona";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
-
-export const MAX_RESUME_INPUT_CHARS = 10_000;
+import { MAX_RESUME_INPUT_CHARS } from "@/lib/resume-constants";
 
 export async function POST(req: Request) {
   try {

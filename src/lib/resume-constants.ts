@@ -1,0 +1,1 @@
+export const MAX_RESUME_INPUT_CHARS = 10_000;

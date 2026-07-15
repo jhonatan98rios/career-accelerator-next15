@@ -11,7 +11,7 @@ describe("POST /api/resume — input length guard", () => {
   );
 
   it("exports a generous MAX_RESUME_INPUT_CHARS constant", async () => {
-    const { MAX_RESUME_INPUT_CHARS } = await import("../app/api/resume/route");
+    const { MAX_RESUME_INPUT_CHARS } = await import("../lib/resume-constants");
     expect(MAX_RESUME_INPUT_CHARS).toBeGreaterThan(0);
     expect(MAX_RESUME_INPUT_CHARS).toBeGreaterThanOrEqual(1000);
     expect(Number.isInteger(MAX_RESUME_INPUT_CHARS)).toBe(true);
