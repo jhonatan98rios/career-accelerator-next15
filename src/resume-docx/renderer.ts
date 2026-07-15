@@ -87,6 +87,7 @@ export async function render(
       t,
       sortedExperience,
       sortedEducation,
+      lang,
     );
 
     if (sectionElements.length > 0) {
@@ -95,7 +96,7 @@ export async function render(
   }
 
   // 3. Footer
-  children.push(...footerComponent(t));
+  children.push(...footerComponent(t, lang));
 
   // Assemble document
   const doc = new Document({
@@ -138,6 +139,7 @@ function buildSection(
   t: Template,
   sortedExp: Resume["experience"],
   sortedEdu: Resume["education"],
+  lang: string,
 ): (Paragraph | import("docx").Table)[] {
   const elements: (Paragraph | import("docx").Table)[] = [];
 
@@ -153,7 +155,7 @@ function buildSection(
       if (!hasContent(resume.experience)) return [];
       elements.push(...sectionTitleComponent(title, t));
       for (const exp of sortedExp) {
-        elements.push(...experienceCardComponent(exp, t));
+        elements.push(...experienceCardComponent(exp, t, lang));
       }
       break;
     }
@@ -162,7 +164,7 @@ function buildSection(
       if (!hasContent(resume.education)) return [];
       elements.push(...sectionTitleComponent(title, t));
       for (const edu of sortedEdu) {
-        elements.push(...educationCardComponent(edu, t));
+        elements.push(...educationCardComponent(edu, t, lang));
       }
       break;
     }
@@ -189,7 +191,7 @@ function buildSection(
       if (!hasContent(resume.certifications)) return [];
       elements.push(...sectionTitleComponent(title, t));
       for (const cert of resume.certifications) {
-        elements.push(...certificationCardComponent(cert, t));
+        elements.push(...certificationCardComponent(cert, t, lang));
       }
       break;
     }
@@ -198,7 +200,7 @@ function buildSection(
       if (!hasContent(resume.projects)) return [];
       elements.push(...sectionTitleComponent(title, t));
       for (const proj of resume.projects) {
-        elements.push(...projectCardComponent(proj, t));
+        elements.push(...projectCardComponent(proj, t, lang));
       }
       break;
     }
@@ -235,6 +237,7 @@ function buildSection(
           ...certificationCardComponent(
             { name: award.title, issuer: award.issuer, date: award.date, url: null },
             t,
+            lang,
           ),
         );
         if (award.description) {
@@ -264,6 +267,7 @@ function buildSection(
           ...certificationCardComponent(
             { name: pub.title, issuer: pub.publisher, date: pub.date, url: pub.url },
             t,
+            lang,
           ),
         );
         if (pub.description) {

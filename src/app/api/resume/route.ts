@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       longTermGoal: persona?.longTermGoal,
     };
 
-    const { input }: { input: string } = await req.json();
+    const { input, language }: { input: string; language?: string } = await req.json();
 
     if (!input || input.trim().length === 0) {
       return NextResponse.json({ error: "Texto vazio." }, { status: 400 });
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await generate(input, userData);
+    const result = await generate(input, userData, language === "en" ? "en" : "pt");
 
     if (!result.ok) {
       await log(LogLevel.ERROR, "Resume generation failed", { error: result.error });

@@ -37,6 +37,7 @@ export default function ResumeGenerator({ jwtToken }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [downloading, setDownloading] = useState(false);
+  const [international, setInternational] = useState(false);
 
   const handleGenerate = () => {
     if (!input.trim()) return;
@@ -52,7 +53,7 @@ export default function ResumeGenerator({ jwtToken }: Props) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${jwtToken}`,
           },
-          body: JSON.stringify({ input }),
+          body: JSON.stringify({ input, language: international ? "en" : "pt" }),
         });
 
         const payload = await res.json();
@@ -100,6 +101,16 @@ export default function ResumeGenerator({ jwtToken }: Props) {
             {input.length.toLocaleString("pt-BR")} / {MAX_CHARS.toLocaleString("pt-BR")}
           </span>
         </div>
+
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={international}
+            onChange={(e) => setInternational(e.target.checked)}
+            className="w-4 h-4 accent-purple-500"
+          />
+          <span className="text-gray-700 text-sm">Vaga internacional? (currículo em inglês)</span>
+        </label>
 
         <div className="text-right">
           <button
