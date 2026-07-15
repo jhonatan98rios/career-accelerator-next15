@@ -38,7 +38,7 @@ interface Props {
 }
 
 export default function VagaSearch({ initialKeyword }: Props) {
-  const [manualKeyword, setManualKeyword] = useState("");
+  const [manualKeyword, setManualKeyword] = useState(initialKeyword || "");
   const [activeKeyword, setActiveKeyword] = useState<string | null>(initialKeyword);
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +65,7 @@ export default function VagaSearch({ initialKeyword }: Props) {
       <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-md mb-8">
         <input
           type="text"
-          value={manualKeyword || activeKeyword || ""}
+          value={manualKeyword}
           onChange={(e) => setManualKeyword(e.target.value)}
           placeholder="ex.: python, react, data science"
           className="flex-1 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
