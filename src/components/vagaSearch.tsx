@@ -8,26 +8,27 @@ type VagaLink = {
   highlighted: boolean;
 };
 
-function buildVagaUrl(keyword: string, datePosted: "past-24h" | "past-week" | "past-month"): string {
-  const encoded = `%22${encodeURIComponent(keyword)}%22%20and%20%22contratando%22`;
+function buildVagaUrl(keyword: string, datePosted: "past-24h" | "past-week" | "past-month", international: boolean): string {
+  const hiringWord = international ? "hiring" : "contratando";
+  const encoded = `%22${encodeURIComponent(keyword)}%22%20and%20%22${hiringWord}%22`;
   return `https://www.linkedin.com/search/results/content/?keywords=${encoded}&origin=FACETED_SEARCH&datePosted=%5B%22${datePosted}%22%5D`;
 }
 
-function buildVagaLinks(keyword: string): VagaLink[] {
+function buildVagaLinks(keyword: string, international: boolean): VagaLink[] {
   return [
     {
       label: "Vagas postadas hoje",
-      url: buildVagaUrl(keyword, "past-24h"),
+      url: buildVagaUrl(keyword, "past-24h", international),
       highlighted: true,
     },
     {
       label: "Vagas da semana",
-      url: buildVagaUrl(keyword, "past-week"),
+      url: buildVagaUrl(keyword, "past-week", international),
       highlighted: false,
     },
     {
       label: "Vagas do mês",
-      url: buildVagaUrl(keyword, "past-month"),
+      url: buildVagaUrl(keyword, "past-month", international),
       highlighted: false,
     },
   ];
@@ -41,9 +42,10 @@ export default function VagaSearch({ initialKeyword }: Props) {
   const [manualKeyword, setManualKeyword] = useState(initialKeyword || "");
   const [activeKeyword, setActiveKeyword] = useState<string | null>(initialKeyword);
   const [loading, setLoading] = useState(false);
+  const [international, setInternational] = useState(false);
 
   const keyword = activeKeyword || null;
-  const links = keyword ? buildVagaLinks(keyword) : null;
+  const links = keyword ? buildVagaLinks(keyword, international) : null;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +79,16 @@ export default function VagaSearch({ initialKeyword }: Props) {
           Buscar
         </button>
       </form>
+
+      <label className="flex items-center gap-2 mb-8 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={international}
+          onChange={(e) => setInternational(e.target.checked)}
+          className="w-4 h-4 accent-purple-500"
+        />
+        <span className="text-gray-700 text-sm">Deseja ver vagas internacionais?</span>
+      </label>
 
       {!keyword && !loading && (
         <p className="text-gray-700 text-center">Quais vagas deseja buscar?</p>
