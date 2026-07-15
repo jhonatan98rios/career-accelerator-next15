@@ -28,6 +28,13 @@ export class ChatApiError extends Error {
   }
 }
 
+// ponytail: shared 401 handler — same pattern as roadmap.tsx, insightForm.tsx, ResumeGenerator.tsx
+function redirectOnExpiredToken(res: Response): void {
+  if (res.status === 401) {
+    window.location.href = "/auth/logout";
+  }
+}
+
 export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatMessage> {
   const token = await getAccessToken();
 
@@ -43,6 +50,7 @@ export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatMess
   });
 
   if (!res.ok) {
+    redirectOnExpiredToken(res);
     console.error("[chat-api] request failed", { status: res.status, statusText: res.statusText });
 
     let errorMessage = "Não foi possível obter uma resposta. Tente novamente em instantes.";
@@ -87,7 +95,10 @@ export async function fetchSessionTokens(sessionId: string): Promise<ChatSession
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  if (!res.ok) throw new Error("Failed to fetch session tokens");
+  if (!res.ok) {
+    redirectOnExpiredToken(res);
+    throw new Error("Failed to fetch session tokens");
+  }
   return res.json();
 }
 
@@ -98,7 +109,10 @@ export async function fetchChatUsage(): Promise<ChatUsage> {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  if (!res.ok) throw new Error("Failed to fetch usage");
+  if (!res.ok) {
+    redirectOnExpiredToken(res);
+    throw new Error("Failed to fetch usage");
+  }
   return res.json();
 }
 
@@ -125,6 +139,7 @@ export async function streamChatMessage(
   });
 
   if (!res.ok) {
+    redirectOnExpiredToken(res);
     let msg = "Não foi possível obter uma resposta.";
     try {
       const body = await res.json();
