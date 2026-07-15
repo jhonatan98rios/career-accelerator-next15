@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { describe, it, afterEach } from "node:test";
+// expect is global from test-setup.ts (chai + @vitest/expect)
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from "fs";
 import path from "path";
 import { render, type TemplateName } from "./renderer";
 import { validate } from "../resume/validator";
@@ -118,8 +119,13 @@ describe("edge cases", () => {
 // ── Write output files for manual inspection ────────────────────────────
 
 describe("write files", () => {
-  it("writes all combinations to /tmp/resume-docx", async () => {
-    const outDir = path.resolve(__dirname, "..", "..", "output", "resume-docx");
+  const outDir = path.resolve(__dirname, "..", "..", "output", "resume-docx");
+
+  afterEach(() => {
+    rmSync(outDir, { recursive: true, force: true });
+  });
+
+  it("writes all combinations to output/resume-docx", async () => {
     mkdirSync(outDir, { recursive: true });
 
     for (const example of EXAMPLES) {

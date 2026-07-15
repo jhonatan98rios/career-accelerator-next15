@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+// expect is global from test-setup.ts (chai + @vitest/expect)
 import {
   formatCep,
   formatCpf,

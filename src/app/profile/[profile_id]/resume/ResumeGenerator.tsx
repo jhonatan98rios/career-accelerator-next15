@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+const MAX_CHARS = 10_000;
+
 async function downloadDocx(resume: Record<string, unknown>, jwtToken: string) {
   const res = await fetch("/api/resume/docx", {
     method: "POST",
@@ -85,8 +87,19 @@ export default function ResumeGenerator({ jwtToken }: Props) {
           className="w-full h-48 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-y"
           placeholder="Ex.: Sou desenvolvedor full-stack com 5 anos de experiência em React e Node.js. Trabalhei na TechCorp como sênior liderando um time de 4 devs..."
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            if (e.target.value.length <= MAX_CHARS) {
+              setInput(e.target.value);
+            }
+          }}
+          maxLength={MAX_CHARS}
         />
+
+        <div className="text-right">
+          <span className={`text-xs ${input.length >= MAX_CHARS ? "text-red-500 font-semibold" : "text-gray-400"}`}>
+            {input.length.toLocaleString("pt-BR")} / {MAX_CHARS.toLocaleString("pt-BR")}
+          </span>
+        </div>
 
         <div className="text-right">
           <button

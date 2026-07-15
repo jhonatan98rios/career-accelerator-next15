@@ -20,6 +20,24 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Running Tests
+
+```bash
+npm test
+```
+
+### Mobile environments (Termux / Android ARM64)
+
+Vitest's native esbuild binary may crash with `SIGILL` on ARM64 mobile
+environments. Use the fallback test runner:
+
+```bash
+node --import tsx --require ./test-setup.ts --test 'src/**/*.test.ts'
+```
+
+This uses Node's built-in test runner with vitest-compatible matchers
+via `chai` + `@vitest/expect`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

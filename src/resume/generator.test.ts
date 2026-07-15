@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+// expect is global from test-setup.ts (chai + @vitest/expect)
 import { validate } from "./validator";
 import { normalize } from "./normalizer";
 import { ResumeSchema, type Resume } from "./schema";

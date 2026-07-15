@@ -8,6 +8,8 @@ import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 
+export const MAX_RESUME_INPUT_CHARS = 10_000;
+
 export async function POST(req: Request) {
   try {
     const { sub } = await isAuthenticated(req.headers);
@@ -44,6 +46,13 @@ export async function POST(req: Request) {
 
     if (!input || input.trim().length === 0) {
       return NextResponse.json({ error: "Texto vazio." }, { status: 400 });
+    }
+
+    if (input.length > MAX_RESUME_INPUT_CHARS) {
+      return NextResponse.json(
+        { error: `Texto excede o limite de ${MAX_RESUME_INPUT_CHARS} caracteres.` },
+        { status: 400 }
+      );
     }
 
     const result = await generate(input, userData);

@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
 import { getInsightGuardrailState, getRoadmapGuardrailState } from "./ai-generation-guardrails";
 import { RoadmapStatus } from "./enums";
+// expect is global from test-setup.ts (chai + @vitest/expect)
 
 // ---- helpers ----
 

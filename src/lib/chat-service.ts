@@ -2,8 +2,6 @@ import { ChatOpenAI } from "@langchain/openai";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { PromptBuilder } from "@/lib/prompt-builder";
 
-const EMERGENCY_GUARDRAIL = 5000; // ponytail: hard cutoff only if model ignores the prompt
-
 const promptBuilder = new PromptBuilder();
 
 export interface ChatMessage {
@@ -47,14 +45,22 @@ export async function* generateChatResponse(
   messages: ChatMessage[],
   persona?: PersonaSnapshot,
   out?: { usage?: TokenUsage },
+  maxTokens?: number,
 ): AsyncGenerator<string> {
   const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
 
-  // ponytail: per-request model avoids stale connections from module-level singleton
-  const model = new ChatOpenAI({
+  const modelOptions: Record<string, unknown> = {
     model: "gpt-5-nano-2025-08-07",
     apiKey: process.env.OPENAI_API_KEY,
-  });
+  };
+
+  // ponytail: OpenAI enforces max_tokens on the server side — actually protects cost
+  if (maxTokens != null && maxTokens > 0) {
+    modelOptions.maxTokens = maxTokens;
+  }
+
+  // ponytail: per-request model avoids stale connections from module-level singleton
+  const model = new ChatOpenAI(modelOptions);
 
   const stream = await model.stream([
     new SystemMessage(systemPrompt),
@@ -63,7 +69,6 @@ export async function* generateChatResponse(
     ),
   ]);
 
-  let total = 0;
   for await (const chunk of stream) {
     // OpenAI returns usage_metadata on the final chunk
     const meta = (chunk as any).usage_metadata;
@@ -86,14 +91,6 @@ export async function* generateChatResponse(
 
     if (!token) continue;
 
-    if (total >= EMERGENCY_GUARDRAIL) break;
-
-    const remaining = EMERGENCY_GUARDRAIL - total;
-    const safe = token.length > remaining ? token.slice(0, remaining) + "…" : token;
-
-    total += safe.length;
-    yield safe;
-
-    if (safe.endsWith("…")) break;
+    yield token;
   }
 }

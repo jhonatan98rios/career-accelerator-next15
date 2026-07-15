@@ -14,6 +14,7 @@ export function normalize(input: Resume): Resume {
     },
     personal: {
       ...input.personal,
+      name: cleanStr(input.personal.name),
       email: cleanStr(input.personal.email),
       phone: cleanStr(input.personal.phone),
       linkedin: cleanStr(input.personal.linkedin),

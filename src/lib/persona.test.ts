@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
 import { formatPersonaForPrompt } from "@/lib/llm";
 import type { IPersona } from "@/models/Persona";
+// expect is global from test-setup.ts (chai + @vitest/expect)
 import { Types } from "mongoose";
 
 // ---- helpers ----

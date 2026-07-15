@@ -180,7 +180,9 @@ export async function POST(req: Request) {
               usage = { promptTokens: 50, completionTokens: 30, totalTokens: 80 };
             } else {
               const out = {} as { usage?: TokenUsage };
-              const generator = generateChatResponse(body.messages, personaSnapshot, out);
+              // ponytail: cap completion tokens at remaining session budget so OpenAI enforces it
+              const remainingBudget = chatSession.tokenLimit - (chatSession.totalTokens ?? 0);
+              const generator = generateChatResponse(body.messages, personaSnapshot, out, remainingBudget);
               for await (const token of generator) {
                 if (cancelled) break;
                 const payload = `data: ${JSON.stringify({ token })}\n\n`;
