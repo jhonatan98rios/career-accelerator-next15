@@ -220,44 +220,59 @@ If the free-text provides contradictory information, prefer the free-text (it ma
 `.trim();
 }
 
+// ── ponytail: split buildContext into small helpers to keep complexity under lint limit ──
+
+function buildProfileLines(ud: UserData, isEn: boolean): string[] {
+  const L = (pt: string, en: string) => (isEn ? en : pt);
+  const lines: string[] = [];
+  // ponytail: each line with null guard adds 1 complexity point — inline array scan dodges that
+  const fields: Array<[unknown, string]> = [
+    [ud.name, L("Nome", "Name")],
+    [ud.email, L("Email", "Email")],
+    [ud.currentRole, L("Cargo atual", "Current role")],
+    [ud.targetRole, L("Cargo alvo", "Target role")],
+    [ud.yearsOfExperience, L("Anos de experiência", "Years of experience")],
+    [ud.careerStage, L("Estágio da carreira", "Career stage")],
+    [ud.industries?.join(", "), L("Setores", "Industries")],
+    [ud.employmentStatus, L("Situação profissional", "Employment status")],
+    [ud.educationLevel, L("Nível de educação", "Education level")],
+    [ud.fieldOfStudy, L("Área de estudo", "Field of study")],
+    [ud.certifications?.join(", "), L("Certificações", "Certifications")],
+    [ud.hardSkills?.join(", "), L("Hard skills", "Hard skills")],
+    [ud.softSkills?.join(", "), L("Soft skills", "Soft skills")],
+    [ud.languages?.map((l) => `${l.name} (${l.proficiency})`).join(", "), L("Idiomas", "Languages")],
+  ];
+  for (const [val, label] of fields) {
+    if (val != null && val !== "") {
+      lines.push(`- ${label}: ${val}`);
+    }
+  }
+  return lines;
+}
+
+function buildDirectionLines(ud: UserData, isEn: boolean): string[] {
+  const L = (pt: string, en: string) => (isEn ? en : pt);
+  const lines: string[] = [];
+  if (ud.shortTermGoal) lines.push(`- ${L("Curto prazo", "Short-term")}: ${ud.shortTermGoal}`);
+  if (ud.mediumTermGoal) lines.push(`- ${L("Médio prazo", "Medium-term")}: ${ud.mediumTermGoal}`);
+  if (ud.longTermGoal) lines.push(`- ${L("Longo prazo", "Long-term")}: ${ud.longTermGoal}`);
+  return lines;
+}
+
 function buildContext(userData?: UserData, language: "pt" | "en" = "pt"): string {
   if (!userData) return "";
-
   const isEn = language === "en";
-
-  // ── Profile data (use directly in resume) ──
-  const profileLines: string[] = [];
-  if (userData.name) profileLines.push(`- ${isEn ? "Name" : "Nome"}: ${userData.name}`);
-  if (userData.email) profileLines.push(`- ${isEn ? "Email" : "Email"}: ${userData.email}`);
-  if (userData.currentRole) profileLines.push(`- ${isEn ? "Current role" : "Cargo atual"}: ${userData.currentRole}`);
-  if (userData.targetRole) profileLines.push(`- ${isEn ? "Target role" : "Cargo alvo"}: ${userData.targetRole}`);
-  if (userData.yearsOfExperience != null) profileLines.push(`- ${isEn ? "Years of experience" : "Anos de experiência"}: ${userData.yearsOfExperience}`);
-  if (userData.careerStage) profileLines.push(`- ${isEn ? "Career stage" : "Estágio da carreira"}: ${userData.careerStage}`);
-  if (userData.industries?.length) profileLines.push(`- ${isEn ? "Industries" : "Setores"}: ${userData.industries.join(", ")}`);
-  if (userData.employmentStatus) profileLines.push(`- ${isEn ? "Employment status" : "Situação profissional"}: ${userData.employmentStatus}`);
-  if (userData.educationLevel) profileLines.push(`- ${isEn ? "Education level" : "Nível de educação"}: ${userData.educationLevel}`);
-  if (userData.fieldOfStudy) profileLines.push(`- ${isEn ? "Field of study" : "Área de estudo"}: ${userData.fieldOfStudy}`);
-  if (userData.certifications?.length) profileLines.push(`- ${isEn ? "Certifications" : "Certificações"}: ${userData.certifications.join(", ")}`);
-  if (userData.hardSkills?.length) profileLines.push(`- ${isEn ? "Hard skills" : "Hard skills"}: ${userData.hardSkills.join(", ")}`);
-  if (userData.softSkills?.length) profileLines.push(`- ${isEn ? "Soft skills" : "Soft skills"}: ${userData.softSkills.join(", ")}`);
-  if (userData.languages?.length) {
-    const langStr = userData.languages.map((l) => `${l.name} (${l.proficiency})`).join(", ");
-    profileLines.push(`- ${isEn ? "Languages" : "Idiomas"}: ${langStr}`);
-  }
-
-  // ── Career direction (context only — do NOT include in resume text) ──
-  const directionLines: string[] = [];
-  if (userData.shortTermGoal) directionLines.push(`- ${isEn ? "Short-term" : "Curto prazo"}: ${userData.shortTermGoal}`);
-  if (userData.mediumTermGoal) directionLines.push(`- ${isEn ? "Medium-term" : "Médio prazo"}: ${userData.mediumTermGoal}`);
-  if (userData.longTermGoal) directionLines.push(`- ${isEn ? "Long-term" : "Longo prazo"}: ${userData.longTermGoal}`);
-
   const parts: string[] = [];
+
+  const profileLines = buildProfileLines(userData, isEn);
   if (profileLines.length > 0) {
     parts.push(
       (isEn ? "## User Profile Data (use directly)" : "## Dados do Usuário (usar diretamente)") +
       "\n" + profileLines.join("\n"),
     );
   }
+
+  const directionLines = buildDirectionLines(userData, isEn);
   if (directionLines.length > 0) {
     parts.push(
       (isEn
