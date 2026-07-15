@@ -40,6 +40,7 @@ interface Props {
 export default function VagaSearch({ initialKeyword }: Props) {
   const [manualKeyword, setManualKeyword] = useState("");
   const [activeKeyword, setActiveKeyword] = useState<string | null>(initialKeyword);
+  const [loading, setLoading] = useState(false);
 
   const keyword = activeKeyword || null;
   const links = keyword ? buildVagaLinks(keyword) : null;
@@ -47,7 +48,12 @@ export default function VagaSearch({ initialKeyword }: Props) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = manualKeyword.trim();
-    if (trimmed) setActiveKeyword(trimmed);
+    if (!trimmed) return;
+    setLoading(true);
+    setTimeout(() => {
+      setActiveKeyword(trimmed);
+      setLoading(false);
+    }, 700);
   };
 
   return (
@@ -56,29 +62,39 @@ export default function VagaSearch({ initialKeyword }: Props) {
         Encontrar Vagas
       </h1>
 
-      {!keyword && (
-        <div className="w-full max-w-md">
-          <p className="text-gray-700 text-center mb-4">Quais vagas deseja buscar?</p>
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              type="text"
-              value={manualKeyword}
-              onChange={(e) => setManualKeyword(e.target.value)}
-              placeholder="ex.: python, react, data science"
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            />
-            <button
-              type="submit"
-              className="px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition cursor-pointer whitespace-nowrap"
-            >
-              Buscar
-            </button>
-          </form>
+      <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-md mb-8">
+        <input
+          type="text"
+          value={manualKeyword || activeKeyword || ""}
+          onChange={(e) => setManualKeyword(e.target.value)}
+          placeholder="ex.: python, react, data science"
+          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+        />
+        <button
+          type="submit"
+          className="px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition cursor-pointer whitespace-nowrap"
+        >
+          Buscar
+        </button>
+      </form>
+
+      {!keyword && !loading && (
+        <p className="text-gray-700 text-center">Quais vagas deseja buscar?</p>
+      )}
+
+      {loading && (
+        <div className="w-full max-w-lg space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-5 rounded-xl border border-gray-200 bg-gray-50 animate-pulse">
+              <div className="h-5 bg-gray-200 rounded w-2/3 mb-3" />
+              <div className="h-4 bg-gray-200 rounded w-1/3" />
+            </div>
+          ))}
         </div>
       )}
 
-      {links && (
-        <div className="w-full max-w-lg space-y-4 mt-4">
+      {!loading && links && (
+        <div className="w-full max-w-lg space-y-4">
           {links.map((link) => (
             <a
               key={link.label}
@@ -105,30 +121,11 @@ export default function VagaSearch({ initialKeyword }: Props) {
                   </span>
                 )}
               </div>
-              <p className="text-gray-500 text-sm mt-1 break-all">{link.url}</p>
+              <p className="text-gray-500 text-sm mt-1">
+                Palavra-chave: <span className="text-purple-600 font-medium">{keyword}</span>
+              </p>
             </a>
           ))}
-
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-gray-600 text-sm mb-3 text-center">
-              Não encontrou a vaga que estava procurando? Busque por outros tipos de vagas aqui
-            </p>
-            <form onSubmit={handleSearch} className="flex gap-2 max-w-md mx-auto">
-              <input
-                type="text"
-                value={manualKeyword}
-                onChange={(e) => setManualKeyword(e.target.value)}
-                placeholder="ex.: python, react, data science"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-              />
-              <button
-                type="submit"
-                className="px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:opacity-90 transition cursor-pointer whitespace-nowrap"
-              >
-                Buscar
-              </button>
-            </form>
-          </div>
         </div>
       )}
     </div>
