@@ -1,4 +1,5 @@
 import { RoadmapStatus } from "@/lib/enums";
+import { log, LogLevel } from "@/lib/logger";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
@@ -80,6 +81,12 @@ export function getInsightGuardrailState(
     };
   }
 
+  void log(LogLevel.WARN, "Insight generation blocked: cooldown active", {
+    reason: "cooldown",
+    unlockAt: unlockAt.toISOString(),
+    lastGeneratedAt: lastInsightGeneratedAt?.toISOString(),
+  });
+
   return {
     canGenerate: false,
     reason: "cooldown",
@@ -123,6 +130,12 @@ export function getRoadmapGuardrailState(
   const correctiveRetryUsedAt = toDate(roadmap.correctiveRetryUsedAt);
 
   if (correctiveRetryUsedAt) {
+    void log(LogLevel.WARN, "Roadmap generation blocked: retry already used", {
+      reason: "retry_used",
+      retryUsedAt: correctiveRetryUsedAt.toISOString(),
+      insightCreatedAt: new Date(insightCreatedAt).toISOString(),
+    });
+
     return {
       canGenerate: false,
       reason: "retry_used",
@@ -143,6 +156,12 @@ export function getRoadmapGuardrailState(
       bypassed: false,
     };
   }
+
+  void log(LogLevel.WARN, "Roadmap generation blocked: retry window expired", {
+    reason: "retry_window_expired",
+    retryWindowEndsAt,
+    insightCreatedAt: new Date(insightCreatedAt).toISOString(),
+  });
 
   return {
     canGenerate: false,

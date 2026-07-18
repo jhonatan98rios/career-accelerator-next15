@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { generateChatResponse, type ChatMessage, type PersonaSnapshot, type TokenUsage } from "@/lib/chat-service";
+import {
+  generateChatResponse,
+  type ChatMessage,
+  type PersonaSnapshot,
+  type TokenUsage,
+} from "@/lib/chat-service";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";
@@ -29,10 +34,7 @@ export async function POST(req: Request) {
 
     const user = (await Profile.findOne({ externalAuthId: sub })) as IProfile | null;
     if (!user || user.status === UserStatus.INACTIVE) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: HttpStatus.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: HttpStatus.UNAUTHORIZED });
     }
 
     const profileId = user._id as string;
@@ -52,6 +54,11 @@ export async function POST(req: Request) {
       // New session (no sessionId or not found): enforce daily limit
       const allowed = await canStartChatSession(profileId, user.plan);
       if (!allowed) {
+        await log(LogLevel.WARN, "Chat session blocked: daily limit reached", {
+          profileId,
+          plan: user.plan,
+          limits,
+        });
         return NextResponse.json(
           { error: "Daily chat session limit reached" },
           { status: HttpStatus.TOO_MANY_REQUESTS }
@@ -68,6 +75,12 @@ export async function POST(req: Request) {
     } else {
       // Existing session: enforce token limit
       if (chatSession.totalTokens >= chatSession.tokenLimit) {
+        await log(LogLevel.WARN, "Chat blocked: token limit reached for session", {
+          profileId,
+          sessionId: chatSession.sessionId,
+          totalTokens: chatSession.totalTokens,
+          tokenLimit: chatSession.tokenLimit,
+        });
         return NextResponse.json(
           { error: "Token limit reached for this session" },
           { status: HttpStatus.TOO_MANY_REQUESTS }
@@ -182,7 +195,12 @@ export async function POST(req: Request) {
               const out = {} as { usage?: TokenUsage };
               // ponytail: cap completion tokens at remaining session budget so OpenAI enforces it
               const remainingBudget = chatSession.tokenLimit - (chatSession.totalTokens ?? 0);
-              const generator = generateChatResponse(body.messages, personaSnapshot, out, remainingBudget);
+              const generator = generateChatResponse(
+                body.messages,
+                personaSnapshot,
+                out,
+                remainingBudget
+              );
               for await (const token of generator) {
                 if (cancelled) break;
                 const payload = `data: ${JSON.stringify({ token })}\n\n`;

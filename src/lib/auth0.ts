@@ -62,7 +62,14 @@ export async function isAuthenticated(headers: Headers): Promise<JWTVerifyResult
       ? "token_expired"
       : "token_invalid";
 
-    await log(LogLevel.ERROR, `Failed to authenticate the user`, { err });
-    throw new AuthError(`Failed to authenticate the user: ${message}`, code as "token_expired" | "token_invalid");
+    await log(LogLevel.ERROR, "Failed to authenticate the user", {
+      authError: message,
+      code,
+      hasAuthHeader: !!headers.get("Authorization"),
+    });
+    throw new AuthError(
+      `Failed to authenticate the user: ${message}`,
+      code as "token_expired" | "token_invalid"
+    );
   }
 }
