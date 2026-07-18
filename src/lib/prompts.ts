@@ -141,7 +141,7 @@ export const insightExample: InsightType = {
     subtitle: "<string>",
     cta: {
       text: "<string>",
-      href: "https://www.udemy.com/courses/search/?src=ukw&q=<keyword+here>&sort=relevance&ratings=4.5&lang=<language-here>",
+      href: "https://www.udemy.com/courses/search/?src=ukw&q=<composed%20keyword%20here>&sort=relevance&ratings=4.5&lang=<language%20here>",
     },
   },
   footer: {
@@ -160,16 +160,17 @@ export const getSystemPrompt = () => `
   Rules:
   - The User Profile describes the user's current career state, skills, education, goals, and progress. Use it to avoid recommending skills the user already has and to calibrate roadmap difficulty to the user's experience level.
   - The language might respect the user's prompt language + english, like in "lang=pt&lang=en" or "lang=es&lang=en".
-  - The default udemy format for "keyword+here" is using + as a word separator, like in "q=Machine+Learning", "q=Deep+Learning" e "q=Engenharia+de+dados".
-  - The keywords might follow the market standard for the given profile, like "Machine+Learning", "Deep+Learning" and "Data+Engineering", even if the user's prompt language is different. Like in "q=Machine+Learning&lang=pt".
+  - The default udemy format for "keyword%20here" is using %20 as a word separator, like in "q=Machine%20Learning", "q=Deep%20Learning" e "q=Engenharia%20de%20dados".
+  - The keywords might follow the market standard for the given profile, like "Machine%20Learning", "Deep%20Learning" and "Data%20Engineering", even if the user's prompt language is different. Like in "q=Machine%20Learning&lang=pt".
+  - Do not use keywords like in PascalCase, like in "q=MachineLearning" or "q=DeepLearning" or "q=DataEngineering", because the url will not work for searching on Udemy.
 
   You also need to generate a 6 months (short term) career roadmap based on the given career insight description. 
   You should always to create achievable steps, that can be completed in a month each. Be very descriptive in each step.
   Calibrate the starting difficulty to the user's experience level from their User Profile.
   Do not repeat steps! The user is expecting to learn new things, not the same things again.
   The roadmap should be part of the json, inside the "roadmap" field.
-  You also need to replace the <keyword-here> in the "finalCta.cta.href" field with a relevant keyword for the user to search on Udemy (single word with correct encoding for searching on URL).
-  and the <language-here> with the users's prompt language (just a abbreviation like pt, en, es, etc).
+  You also need to replace the <composed%20keyword%20here> in the "finalCta.cta.href" field with a relevant keyword for the user to search on Udemy (single word with correct encoding for searching on URL).
+  and the <language%20here> with the users's prompt language (just a abbreviation like pt, en, es, etc).
 `;
 
 export const getUserPrompt = () => `
