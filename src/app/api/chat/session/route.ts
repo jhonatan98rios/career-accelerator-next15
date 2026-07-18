@@ -18,10 +18,7 @@ export async function GET(req: Request) {
 
     const user = (await Profile.findOne({ externalAuthId: sub })) as IProfile | null;
     if (!user || user.status === UserStatus.INACTIVE) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: HttpStatus.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: HttpStatus.UNAUTHORIZED });
     }
 
     const { searchParams } = new URL(req.url);
@@ -35,15 +32,12 @@ export async function GET(req: Request) {
     }
 
     const cs = await ChatSession.findOne({
-      profileId: user._id as string,
+      profileId: user._id.toString(),
       sessionId,
     });
 
     if (!cs) {
-      return NextResponse.json(
-        { error: "Session not found" },
-        { status: HttpStatus.NOT_FOUND }
-      );
+      return NextResponse.json({ error: "Session not found" }, { status: HttpStatus.NOT_FOUND });
     }
 
     return NextResponse.json({

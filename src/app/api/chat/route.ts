@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: HttpStatus.UNAUTHORIZED });
     }
 
-    const profileId = user._id as string;
+    const profileId = user._id.toString();
     const limits = getPlanLimits(user.plan);
 
     const body: ChatRequestBody = await req.json();

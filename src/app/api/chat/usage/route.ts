@@ -19,13 +19,10 @@ export async function GET(req: Request) {
 
     const user = (await Profile.findOne({ externalAuthId: sub })) as IProfile | null;
     if (!user || user.status === UserStatus.INACTIVE) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: HttpStatus.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: HttpStatus.UNAUTHORIZED });
     }
 
-    const usage = await getTodayUsage(user._id as string);
+    const usage = await getTodayUsage(user._id.toString());
     const limits = getPlanLimits(user.plan);
 
     return NextResponse.json({
