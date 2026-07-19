@@ -41,19 +41,24 @@ const {
   getTodayUsage,
   canStartChatSession,
   registerChatSession,
+  canGenerateResume,
+  registerResumeGeneration,
 }: {
   getTodayUsage: (profileId: string) => Promise<Record<string, unknown>>;
   canStartChatSession: (profileId: string, plan: string) => Promise<boolean>;
   registerChatSession: (profileId: string) => Promise<Record<string, unknown>>;
+  canGenerateResume: (profileId: string, plan: string) => Promise<boolean>;
+  registerResumeGeneration: (profileId: string) => Promise<Record<string, unknown>>;
 } = req("./usage-service");
 
 const { Plan } = req("./enums") as { Plan: { BASIC: string } };
 
-function makeDailyUsage(sessionsStarted: number) {
+function makeDailyUsage(sessionsStarted: number, resumeGenerations = 0) {
   return {
     profileId: "pf_test",
     date: todayStr(),
     chat: { sessionsStarted },
+    resume: { generations: resumeGenerations },
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -180,5 +185,85 @@ describe("session limit enforcement integrity", () => {
     expect(b).toBe(true);
     // Both pass — TOCTOU gap. Mitigation: registerChatSession uses atomic $inc.
     // If this becomes a real problem: wrap check+register in a MongoDB transaction.
+  });
+});
+
+// ── canGenerateResume ─────────────────────────────────────────────
+
+describe("canGenerateResume", () => {
+  it("returns true when under the daily limit", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 2));
+    expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(true);
+  });
+
+  it("returns false when at the daily limit", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 5));
+    expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(false);
+  });
+
+  it("returns false when over the daily limit", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 7));
+    expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(false);
+  });
+
+  it("returns true at generations = limit - 1", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 4));
+    expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(true);
+  });
+
+  it("allows on first generation ever (generations=0)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 0));
+    expect(await canGenerateResume("pf_new", Plan.BASIC)).toBe(true);
+  });
+});
+
+// ── registerResumeGeneration ───────────────────────────────────────
+
+describe("registerResumeGeneration", () => {
+  it("increments generations atomically via $inc", async () => {
+    const updated = makeDailyUsage(0, 1);
+    mockResolvedValueOnce(updated);
+
+    const result = await registerResumeGeneration("pf_test");
+    expect(result).toBe(updated as unknown as typeof result);
+    expect(mockFindOneAndUpdateCalls[0][1]).toMatchObject({
+      $inc: { "resume.generations": 1 },
+    });
+    expect(mockFindOneAndUpdateCalls[0][2]).toMatchObject({ upsert: true, new: true });
+  });
+
+  it("uses $inc not a read+write (no client-side race)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 3));
+
+    await registerResumeGeneration("pf_test");
+
+    const args = mockFindOneAndUpdateCalls[0];
+    expect(args[1]).toHaveProperty("$inc");
+    expect((args[1] as Record<string, Record<string, number>>).$inc["resume.generations"]).toBe(1);
+  });
+
+  it("creates a new document with generations=1 if none exists", async () => {
+    const doc = makeDailyUsage(0, 1);
+    mockResolvedValueOnce(doc);
+
+    const result = await registerResumeGeneration("pf_new");
+    expect((result as ReturnType<typeof makeDailyUsage>).resume.generations).toBe(1);
+  });
+});
+
+// ── Resume TOCTOU ─────────────────────────────────────────────────
+
+describe("resume limit enforcement integrity", () => {
+  it("two back-to-back canGenerateResume calls at limit-1 both pass (TOCTOU gap documented)", async () => {
+    const doc = makeDailyUsage(0, 4);
+    mockResolvedValueOnce(doc);
+    const a = await canGenerateResume("pf_test", Plan.BASIC);
+
+    mockResolvedValueOnce(doc);
+    const b = await canGenerateResume("pf_test", Plan.BASIC);
+
+    expect(a).toBe(true);
+    expect(b).toBe(true);
+    // Same TOCTOU pattern as chat — registerResumeGeneration uses atomic $inc.
   });
 });

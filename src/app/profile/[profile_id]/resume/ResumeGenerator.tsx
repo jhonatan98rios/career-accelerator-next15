@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import type { Resume } from "@/resume";
 import ResumePreview from "./ResumePreview";
 
 const MAX_CHARS = 10_000;
+
+interface UsageInfo {
+  resumeGenerations: number;
+  resumeGenerationsLimit: number;
+}
 
 async function downloadDocx(resume: Resume, jwtToken: string) {
   const res = await fetch("/api/resume/docx", {
@@ -40,6 +45,18 @@ export default function ResumeGenerator({ jwtToken }: Props) {
   const [isPending, startTransition] = useTransition();
   const [downloading, setDownloading] = useState(false);
   const [international, setInternational] = useState(false);
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
+
+  useEffect(() => {
+    fetch("/api/chat/usage", { headers: { Authorization: `Bearer ${jwtToken}` } })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.resumeGenerations != null) {
+          setUsage({ resumeGenerations: d.resumeGenerations, resumeGenerationsLimit: d.resumeGenerationsLimit });
+        }
+      })
+      .catch(() => {});
+  }, [jwtToken]);
 
   const handleGenerate = () => {
     if (!input.trim()) return;
@@ -70,6 +87,10 @@ export default function ResumeGenerator({ jwtToken }: Props) {
         }
 
         setResult(payload.data);
+        // Refresh usage counter after successful generation
+        setUsage((prev) =>
+          prev ? { ...prev, resumeGenerations: prev.resumeGenerations + 1 } : null
+        );
       } catch {
         setError("Erro de rede. Tente novamente.");
       }
@@ -84,6 +105,22 @@ export default function ResumeGenerator({ jwtToken }: Props) {
           Descreva sua experiência profissional em texto livre e a IA irá estruturar seu currículo.
         </p>
       </div>
+
+      {usage && (
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm flex items-center justify-between">
+          <span>
+            {usage.resumeGenerations >= usage.resumeGenerationsLimit
+              ? "Limite diário de currículos atingido."
+              : `Você gerou ${usage.resumeGenerations} de ${usage.resumeGenerationsLimit} currículos hoje.`}
+          </span>
+          <div className="flex-1 max-w-[120px] mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, (usage.resumeGenerations / usage.resumeGenerationsLimit) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         <textarea
@@ -117,15 +154,19 @@ export default function ResumeGenerator({ jwtToken }: Props) {
         <div className="text-right">
           <button
             type="button"
-            disabled={isPending || !input.trim()}
+            disabled={isPending || !input.trim() || (usage != null && usage.resumeGenerations >= usage.resumeGenerationsLimit)}
             onClick={handleGenerate}
             className={`px-6 py-3 rounded-xl font-bold text-white transition ${
-              isPending || !input.trim()
+              isPending || !input.trim() || (usage != null && usage.resumeGenerations >= usage.resumeGenerationsLimit)
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:scale-105"
             }`}
           >
-            {isPending ? "Gerando..." : "Gerar Currículo"}
+            {usage != null && usage.resumeGenerations >= usage.resumeGenerationsLimit
+              ? "Limite diário atingido"
+              : isPending
+                ? "Gerando..."
+                : "Gerar Currículo"}
           </button>
         </div>
       </div>

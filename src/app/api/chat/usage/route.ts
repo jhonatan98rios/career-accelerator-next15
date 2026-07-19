@@ -30,6 +30,8 @@ export async function GET(req: Request) {
       sessionsLimit: limits.chatSessionsPerDay,
       canStartSession: usage.chat.sessionsStarted < limits.chatSessionsPerDay,
       tokenLimit: limits.chatSessionTokenLimit,
+      resumeGenerations: usage.resume.generations,
+      resumeGenerationsLimit: limits.resumeGenerationsPerDay,
     });
   } catch (err: unknown) {
     if (err instanceof AuthError) {

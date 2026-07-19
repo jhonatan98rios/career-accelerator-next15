@@ -9,6 +9,8 @@ import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 import { MAX_RESUME_INPUT_CHARS } from "@/lib/resume-constants";
 import { getRecentNotesContext } from "@/lib/chat-notes";
+import { canGenerateResume, registerResumeGeneration } from "@/lib/usage-service";
+import { getPlanLimits } from "@/lib/plan-service";
 
 export async function POST(req: Request) {
   try {
@@ -41,6 +43,21 @@ export async function POST(req: Request) {
       mediumTermGoal: persona?.mediumTermGoal,
       longTermGoal: persona?.longTermGoal,
     };
+
+    // Guardrail: max resume generations per day
+    const allowed = await canGenerateResume(user._id.toString(), user.plan);
+    if (!allowed) {
+      const limits = getPlanLimits(user.plan);
+      await log(LogLevel.WARN, "Resume generation blocked: daily limit reached", {
+        profileId: user._id.toString(),
+        plan: user.plan,
+        limit: limits.resumeGenerationsPerDay,
+      });
+      return NextResponse.json(
+        { error: "Limite diário de geração de currículos atingido.", code: "RESUME_DAILY_LIMIT" },
+        { status: HttpStatus.TOO_MANY_REQUESTS }
+      );
+    }
 
     const { input, language }: { input: string; language?: string } = await req.json();
 
@@ -78,6 +95,9 @@ export async function POST(req: Request) {
       { $set: { resume: result.data, resumeGeneratedAt: new Date() } },
       { upsert: true }
     );
+
+    // Register usage after successful generation
+    await registerResumeGeneration(user._id.toString());
 
     return NextResponse.json({ data: result.data });
   } catch (err) {

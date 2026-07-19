@@ -9,6 +9,10 @@ export interface IDailyUsage extends Document {
     sessionsStarted: number;
   };
 
+  resume: {
+    generations: number;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,6 +24,10 @@ const DailyUsageSchema = new Schema<IDailyUsage>(
 
     chat: {
       sessionsStarted: { type: Number, required: true, default: 0 },
+    },
+
+    resume: {
+      generations: { type: Number, required: true, default: 0 },
     },
   },
   { timestamps: true }

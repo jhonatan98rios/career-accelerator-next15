@@ -32,3 +32,19 @@ export async function registerChatSession(profileId: string): Promise<IDailyUsag
     { upsert: true, new: true }
   ))!;
 }
+
+export async function canGenerateResume(profileId: string, plan: Plan): Promise<boolean> {
+  const usage = await getTodayUsage(profileId);
+  const limits = getPlanLimits(plan);
+  return usage.resume.generations < limits.resumeGenerationsPerDay;
+}
+
+export async function registerResumeGeneration(profileId: string): Promise<IDailyUsage> {
+  const date = today();
+
+  return (await DailyUsage.findOneAndUpdate(
+    { profileId, date },
+    { $inc: { "resume.generations": 1 } },
+    { upsert: true, new: true }
+  ))!;
+}
