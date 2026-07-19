@@ -61,6 +61,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
+    // Persist structured resume on persona
+    await Persona.findOneAndUpdate(
+      { profile_id: user._id },
+      { $set: { resume: result.data, resumeGeneratedAt: new Date() } },
+      { upsert: true }
+    );
+
     return NextResponse.json({ data: result.data });
   } catch (err) {
     if (err instanceof AuthError) {

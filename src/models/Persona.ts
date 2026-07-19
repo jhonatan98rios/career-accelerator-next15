@@ -107,6 +107,9 @@ export interface IPersona extends Document {
   remotePreference?: RemotePreference;
   // Job search
   jobSearchKeyword?: string;
+  // Resume (estruturado, persistido para reuso)
+  resume?: Record<string, unknown>;
+  resumeGeneratedAt?: Date;
   // Progress tracking
   completedRoadmaps?: number;
   insightsGenerated?: number;
@@ -171,6 +174,8 @@ const PersonaSchema = new Schema<IPersona>(
     insightsGenerated: { type: Number, required: false, default: 0 },
     skillsGained: { type: [String], required: false },
     jobSearchKeyword: { type: String, required: false },
+    resume: { type: Schema.Types.Mixed, required: false },
+    resumeGeneratedAt: { type: Date, required: false },
     lastRoleChange: { type: Date, required: false },
   },
   { timestamps: true }
