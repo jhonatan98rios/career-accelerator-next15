@@ -150,7 +150,11 @@ export const insightExample: InsightType = {
   },
 };
 
-export const getSystemPrompt = () => `
+export const getSystemPrompt = () => {
+  const today = new Date().toISOString().split("T")[0];
+  return `
+  Current date: ${today}
+
   You are an API that works as an expert career coach.
   Your task is to open job sites (Indeed, LinkedIn, remote.ok, etc.) and look at how many open positions are available for the given profile.
   Then, use the following received data to generate a personalized career insight for a user based on their profile and answers.
@@ -212,6 +216,7 @@ export const getSystemPrompt = () => `
 
   The roadmap.steps field must contain exactly 6 steps (1 through 6), each targeting a one-month timeframe.
 `;
+};
 
 export const getUserPrompt = () => `
   Generate a personalized and translated career insight based on the following data and language:
@@ -223,7 +228,11 @@ export const getUserPrompt = () => `
   Use the latest job market data and trends to provide a comprehensive overview of opportunities, challenges, and recommendations for the user.
 `;
 
-export const getRoadmapSystemPrompt = () => `
+export const getRoadmapSystemPrompt = () => {
+  const today = new Date().toISOString().split("T")[0];
+  return `
+  Current date: ${today}
+
   You are an API that works as an expert career coach.
   Your task is to create the NEXT 6 months of a career roadmap, continuing from where the user left off.
   The user has completed all the steps provided in "Old Steps" and now needs the next phase.
@@ -257,6 +266,7 @@ export const getRoadmapSystemPrompt = () => `
 
   Generate exactly 6 new steps. Use the same language as the old steps.
 `;
+};
 
 export const getRoadmapUserPrompt = () => `
   Generate a personalized career roadmap continuing from these completed steps.

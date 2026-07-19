@@ -7,6 +7,7 @@ import { type PersonaSnapshot } from "@/lib/chat-service";
 export class PromptBuilder {
   buildCareerCoachSystemPrompt(persona?: PersonaSnapshot): string {
     return [
+      this.#date(),
       this.#identity(),
       this.#objective(),
       this.#principles(),
@@ -20,6 +21,10 @@ export class PromptBuilder {
   }
 
   // ── sections ──────────────────────────────────────────
+
+  #date(): string {
+    return `Current date: ${new Date().toISOString().split("T")[0]}`;
+  }
 
   #identity(): string {
     return `Você é um coach de carreira especializado em tecnologia.

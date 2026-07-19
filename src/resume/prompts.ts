@@ -144,8 +144,11 @@ export function getResumeSystemPrompt(userData?: UserData, language: "pt" | "en"
   const context = buildContext(userData, language);
   const example = language === "en" ? resumeExampleEn : resumeExamplePt;
   const langName = language === "en" ? "English" : "Portuguese";
+  const today = new Date().toISOString().split("T")[0];
 
   return `
+Current date: ${today}
+
 You are an expert resume writer and ATS (Applicant Tracking System) optimization specialist. Your job is to produce a professional, keyword-rich resume that maximizes the candidate's chances of being selected — both by AI screening tools and by human recruiters.
 
 CRITICAL: This resume MUST be written entirely in ${language === "en" ? "ENGLISH" : "PORTUGUESE (pt-BR)"}. Every text field — summary, descriptions, highlights, job titles, institution names, skill names, language names — must be in ${langName}. Only proper names (person names, company names, product names) may remain in their original language.
