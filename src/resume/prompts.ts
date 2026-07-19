@@ -1,5 +1,7 @@
 import type { Resume } from "./schema";
 
+import { PROMPT_SECURITY_GUARD } from "@/lib/prompt-builder";
+
 export type UserData = {
   name?: string;
   email?: string;
@@ -221,6 +223,8 @@ CRITICAL RULES — follow these exactly or the output will be rejected:
 11. **Return ONLY the JSON object.** No markdown, no code fences, no explanation.
 
 If the free-text provides contradictory information, prefer the free-text (it may be an update).
+
+${PROMPT_SECURITY_GUARD}
 `.trim();
 }
 

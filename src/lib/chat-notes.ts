@@ -2,6 +2,7 @@ import { createModel } from "@/lib/llm-client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { type ChatMessage } from "@/lib/chat-service";
 import { ChatNotes, type IChatNotes } from "@/models/ChatNotes";
+import { PROMPT_SECURITY_GUARD } from "@/lib/prompt-builder";
 
 // ponytail: skip LLM call for trivial conversations (greetings, empty)
 export const MIN_CHARS_FOR_NOTES = 100;
@@ -20,7 +21,8 @@ Use frases diretas e objetivas, sempre no formato:
 
 NÃO repita saudações. NÃO inclua "oi", "olá" ou agradecimentos no resumo.
 Se a conversa for apenas uma saudação sem conteúdo de carreira, responda
-com string vazia.`;
+com string vazia.
+${PROMPT_SECURITY_GUARD}`;
 
 // ponytail: hard cap on context injection — 10 notes should never exceed this
 export const MAX_NOTES_CONTEXT_CHARS = 5000;
