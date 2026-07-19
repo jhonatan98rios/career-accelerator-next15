@@ -11,6 +11,7 @@ import { MAX_RESUME_INPUT_CHARS } from "@/lib/resume-constants";
 import { getRecentNotesContext } from "@/lib/chat-notes";
 import { canGenerateResume, registerResumeGeneration } from "@/lib/usage-service";
 import { getPlanLimits } from "@/lib/plan-service";
+import { validateUserInput } from "@/lib/prompt-guard";
 
 export async function POST(req: Request) {
   try {
@@ -69,6 +70,19 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: `Texto excede o limite de ${MAX_RESUME_INPUT_CHARS} caracteres.` },
         { status: 400 }
+      );
+    }
+
+    // Guardrail: reject prompt injection patterns before LLM call
+    const inputCheck = validateUserInput(input);
+    if (!inputCheck.ok) {
+      await log(LogLevel.WARN, "Resume input blocked: prompt injection detected", {
+        profileId: user._id.toString(),
+        matched: inputCheck.matched,
+      });
+      return NextResponse.json(
+        { error: inputCheck.error },
+        { status: HttpStatus.BAD_REQUEST }
       );
     }
 

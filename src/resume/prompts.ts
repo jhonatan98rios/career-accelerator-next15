@@ -1,6 +1,6 @@
 import type { Resume } from "./schema";
 
-import { PROMPT_SECURITY_GUARD } from "@/lib/prompt-builder";
+import { PROMPT_SECURITY_GUARD } from "@/lib/prompt-guard";
 
 export type UserData = {
   name?: string;

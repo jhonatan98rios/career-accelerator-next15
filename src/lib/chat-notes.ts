@@ -2,7 +2,7 @@ import { createModel } from "@/lib/llm-client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { type ChatMessage } from "@/lib/chat-service";
 import { ChatNotes, type IChatNotes } from "@/models/ChatNotes";
-import { PROMPT_SECURITY_GUARD } from "@/lib/prompt-builder";
+import { PROMPT_SECURITY_GUARD } from "@/lib/prompt-guard";
 
 // ponytail: skip LLM call for trivial conversations (greetings, empty)
 export const MIN_CHARS_FOR_NOTES = 100;
