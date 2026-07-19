@@ -52,6 +52,8 @@ export async function* generateChatResponse(
   const modelOptions: Record<string, unknown> = {
     model: "gpt-5-nano-2025-08-07",
     apiKey: process.env.OPENAI_API_KEY,
+    streaming: true,
+    streamUsage: true,
   };
 
   // ponytail: OpenAI enforces max_tokens on the server side — actually protects cost
@@ -62,15 +64,15 @@ export async function* generateChatResponse(
   // ponytail: per-request model avoids stale connections from module-level singleton
   const model = new ChatOpenAI(modelOptions);
 
-  const stream = await model.stream([
+  // ponytail: bypass IterableReadableStream wrapper from model.stream() —
+  // the double ReadableStream wrapping (LangChain → ours) can buffer.
+  // _streamIterator yields AIMessageChunks directly from the OpenAI SSE.
+  for await (const chunk of (model as any)._streamIterator([
     new SystemMessage(systemPrompt),
     ...messages.map((m) =>
       m.role === "user" ? new HumanMessage(m.content) : new AIMessage(m.content)
     ),
-  ]);
-
-  for await (const chunk of stream) {
-    // OpenAI returns usage_metadata on the final chunk
+  ])) {
     const meta = (chunk as any).usage_metadata;
     if (meta && out) {
       out.usage = {
@@ -81,14 +83,6 @@ export async function* generateChatResponse(
     }
 
     const token = (chunk.content as string) ?? "";
-
-    // [DIAGNOSTIC] verify LangChain stream yields tokens incrementally
-    console.log("[chat-service] token", {
-      time: Date.now(),
-      length: token.length,
-      content: token.slice(0, 80),
-    });
-
     if (!token) continue;
 
     yield token;
