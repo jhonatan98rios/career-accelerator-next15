@@ -8,8 +8,13 @@ import { streamChatMessage, type ChatMessage as ApiChatMessage, fetchChatUsage, 
 
 let nextId = 100;
 
-function newId(): string {
+function newMessageId(): string {
   return `m${nextId++}`;
+}
+
+// ponytail: timestamp+random avoids collision with DB sessions after page refresh
+function newSessionId(): string {
+  return `cs_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 // ── Page component ─────────────────────────────────────────
@@ -53,7 +58,7 @@ export default function ChatPage() {
 
   const handleNewSession = useCallback(() => {
     if (!canStartNew) return;
-    const id = `s${nextId}`;
+    const id = newSessionId();
     const session: ChatSession = { id, title: "Nova conversa" };
     setSessions((prev) => [session, ...prev]);
     setSelectedId(id);
@@ -119,13 +124,13 @@ export default function ChatPage() {
     if (!trimmed || loading) return;
 
     const userMsg: ChatMessageData = {
-      id: newId(),
+      id: newMessageId(),
       role: "user",
       content: trimmed,
     };
 
     const conversationMessages = [...messages, userMsg];
-    const assistantId = newId();
+    const assistantId = newMessageId();
 
     setMessages([
       ...conversationMessages,
