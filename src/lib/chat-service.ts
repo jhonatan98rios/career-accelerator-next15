@@ -51,7 +51,7 @@ export async function* generateChatResponse(
 
   // ponytail: per-request model avoids stale connections from module-level singleton
   const model = new ChatOpenAI({
-    model: "deepseek-chat",
+    model: "deepseek-v4-flash",
     apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
     streaming: true,
     streamUsage: true,
