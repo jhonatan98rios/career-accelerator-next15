@@ -1,8 +1,12 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
+import OpenAI from "openai";
 import { PromptBuilder } from "@/lib/prompt-builder";
 
 const promptBuilder = new PromptBuilder();
+
+// ponytail: per-request client avoids stale connections
+function getClient(): OpenAI {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -49,40 +53,36 @@ export async function* generateChatResponse(
 ): AsyncGenerator<string> {
   const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
 
-  const modelOptions: Record<string, unknown> = {
+  // ponytail: skip LangChain streaming abstractions, call OpenAI SSE directly.
+  // The IterableReadableStream + _streamIterator double-wrapping was buffering
+  // tokens until the stream completed.
+  const openai = getClient();
+
+  const stream = await openai.chat.completions.create({
     model: "gpt-5-nano-2025-08-07",
-    apiKey: process.env.OPENAI_API_KEY,
-    streaming: true,
-    streamUsage: true,
-  };
+    max_completion_tokens: maxTokens != null && maxTokens > 0 ? maxTokens : undefined,
+    stream: true,
+    stream_options: { include_usage: true },
+    messages: [
+      { role: "system", content: systemPrompt },
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
+    ],
+  });
 
-  // ponytail: OpenAI enforces max_tokens on the server side — actually protects cost
-  if (maxTokens != null && maxTokens > 0) {
-    modelOptions.maxTokens = maxTokens;
-  }
+  for await (const chunk of stream) {
+    const choice = chunk.choices?.[0];
+    if (!choice) continue;
 
-  // ponytail: per-request model avoids stale connections from module-level singleton
-  const model = new ChatOpenAI(modelOptions);
-
-  // ponytail: bypass IterableReadableStream wrapper from model.stream() —
-  // the double ReadableStream wrapping (LangChain → ours) can buffer.
-  // _streamIterator yields AIMessageChunks directly from the OpenAI SSE.
-  for await (const chunk of (model as any)._streamIterator([
-    new SystemMessage(systemPrompt),
-    ...messages.map((m) =>
-      m.role === "user" ? new HumanMessage(m.content) : new AIMessage(m.content)
-    ),
-  ])) {
-    const meta = (chunk as any).usage_metadata;
-    if (meta && out) {
+    // usage comes in a dedicated chunk when include_usage is set
+    if (chunk.usage && out) {
       out.usage = {
-        promptTokens: meta.input_tokens,
-        completionTokens: meta.output_tokens,
-        totalTokens: meta.total_tokens,
+        promptTokens: chunk.usage.prompt_tokens,
+        completionTokens: chunk.usage.completion_tokens,
+        totalTokens: chunk.usage.total_tokens,
       };
     }
 
-    const token = (chunk.content as string) ?? "";
+    const token = choice.delta?.content ?? "";
     if (!token) continue;
 
     yield token;

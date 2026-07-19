@@ -163,7 +163,7 @@ export async function POST(req: Request) {
     }
 
     // [DIAGNOSTIC] STREAM_DEBUG mode — artificial stream, no OpenAI call
-    const DEBUG = process.env.STREAM_DEBUG === "true" || true;
+    const DEBUG = process.env.STREAM_DEBUG === "true";
 
     const encoder = new TextEncoder();
 
