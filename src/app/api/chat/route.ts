@@ -10,6 +10,8 @@ import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";
 import { Persona, IPersona } from "@/models/Persona";
 import { ChatSession } from "@/models/ChatSession";
+import { ChatNotes } from "@/models/ChatNotes";
+import { generateChatNotes } from "@/lib/chat-notes";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -230,6 +232,22 @@ export async function POST(req: Request) {
                 );
               }
 
+              // Generate and persist chat notes
+              let notes = "";
+              try {
+                notes = await generateChatNotes(body.messages);
+                await ChatNotes.findOneAndUpdate(
+                  { profileId, sessionId: csId },
+                  { notes },
+                  { upsert: true }
+                );
+              } catch (notesErr) {
+                // ponytail: notes are best-effort — chat still works without them
+                await log(LogLevel.WARN, "POST /api/chat: Failed to generate/save notes", {
+                  error: notesErr instanceof Error ? notesErr.message : String(notesErr),
+                });
+              }
+
               const updatedSession = await ChatSession.findOne({ profileId, sessionId: csId });
 
               // Send session data before [DONE]
@@ -241,6 +259,7 @@ export async function POST(req: Request) {
                       promptTokens: updatedSession.promptTokens,
                       completionTokens: updatedSession.completionTokens,
                       totalTokens: updatedSession.totalTokens,
+                      notes,
                     }
                   : null,
               });

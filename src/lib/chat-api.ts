@@ -86,6 +86,7 @@ export interface ChatSessionData {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  notes?: string;
 }
 
 export async function fetchSessionTokens(sessionId: string): Promise<ChatSessionData> {
