@@ -305,6 +305,7 @@ export const getStaticProps = (async (context) => {
     },
     roadmap: {
       ...insight.roadmap,
+      objective: (insight.roadmap as any).objective ?? "",
       steps: insight.roadmap.steps.map((step) => ({
         ...step,
         // @ts-expect-error lean returns plain object
