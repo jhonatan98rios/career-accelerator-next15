@@ -1,5 +1,4 @@
-import { ChatOpenAI } from "@langchain/openai";
-import type { ChatOpenAIFields } from "@langchain/openai";
+import { ChatOpenAI, type ChatOpenAIFields } from "@langchain/openai";
 
 /**
  * Centralized LLM client factory.
