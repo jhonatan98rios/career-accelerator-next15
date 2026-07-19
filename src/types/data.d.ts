@@ -37,6 +37,7 @@ export type InsightType = {
   roadmap: {
     title: string;
     subtitle: string;
+    objective: string;
     steps: {
       step: number;
       title: string;

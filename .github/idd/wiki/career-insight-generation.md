@@ -37,6 +37,7 @@ A separate Pages Router page (`/profile/[id]/output/[output_id]`) renders the fu
 | Daily insight cooldown replaces UI token meter | Users understand time-based access more easily than an abstract credit counter, while server enforcement reduces AI spam | 2026-07-04 |
 | One corrective roadmap retry | Allows a user to recover from an unhelpful roadmap without opening unlimited repeat generations | 2026-07-04 |
 | Output page uses Pages Router (getStaticProps) | Likely predates App Router or was migrated early; still on fallback: blocking | 2026-07-04 |
+| Objective-first roadmap prompts with skill chain and reward anchoring | Roadmap steps must derive from a clear 6-month objective, sequence prerequisites properly, produce one concrete deliverable per month, and use reward-anchored descriptions (🎯/🛠️/🚪). Added `objective` field to `InsightType.roadmap`. | 2026-07-19 |
 
 ## Evidence
 
