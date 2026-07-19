@@ -1,4 +1,4 @@
-import { ChatOpenAI } from "@langchain/openai";
+import { createModel } from "@/lib/llm-client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { type ChatMessage } from "@/lib/chat-service";
 
@@ -31,9 +31,7 @@ export async function generateChatNotes(messages: ChatMessage[]): Promise<string
   const maxNotesChars = Math.floor(totalChars * MAX_NOTES_RATIO);
 
   // ponytail: per-request model avoids stale connections
-  const model = new ChatOpenAI({
-    model: "gpt-5-nano-2025-08-07",
-    apiKey: process.env.OPENAI_API_KEY,
+  const model = createModel({
     maxTokens: 200,
     temperature: 0.3,
   });

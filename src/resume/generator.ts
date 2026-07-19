@@ -1,14 +1,11 @@
-import { ChatOpenAI } from "@langchain/openai";
+import { createModel } from "@/lib/llm-client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { getResumeSystemPrompt, type UserData } from "./prompts";
 import { validate } from "./validator";
 import { normalize } from "./normalizer";
 import type { Resume } from "./schema";
 
-const model = new ChatOpenAI({
-  model: "gpt-5-nano-2025-08-07",
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const model = createModel();
 
 export type GenerateResult =
   | { ok: true; data: Resume }

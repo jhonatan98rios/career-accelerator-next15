@@ -1,4 +1,4 @@
-import { ChatOpenAI } from "@langchain/openai";
+import { createModel } from "@/lib/llm-client";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { PromptBuilder } from "@/lib/prompt-builder";
 
@@ -50,13 +50,10 @@ export async function* generateChatResponse(
   const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
 
   // ponytail: per-request model avoids stale connections from module-level singleton
-  const model = new ChatOpenAI({
-    model: "deepseek-v4-flash",
-    apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
+  const model = createModel({
     streaming: true,
     streamUsage: true,
     ...(maxTokens != null && maxTokens > 0 ? { maxTokens } : {}),
-    configuration: { baseURL: "https://api.deepseek.com/v1" },
   });
 
   const stream = await model.stream([
