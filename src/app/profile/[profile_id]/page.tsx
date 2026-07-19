@@ -25,7 +25,7 @@ export default async function Page() {
   const persona = await Persona.findOne(
     { profile_id: user._id },
     { resume: 1, resumeGeneratedAt: 1 }
-  ).lean();
+  ).lean() as { resume?: Record<string, unknown>; resumeGeneratedAt?: Date } | null;
 
   const roadmaps = await CareerRoadmap.find(
     { user_id: user._id },
