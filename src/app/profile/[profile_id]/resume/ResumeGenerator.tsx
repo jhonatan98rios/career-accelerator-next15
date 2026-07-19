@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import type { Resume } from "@/resume";
+import ResumePreview from "./ResumePreview";
 
 const MAX_CHARS = 10_000;
 
-async function downloadDocx(resume: Record<string, unknown>, jwtToken: string) {
+async function downloadDocx(resume: Resume, jwtToken: string) {
   const res = await fetch("/api/resume/docx", {
     method: "POST",
     headers: {
@@ -33,7 +35,7 @@ interface Props {
 
 export default function ResumeGenerator({ jwtToken }: Props) {
   const [input, setInput] = useState("");
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [result, setResult] = useState<Resume | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [downloading, setDownloading] = useState(false);
@@ -135,9 +137,9 @@ export default function ResumeGenerator({ jwtToken }: Props) {
       )}
 
       {result && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Currículo Gerado</h2>
+        <>
+          <ResumePreview resume={result} />
+          <div className="flex justify-center">
             <button
               type="button"
               disabled={downloading}
@@ -151,15 +153,12 @@ export default function ResumeGenerator({ jwtToken }: Props) {
                   setDownloading(false);
                 }
               }}
-              className="px-4 py-2 rounded-lg font-semibold text-white bg-green-600 hover:bg-green-700 transition disabled:opacity-50"
+              className="px-6 py-3 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 transition disabled:opacity-50"
             >
               {downloading ? "Baixando..." : "Baixar DOCX"}
             </button>
           </div>
-          <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded-lg overflow-auto max-h-96">
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        </div>
+        </>
       )}
     </div>
   );
