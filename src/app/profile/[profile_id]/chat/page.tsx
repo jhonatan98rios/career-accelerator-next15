@@ -66,15 +66,15 @@ export default function ChatPage() {
       : null);
   }, [canStartNew, usage]);
 
-  // ponytail: rAF-based streaming — flushSync is ignored by React 19 in async context.
-  // Accumulate tokens in a closure var, flush at animation-frame cadence so every
-  // browser paint shows incremental content.
+  // ponytail: React 18+ auto-batches setState calls within the same synchronous
+  // context, so every chunk from the reader triggers exactly one render. No rAF,
+  // no flushSync, no race conditions — the reader's async boundary is the natural
+  // batch point.
   const runStream = async (apiMessages: ApiChatMessage[], assistantId: string, sessionId?: string) => {
     let content = "";
-    let rafId: number | null = null;
 
-    const flush = () => {
-      rafId = null;
+    const applyToken = (token: string) => {
+      content += token;
       setMessages((prev) => {
         const next = [...prev];
         for (let i = 0; i < next.length; i++) {
@@ -90,22 +90,23 @@ export default function ChatPage() {
     await streamChatMessage(
       apiMessages,
       sessionId,
-      (token) => {
-        content += token;
-        if (rafId === null) {
-          rafId = requestAnimationFrame(flush);
-        }
-      },
+      applyToken,
       (err) => {
         setError(err);
         setLoading(false);
       },
       (sessionData) => {
-        if (rafId !== null) cancelAnimationFrame(rafId);
-        flush();
+        // Final flush — applyToken may not have fired if stream was instant
         setMessages((prev) => {
-          sessionMessagesRef.current[selectedId!] = prev;
-          return prev;
+          const next = [...prev];
+          for (let i = 0; i < next.length; i++) {
+            if (next[i].id === assistantId) {
+              next[i] = { ...next[i], content };
+              break;
+            }
+          }
+          sessionMessagesRef.current[selectedId!] = next;
+          return next;
         });
         setLoading(false);
         if (sessionData) setSessionTokens(sessionData);
