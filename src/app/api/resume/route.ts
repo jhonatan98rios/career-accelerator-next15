@@ -8,6 +8,7 @@ import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 import { MAX_RESUME_INPUT_CHARS } from "@/lib/resume-constants";
+import { getRecentNotesContext } from "@/lib/chat-notes";
 
 export async function POST(req: Request) {
   try {
@@ -54,7 +55,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await generate(input, userData, language === "en" ? "en" : "pt");
+    // Fetch recent chat notes for context
+    let notesContext = "";
+    try {
+      notesContext = await getRecentNotesContext(user._id.toString());
+    } catch (notesErr) {
+      await log(LogLevel.WARN, "POST /resume: Failed to fetch notes, continuing without", {
+        error: notesErr instanceof Error ? notesErr.message : String(notesErr),
+      });
+    }
+
+    const result = await generate(input, userData, language === "en" ? "en" : "pt", notesContext || undefined);
 
     if (!result.ok) {
       await log(LogLevel.ERROR, "Resume generation failed", { error: result.error });

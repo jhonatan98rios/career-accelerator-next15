@@ -26,7 +26,7 @@ export default function DataUsageCheckbox(props: IDataUsageCheckbox) {
 
   return (
     <div className="flex flex-col space-y-4">
-      {/* Link para o PDF */}
+      {/* PDF link */}
       <Link
         className="inline-block text-purple-600 font-bold underline hover:text-indigo-500 transition-colors"
         href={`/terms/data-usage/${version}.pdf`}

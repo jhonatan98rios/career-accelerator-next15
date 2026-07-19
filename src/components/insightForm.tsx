@@ -298,7 +298,7 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
         )}
       </section>
 
-      {/* Observação */}
+      {/* Note */}
       <section className="space-y-4">
         <label className="block font-medium text-gray-700">
           Deseja adicionar alguma informação extra? (Opcional)

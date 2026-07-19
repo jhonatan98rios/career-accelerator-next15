@@ -150,7 +150,7 @@ export const insightExample: InsightType = {
   },
 };
 
-export const getSystemPrompt = () => {
+export const getSystemPrompt = (notes?: string) => {
   const today = new Date().toISOString().split("T")[0];
   return `
   Current date: ${today}
@@ -161,6 +161,7 @@ export const getSystemPrompt = () => {
 
   The insight must be a single JSON (as an API) following this structure (you cannot change the structure, because the frontend will not work):
 
+${notes ? notes + "\n" : ""}
   {insightExample}
 
   ── INSIGHT REPORT RULES ──
@@ -228,11 +229,12 @@ export const getUserPrompt = () => `
   Use the latest job market data and trends to provide a comprehensive overview of opportunities, challenges, and recommendations for the user.
 `;
 
-export const getRoadmapSystemPrompt = () => {
+export const getRoadmapSystemPrompt = (notes?: string) => {
   const today = new Date().toISOString().split("T")[0];
   return `
   Current date: ${today}
 
+${notes ? notes + "\n" : ""}
   You are an API that works as an expert career coach.
   Your task is to create the NEXT 6 months of a career roadmap, continuing from where the user left off.
   The user has completed all the steps provided in "Old Steps" and now needs the next phase.

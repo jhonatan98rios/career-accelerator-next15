@@ -5,15 +5,16 @@ import { type PersonaSnapshot } from "@/lib/chat-service";
 // All prompt text lives here; chat-service delegates to this class.
 
 export class PromptBuilder {
-  buildCareerCoachSystemPrompt(persona?: PersonaSnapshot): string {
+  buildCareerCoachSystemPrompt(persona?: PersonaSnapshot, notes?: string): string {
     return [
       this.#date(),
       this.#identity(),
       this.#objective(),
+      notes || "",
+      persona ? this.#personaSection(persona) : "",
       this.#principles(),
       this.#behavior(),
       this.#responseStructure(),
-      persona ? this.#personaSection(persona) : "",
       this.#rules(),
     ]
       .filter(Boolean)

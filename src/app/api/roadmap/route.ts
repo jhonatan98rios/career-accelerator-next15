@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateRoadmap } from "@/lib/llm";
+import { getRecentNotesContext } from "@/lib/chat-notes";
 import { connectDB } from "@/lib/db";
 import { CareerRoadmap, ICareerRoadmap, IStep } from "@/models/CareerRoadmap";
 import { Persona } from "@/models/Persona";
@@ -83,7 +84,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const newRoadmap = await generateRoadmap(roadmap.steps);
+    // Fetch recent chat notes for context
+    let notesContext = "";
+    try {
+      notesContext = await getRecentNotesContext(user.id);
+    } catch (notesErr) {
+      await log(LogLevel.WARN, "POST /roadmap: Failed to fetch notes, continuing without", {
+        error: notesErr instanceof Error ? notesErr.message : String(notesErr),
+      });
+    }
+
+    const newRoadmap = await generateRoadmap(roadmap.steps, notesContext || undefined);
 
     if (!newRoadmap) {
       await log(LogLevel.ERROR, "POST /roadmap: Failed to generate roadmap", { roadmapId });

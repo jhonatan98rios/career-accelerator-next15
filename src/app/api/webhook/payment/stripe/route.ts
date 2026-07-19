@@ -131,7 +131,7 @@ export async function POST(req: Request) {
   let rawBody: Buffer = null as any;
 
   try {
-    // ponytail: Buffer é o formato canônico que o Stripe SDK espera
+    // ponytail: Buffer is the canonical format the Stripe SDK expects
     const buf = await req.arrayBuffer();
     rawBody = Buffer.from(buf);
     await log(LogLevel.INFO, "Stripe webhook received", {

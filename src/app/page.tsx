@@ -85,7 +85,7 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Intermediário */}
+            {/* Intermediate */}
             <div className="border rounded-xl shadow-lg p-8 flex flex-col items-center opacity-60 min-h-[460px]">
               <h3 className="text-2xl font-bold text-gray-500">Intermediário</h3>
               <p className="mt-4 text-xl font-semibold text-gray-500">Em breve</p>

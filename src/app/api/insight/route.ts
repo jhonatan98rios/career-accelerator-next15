@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateInsight } from "@/lib/llm";
+import { getRecentNotesContext } from "@/lib/chat-notes";
 import { connectDB } from "@/lib/db";
 import { CareerInsight, ICareerInsight } from "@/models/CarrerInsight";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
@@ -66,10 +67,21 @@ export async function POST(req: Request) {
 
     const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
 
+    // Fetch recent chat notes for context
+    let notesContext = "";
+    try {
+      notesContext = await getRecentNotesContext(user.id);
+    } catch (notesErr) {
+      await log(LogLevel.WARN, "POST /insight: Failed to fetch notes, continuing without", {
+        error: notesErr instanceof Error ? notesErr.message : String(notesErr),
+      });
+    }
+
     const json = await generateInsight({
       answers,
       manualDescription,
       persona,
+      notes: notesContext || undefined,
     });
 
     if (!json) {

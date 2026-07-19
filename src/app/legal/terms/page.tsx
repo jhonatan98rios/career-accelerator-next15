@@ -41,12 +41,12 @@ export default async function Terms() {
   return (
     <main className="bg-gray-50 text-gray-900 min-h-screen flex flex-col items-center justify-center px-6">
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-10 text-center space-y-6">
-        {/* Título */}
+        {/* Title */}
         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
           Atualização do <br /> Termo de Uso de Dados
         </h1>
 
-        {/* Subtítulo */}
+        {/* Subtitle */}
         <p className="mt-6 text-gray-600">
           Desculpe por interromper sua navegação, <br /> mas nosso termo de uso de dados foi
           atualizado. <br />
@@ -58,7 +58,7 @@ export default async function Terms() {
           *A recusa ao termo de dados impossibilitará a utilização da plataforma.
         </p>
 
-        {/* Caixa com o checkbox */}
+        {/* Checkbox box */}
         <div className="mt-10 text-left">
           <DataUsageCheckbox
             email={email}

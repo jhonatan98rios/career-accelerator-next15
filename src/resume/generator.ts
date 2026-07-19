@@ -16,7 +16,7 @@ export type GenerateResult =
  *
  * Flow: input → LLM → JSON parse → Zod validate → normalize → Resume
  */
-export async function generate(input: string, userData?: UserData, language: "pt" | "en" = "pt"): Promise<GenerateResult> {
+export async function generate(input: string, userData?: UserData, language: "pt" | "en" = "pt", notes?: string): Promise<GenerateResult> {
   console.warn("[resume] step=start inputLength=%d hasUserData=%s", input.length, userData != null);
 
   // 1. LLM call — use raw messages to avoid LangChain template-parsing the JSON schema
@@ -24,7 +24,7 @@ export async function generate(input: string, userData?: UserData, language: "pt
   try {
     console.warn("[resume] step=llm-call");
     const response = await model.invoke([
-      new SystemMessage(getResumeSystemPrompt(userData, language)),
+      new SystemMessage(getResumeSystemPrompt(userData, language, notes)),
       new HumanMessage(input),
     ]);
     raw = (response.content as string) ?? "";

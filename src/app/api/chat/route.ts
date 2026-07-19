@@ -11,7 +11,7 @@ import { Profile, IProfile } from "@/models/Profile";
 import { Persona, IPersona } from "@/models/Persona";
 import { ChatSession } from "@/models/ChatSession";
 import { ChatNotes } from "@/models/ChatNotes";
-import { generateChatNotes } from "@/lib/chat-notes";
+import { generateChatNotes, getRecentNotesContext } from "@/lib/chat-notes";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -122,8 +122,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch persona for richer coaching context
+    // Fetch notes and persona for richer coaching context
+    let notesContext = "";
     let personaSnapshot: PersonaSnapshot | undefined;
+    try {
+      notesContext = await getRecentNotesContext(profileId);
+    } catch (notesErr) {
+      await log(LogLevel.WARN, "POST /api/chat: Failed to fetch notes, continuing without", {
+        error: notesErr instanceof Error ? notesErr.message : String(notesErr),
+      });
+    }
+
     try {
       const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
       if (persona) {
@@ -204,7 +213,8 @@ export async function POST(req: Request) {
                 body.messages,
                 personaSnapshot,
                 out,
-                remainingBudget
+                remainingBudget,
+                notesContext || undefined,
               );
               for await (const token of generator) {
                 if (cancelled) break;

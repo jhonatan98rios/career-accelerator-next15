@@ -13,7 +13,7 @@ import { FirstAccessRedirect } from "./first-access-redirect";
 
 type LayoutProps = {
   children: React.ReactNode;
-  params: Promise<{ profile_id: string }>; // Adicione o parâmetro params
+  params: Promise<{ profile_id: string }>; // Route param from dynamic segment
 };
 
 export default async function ProfileLayout({ children, params }: LayoutProps) {

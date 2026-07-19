@@ -22,9 +22,10 @@ export const generateInsight = async ({
   answers,
   manualDescription,
   persona,
-}: InsightRequestInput): Promise<string | null> => {
+  notes,
+}: InsightRequestInput & { notes?: string }): Promise<string | null> => {
   const prompt = ChatPromptTemplate.fromMessages([
-    ["system", getSystemPrompt()],
+    ["system", getSystemPrompt(notes)],
     ["user", getUserPrompt()],
   ]);
 
@@ -40,8 +41,8 @@ export const generateInsight = async ({
   return response.content as string;
 };
 
-export const generateRoadmap = async (oldSteps: IStep[]): Promise<string | null> => {
-  const systemPrompt = getRoadmapSystemPrompt();
+export const generateRoadmap = async (oldSteps: IStep[], notes?: string): Promise<string | null> => {
+  const systemPrompt = getRoadmapSystemPrompt(notes);
   const userPrompt = getRoadmapUserPrompt();
 
   const prompt = ChatPromptTemplate.fromMessages([

@@ -107,7 +107,7 @@ export interface IPersona extends Document {
   remotePreference?: RemotePreference;
   // Job search
   jobSearchKeyword?: string;
-  // Resume (estruturado, persistido para reuso)
+  // Resume (structured, persisted for reuse)
   resume?: Record<string, unknown>;
   resumeGeneratedAt?: Date;
   // Progress tracking

@@ -1,6 +1,7 @@
 import { createModel } from "@/lib/llm-client";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { type ChatMessage } from "@/lib/chat-service";
+import { ChatNotes, type IChatNotes } from "@/models/ChatNotes";
 
 // ponytail: skip LLM call for trivial conversations (greetings, empty)
 export const MIN_CHARS_FOR_NOTES = 100;
@@ -20,6 +21,36 @@ Use frases diretas e objetivas, sempre no formato:
 NÃO repita saudações. NÃO inclua "oi", "olá" ou agradecimentos no resumo.
 Se a conversa for apenas uma saudação sem conteúdo de carreira, responda
 com string vazia.`;
+
+// ponytail: hard cap on context injection — 10 notes should never exceed this
+export const MAX_NOTES_CONTEXT_CHARS = 5000;
+
+// ponytail: fetch last 10 notes for context injection across all features
+export async function getRecentNotesContext(profileId: string): Promise<string> {
+  const notes = await ChatNotes.find({ profileId })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .lean() as IChatNotes[];
+
+  if (!notes.length) return "";
+
+  const notesText = notes
+    .map((n, i) => `[Session ${notes.length - i}]: ${n.notes}`)
+    .join("\n");
+
+  const block = `## Previous Session Notes
+
+These notes were automatically extracted from the user's previous conversations with the career coach.
+They MAY contain relevant information to personalize your response (interests, ongoing studies,
+certifications, recurring questions, mentioned goals, skills, tools, etc.).
+
+Filter and use ONLY the information pertinent to the current task. Ignore what is not relevant.
+
+${notesText}`;
+
+  if (block.length <= MAX_NOTES_CONTEXT_CHARS) return block;
+  return block.slice(0, MAX_NOTES_CONTEXT_CHARS);
+}
 
 export async function generateChatNotes(messages: ChatMessage[]): Promise<string> {
   const totalChars = messages.reduce((sum, m) => sum + m.content.length, 0);

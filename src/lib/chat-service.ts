@@ -46,8 +46,9 @@ export async function* generateChatResponse(
   persona?: PersonaSnapshot,
   out?: { usage?: TokenUsage },
   maxTokens?: number,
+  notes?: string,
 ): AsyncGenerator<string> {
-  const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
+  const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona, notes);
 
   // ponytail: per-request model avoids stale connections from module-level singleton
   const model = createModel({
