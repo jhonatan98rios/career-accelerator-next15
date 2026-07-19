@@ -93,27 +93,36 @@ export default async function Page() {
         </DashboardCard>
 
         {/* Roadmaps */}
-        <DashboardCard title="Roadmaps" icon="🗺️">
+        <DashboardCard title="Roadmaps" icon="🗺️" className="md:col-span-2">
           {serializedRoadmaps.length > 0 ? (
-            <ul className="space-y-3">
-              {serializedRoadmaps.map((r) => (
-                <li key={r.id}>
-                  <Link
-                    href={`/profile/${user.id}/roadmaps/${r.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:shadow-sm transition"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-800 truncate">{r.title}</p>
-                      <p className="text-xs text-gray-400">
+            <ul className="space-y-4">
+              {serializedRoadmaps.map((r) => {
+                const pct = r.total > 0 ? Math.round((r.done / r.total) * 100) : 0;
+                return (
+                  <li key={r.id}>
+                    <Link
+                      href={`/profile/${user.id}/roadmaps/${r.id}`}
+                      className="block p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:shadow-sm transition"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-medium text-gray-800 truncate">{r.title}</p>
+                        <span className="ml-3 text-sm text-purple-500 font-semibold whitespace-nowrap">
+                          {r.done}/{r.total} · {pct}%
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          style={{ width: `${pct}%` }}
+                          className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">
                         {r.createdAt.toLocaleDateString("pt-BR")}
                       </p>
-                    </div>
-                    <span className="ml-3 text-sm text-purple-500 font-semibold whitespace-nowrap">
-                      {r.done}/{r.total}
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <EmptyCardBody
@@ -121,35 +130,6 @@ export default async function Page() {
               href={`/profile/${user.id}/input`}
               linkLabel="Criar roadmap"
             />
-          )}
-        </DashboardCard>
-
-        {/* Progresso Individual */}
-        <DashboardCard title="Progresso" icon="📊">
-          {serializedRoadmaps.length > 0 ? (
-            <ul className="space-y-4">
-              {serializedRoadmaps.map((r) => {
-                const pct = r.total > 0 ? Math.round((r.done / r.total) * 100) : 0;
-                return (
-                  <li key={r.id} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-700 truncate flex-1 min-w-0 mr-2">
-                        {r.title}
-                      </span>
-                      <span className="text-gray-400 whitespace-nowrap">{pct}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        style={{ width: `${pct}%` }}
-                        className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-400">Nenhum roadmap para acompanhar.</p>
           )}
         </DashboardCard>
       </div>
@@ -165,15 +145,17 @@ function DashboardCard({
   children,
   href,
   hrefLabel,
+  className = "",
 }: {
   title: string;
   icon: string;
   children: React.ReactNode;
   href?: string;
   hrefLabel?: string;
+  className?: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
+    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col ${className}`}>
       <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
         <span>{icon}</span>
         {title}
