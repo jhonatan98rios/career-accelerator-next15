@@ -209,12 +209,11 @@ export async function POST(req: Request) {
               for await (const token of generator) {
                 if (cancelled) break;
                 const payload = `data: ${JSON.stringify({ token })}\n\n`;
-                console.log("[route] enqueue", {
-                  time: Date.now(),
-                  tokenLength: token.length,
-                  content: token.slice(0, 80),
-                });
                 controller.enqueue(encoder.encode(payload));
+                // ponytail: force event-loop yield so the ReadableStream
+                // consumer (HTTP writer) can flush. Without this, rapid
+                // enqueues pile up until the stream ends.
+                await new Promise((r) => setTimeout(r, 0));
               }
               usage = out.usage;
             }

@@ -1,12 +1,8 @@
-import OpenAI from "openai";
+import { ChatOpenAI } from "@langchain/openai";
+import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { PromptBuilder } from "@/lib/prompt-builder";
 
 const promptBuilder = new PromptBuilder();
-
-// ponytail: per-request client avoids stale connections
-function getClient(): OpenAI {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -53,36 +49,34 @@ export async function* generateChatResponse(
 ): AsyncGenerator<string> {
   const systemPrompt = promptBuilder.buildCareerCoachSystemPrompt(persona);
 
-  // ponytail: skip LangChain streaming abstractions, call OpenAI SSE directly.
-  // The IterableReadableStream + _streamIterator double-wrapping was buffering
-  // tokens until the stream completed.
-  const openai = getClient();
-
-  const stream = await openai.chat.completions.create({
-    model: "gpt-5-nano-2025-08-07",
-    max_completion_tokens: maxTokens != null && maxTokens > 0 ? maxTokens : undefined,
-    stream: true,
-    stream_options: { include_usage: true },
-    messages: [
-      { role: "system", content: systemPrompt },
-      ...messages.map((m) => ({ role: m.role, content: m.content })),
-    ],
+  // ponytail: per-request model avoids stale connections from module-level singleton
+  const model = new ChatOpenAI({
+    model: "deepseek-chat",
+    apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
+    streaming: true,
+    streamUsage: true,
+    ...(maxTokens != null && maxTokens > 0 ? { maxTokens } : {}),
+    configuration: { baseURL: "https://api.deepseek.com/v1" },
   });
 
-  for await (const chunk of stream) {
-    const choice = chunk.choices?.[0];
-    if (!choice) continue;
+  const stream = await model.stream([
+    new SystemMessage(systemPrompt),
+    ...messages.map((m) =>
+      m.role === "user" ? new HumanMessage(m.content) : new AIMessage(m.content)
+    ),
+  ]);
 
-    // usage comes in a dedicated chunk when include_usage is set
-    if (chunk.usage && out) {
+  for await (const chunk of stream) {
+    const meta = (chunk as any).usage_metadata;
+    if (meta && out) {
       out.usage = {
-        promptTokens: chunk.usage.prompt_tokens,
-        completionTokens: chunk.usage.completion_tokens,
-        totalTokens: chunk.usage.total_tokens,
+        promptTokens: meta.input_tokens,
+        completionTokens: meta.output_tokens,
+        totalTokens: meta.total_tokens,
       };
     }
 
-    const token = choice.delta?.content ?? "";
+    const token = (chunk.content as string) ?? "";
     if (!token) continue;
 
     yield token;
