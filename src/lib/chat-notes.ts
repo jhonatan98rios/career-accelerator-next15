@@ -30,7 +30,7 @@ export async function getRecentNotesContext(profileId: string): Promise<string> 
   const notes = await ChatNotes.find({ profileId })
     .sort({ createdAt: -1 })
     .limit(10)
-    .lean() as IChatNotes[];
+    .lean() as unknown as IChatNotes[];
 
   if (!notes.length) return "";
 
