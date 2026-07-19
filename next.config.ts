@@ -4,8 +4,9 @@ const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   reactStrictMode: !isDev,
-  // ponytail: gzip buffers full body — kills SSE streaming. Disable globally;
-  // Vercel's edge handles its own compression without buffering.
+  // ponytail: gzip at origin buffers full body — kills SSE streaming.
+  // Vercel's edge/CDN handles compression without buffering, so origin
+  // compression is redundant and harmful for streaming routes.
   compress: false,
   images: {
     remotePatterns: [
