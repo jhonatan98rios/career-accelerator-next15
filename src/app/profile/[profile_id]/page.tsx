@@ -7,6 +7,7 @@ import { CareerInsight } from "@/models/CarrerInsight";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
 import { Persona } from "@/models/Persona";
 import { RoadmapStatus } from "@/lib/enums";
+import DownloadButton from "./components/DownloadButton";
 
 export default async function Page() {
   const [session] = await Promise.all([getSessionCached(), connectDB()]);
@@ -84,6 +85,7 @@ export default async function Page() {
             <ResumeCardBody
               resume={persona.resume as Record<string, unknown>}
               date={persona.resumeGeneratedAt as Date | undefined}
+              jwtToken={session.tokenSet.accessToken!}
             />
           ) : (
             <p className="text-sm text-gray-500">
@@ -176,9 +178,11 @@ function DashboardCard({
 function ResumeCardBody({
   resume,
   date,
+  jwtToken,
 }: {
   resume: Record<string, unknown>;
   date?: Date;
+  jwtToken: string;
 }) {
   const personal = resume.personal as Record<string, unknown> | undefined;
   const summary = typeof resume.summary === "string" ? resume.summary : null;
@@ -205,6 +209,7 @@ function ResumeCardBody({
           Gerado em {date.toLocaleDateString("pt-BR")}
         </p>
       )}
+      <DownloadButton jwtToken={jwtToken} />
     </div>
   );
 }
