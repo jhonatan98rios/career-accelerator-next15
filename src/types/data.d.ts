@@ -1,3 +1,9 @@
+declare global {
+  interface Window {
+    dataLayer: Record<string, unknown>[];
+  }
+}
+
 export type InsightType = {
   hero: {
     title: string;

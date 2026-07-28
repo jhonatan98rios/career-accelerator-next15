@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { TrackedLink } from "@/components/tracked-link";
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
@@ -25,8 +25,10 @@ export default async function Header() {
         🚀 AcelerAi
       </h1>
 
-      <Link
+      <TrackedLink
         href={`/profile/${user?.id}/config`}
+        navType="header"
+        navLabel={user?.name || "Perfil"}
         className="flex items-center gap-3 hover:bg-gray-100 rounded-full px-3 py-2 transition"
       >
         <Image
@@ -39,7 +41,7 @@ export default async function Header() {
         <span className="hidden md:inline font-medium text-gray-700 whitespace-nowrap">
           {user?.name}
         </span>
-      </Link>
+      </TrackedLink>
     </header>
   );
 }

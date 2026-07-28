@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { InsightGuardrailState } from "@/lib/ai-generation-guardrails";
+import { trackNavClick } from "@/lib/analytics";
 
 interface SideBarProps {
   id: string;
@@ -51,10 +52,24 @@ function SideBarContent({
           disabled={!hasInsight}
           onClick={onLinkClick}
         />
-        <Link href={`/profile/${id}/input`} onClick={onLinkClick} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+        <Link
+          href={`/profile/${id}/input`}
+          onClick={() => {
+            trackNavClick({ nav_type: "sidebar", nav_label: "Novo Plano de Carreira", nav_url: `/profile/${id}/input`, page_location: window.location.pathname });
+            onLinkClick?.();
+          }}
+          className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
+        >
           Novo Plano de Carreira
         </Link>
-        <Link href={`/profile/${id}/resume`} onClick={onLinkClick} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+        <Link
+          href={`/profile/${id}/resume`}
+          onClick={() => {
+            trackNavClick({ nav_type: "sidebar", nav_label: "Gerar Currículo", nav_url: `/profile/${id}/resume`, page_location: window.location.pathname });
+            onLinkClick?.();
+          }}
+          className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
+        >
           Gerar Currículo
         </Link>
         <MenuItem
@@ -75,7 +90,14 @@ function SideBarContent({
           disabled={!hasInsight}
           onClick={onLinkClick}
         />
-        <Link href={`/profile/${id}/chat`} onClick={onLinkClick} className="hover:bg-purple-600 p-2 rounded-lg font-semibold">
+        <Link
+          href={`/profile/${id}/chat`}
+          onClick={() => {
+            trackNavClick({ nav_type: "sidebar", nav_label: "Coach de Carreira", nav_url: `/profile/${id}/chat`, page_location: window.location.pathname });
+            onLinkClick?.();
+          }}
+          className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
+        >
           Coach de Carreira
         </Link>
       </nav>
@@ -155,7 +177,14 @@ function MenuItem({
   }
 
   return (
-    <Link href={href} onClick={onClick} className="hover:bg-purple-600 p-2 rounded-lg">
+    <Link
+      href={href}
+      onClick={() => {
+        trackNavClick({ nav_type: "sidebar", nav_label: label, nav_url: href, page_location: window.location.pathname });
+        onClick?.();
+      }}
+      className="hover:bg-purple-600 p-2 rounded-lg"
+    >
       {label}
     </Link>
   );

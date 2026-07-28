@@ -1,7 +1,7 @@
 import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { UserStatus } from "@/lib/enums";
-import Link from "next/link";
+import { TrackedLink } from "@/components/tracked-link";
 import { redirect } from "next/navigation";
 import { GatewayForm } from "./form";
 import { IProfile, Profile } from "@/models/Profile";
@@ -26,12 +26,14 @@ export default async function Gateway() {
   if (!user) {
     return (
       <div className="bg-gray-100 min-h-screen text-gray-900">
-        <Link
+        <TrackedLink
           href="/auth/logout"
+          navType="gateway"
+          navLabel="Logout"
           className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
         >
           Logout
-        </Link>
+        </TrackedLink>
 
         <GatewayForm
           email={session.user.email!}
@@ -85,12 +87,14 @@ export default async function Gateway() {
     if (inactiveError) {
       return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-          <Link
+          <TrackedLink
             href="/auth/logout"
+            navType="gateway"
+            navLabel="Logout"
             className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
           >
             Logout
-          </Link>
+          </TrackedLink>
           <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
             <h1 className="text-3xl font-bold mb-4 text-red-600">Erro</h1>
             <p className="mb-4 text-gray-700">
@@ -105,12 +109,14 @@ export default async function Gateway() {
 
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-        <Link
+        <TrackedLink
           href="/auth/logout"
+          navType="gateway"
+          navLabel="Logout"
           className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
         >
           Logout
-        </Link>
+        </TrackedLink>
         <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
           <h1 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
             Conta Inativa

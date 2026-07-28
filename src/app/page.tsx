@@ -1,15 +1,17 @@
-import Link from "next/link";
+import { TrackedLink } from "@/components/tracked-link";
 
 export default function Home() {
   return (
     <main className="bg-gray-50 text-gray-900">
       <div className="w-full h-10 flex justify-end pr-6 py-2">
-        <Link
+        <TrackedLink
           href="/auth/login?returnTo=/gateway"
+          navType="header"
+          navLabel="Log in"
           className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500"
         >
           Log in
-        </Link>
+        </TrackedLink>
       </div>
 
       {/* Hero */}
@@ -21,12 +23,14 @@ export default function Home() {
           Estatísticas de mercado, plano de carreira, currículo otimizado e roadmap de estudos. Tudo
           em um só lugar. Simples, rápido e inteligente.
         </p>
-        <Link
+        <TrackedLink
           href="/auth/login?returnTo=/gateway"
+          navType="hero"
+          navLabel="Comece agora"
           className="inline-block mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform"
         >
           Comece agora
-        </Link>
+        </TrackedLink>
       </section>
 
       {/* Snapshot Section */}
@@ -77,12 +81,14 @@ export default function Home() {
                 <li>✅ 60 tokens mensais</li>
                 <li>✅ 7 dias grátis para testar </li>
               </ul>
-              <Link
+              <TrackedLink
                 href="/auth/login?returnTo=/gateway"
+                navType="pricing"
+                navLabel="Ver mais"
                 className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform"
               >
                 Ver mais
-              </Link>
+              </TrackedLink>
             </div>
 
             {/* Intermediate */}
@@ -136,12 +142,14 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-center">
         <h2 className="text-4xl font-bold">Pronto para acelerar sua carreira?</h2>
         <p className="mt-4 text-lg">Comece hoje mesmo e dê o próximo passo rumo ao seu futuro.</p>
-        <Link
+        <TrackedLink
           href="/auth/login?returnTo=/gateway"
+          navType="cta"
+          navLabel="Criar conta grátis"
           className="inline-block mt-8 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100"
         >
           Criar conta grátis
-        </Link>
+        </TrackedLink>
       </section>
     </main>
   );
