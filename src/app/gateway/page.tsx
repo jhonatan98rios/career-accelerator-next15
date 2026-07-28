@@ -28,7 +28,7 @@ export default async function Gateway() {
       <div className="bg-gray-100 min-h-screen text-gray-900">
         <TrackedLink
           href="/auth/logout"
-          navType="gateway"
+          navCategory="gateway"
           navLabel="Logout"
           className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
         >
@@ -89,7 +89,7 @@ export default async function Gateway() {
         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
           <TrackedLink
             href="/auth/logout"
-            navType="gateway"
+            navCategory="gateway"
             navLabel="Logout"
             className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
           >
@@ -111,7 +111,7 @@ export default async function Gateway() {
       <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
         <TrackedLink
           href="/auth/logout"
-          navType="gateway"
+          navCategory="gateway"
           navLabel="Logout"
           className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
         >

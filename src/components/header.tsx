@@ -27,7 +27,7 @@ export default async function Header() {
 
       <TrackedLink
         href={`/profile/${user?.id}/config`}
-        navType="header"
+        navCategory="header"
         navLabel={user?.name || "Perfil"}
         className="flex items-center gap-3 hover:bg-gray-100 rounded-full px-3 py-2 transition"
       >

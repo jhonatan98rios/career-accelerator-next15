@@ -55,7 +55,7 @@ function SideBarContent({
         <Link
           href={`/profile/${id}/input`}
           onClick={() => {
-            trackNavClick({ nav_type: "sidebar", nav_label: "Novo Plano de Carreira", nav_url: `/profile/${id}/input`, page_location: window.location.pathname });
+            trackNavClick({ category: "sidebar", action: "click", label: "Novo Plano de Carreira" });
             onLinkClick?.();
           }}
           className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
@@ -65,7 +65,7 @@ function SideBarContent({
         <Link
           href={`/profile/${id}/resume`}
           onClick={() => {
-            trackNavClick({ nav_type: "sidebar", nav_label: "Gerar Currículo", nav_url: `/profile/${id}/resume`, page_location: window.location.pathname });
+            trackNavClick({ category: "sidebar", action: "click", label: "Gerar Currículo" });
             onLinkClick?.();
           }}
           className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
@@ -93,7 +93,7 @@ function SideBarContent({
         <Link
           href={`/profile/${id}/chat`}
           onClick={() => {
-            trackNavClick({ nav_type: "sidebar", nav_label: "Coach de Carreira", nav_url: `/profile/${id}/chat`, page_location: window.location.pathname });
+            trackNavClick({ category: "sidebar", action: "click", label: "Coach de Carreira" });
             onLinkClick?.();
           }}
           className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
@@ -180,7 +180,7 @@ function MenuItem({
     <Link
       href={href}
       onClick={() => {
-        trackNavClick({ nav_type: "sidebar", nav_label: label, nav_url: href, page_location: window.location.pathname });
+        trackNavClick({ category: "sidebar", action: "click", label });
         onClick?.();
       }}
       className="hover:bg-purple-600 p-2 rounded-lg"

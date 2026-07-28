@@ -1,7 +1,7 @@
 // GA4 analytics via GTM dataLayer
 // ponytail: just push to existing dataLayer, no wrapper lib needed
 
-export type NavType =
+export type NavCategory =
   | "header"
   | "sidebar"
   | "hero"
@@ -12,10 +12,9 @@ export type NavType =
   | "terms";
 
 interface NavClickParams {
-  nav_type: NavType;
-  nav_label: string;
-  nav_url: string;
-  page_location: string;
+  category: NavCategory;
+  action: string;
+  label: string;
 }
 
 interface Ga4Event {

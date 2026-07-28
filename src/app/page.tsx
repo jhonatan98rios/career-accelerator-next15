@@ -6,7 +6,7 @@ export default function Home() {
       <div className="w-full h-10 flex justify-end pr-6 py-2">
         <TrackedLink
           href="/auth/login?returnTo=/gateway"
-          navType="header"
+          navCategory="header"
           navLabel="Log in"
           className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500"
         >
@@ -25,7 +25,7 @@ export default function Home() {
         </p>
         <TrackedLink
           href="/auth/login?returnTo=/gateway"
-          navType="hero"
+          navCategory="hero"
           navLabel="Comece agora"
           className="inline-block mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold hover:scale-105 transition-transform"
         >
@@ -83,7 +83,7 @@ export default function Home() {
               </ul>
               <TrackedLink
                 href="/auth/login?returnTo=/gateway"
-                navType="pricing"
+                navCategory="pricing"
                 navLabel="Ver mais"
                 className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform"
               >
@@ -144,7 +144,7 @@ export default function Home() {
         <p className="mt-4 text-lg">Comece hoje mesmo e dê o próximo passo rumo ao seu futuro.</p>
         <TrackedLink
           href="/auth/login?returnTo=/gateway"
-          navType="cta"
+          navCategory="cta"
           navLabel="Criar conta grátis"
           className="inline-block mt-8 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100"
         >
