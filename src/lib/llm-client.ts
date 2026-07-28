@@ -9,7 +9,7 @@ import { ChatOpenAI, type ChatOpenAIFields } from "@langchain/openai";
 export function createModel(overrides?: Partial<ChatOpenAIFields>): ChatOpenAI {
   return new ChatOpenAI({
     model: "deepseek-v4-flash",
-    apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
+    apiKey: process.env.DEEPSEEK_API_KEY,
     configuration: { baseURL: "https://api.deepseek.com/v1" },
     ...overrides,
   });
