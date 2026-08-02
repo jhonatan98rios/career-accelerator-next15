@@ -4,7 +4,6 @@ import { STRIPE_CHECKOUT_CANCEL_URL, STRIPE_CHECKOUT_SUCCESS_URL } from "./const
 import { Plan, UserStatus } from "./enums";
 import { log, LogLevel } from "@/lib/logger";
 import { Profile } from "@/models/Profile";
-import { getPlanLimits } from "@/lib/plan-service";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
