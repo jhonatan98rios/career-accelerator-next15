@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Profile mismatch" }, { status: HttpStatus.FORBIDDEN });
     }
 
-    const guardrail = getInsightGuardrailState(user);
+    const guardrail = getInsightGuardrailState(user, user.plan);
 
     if (!guardrail.canGenerate) {
       await log(LogLevel.WARN, "POST /insight: Insight generation locked", {

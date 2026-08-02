@@ -16,7 +16,7 @@ import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 import { canStartChatSession, registerChatSession } from "@/lib/usage-service";
-import { getPlanLimits } from "@/lib/plan-service";
+import { getPlanLimits, isChatAvailable } from "@/lib/plan-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,7 +53,19 @@ export async function POST(req: Request) {
     }
 
     if (!chatSession) {
-      // New session (no sessionId or not found): enforce daily limit
+      // New session: check if chat is available for this plan first
+      if (!isChatAvailable(user.plan)) {
+        await log(LogLevel.WARN, "Chat session blocked: not available for plan", {
+          profileId,
+          plan: user.plan,
+        });
+        return NextResponse.json(
+          { error: "Chat disponivel a partir do plano Intermediario", code: "UPGRADE_REQUIRED" },
+          { status: HttpStatus.FORBIDDEN }
+        );
+      }
+
+      // Enforce daily limit
       const allowed = await canStartChatSession(profileId, user.plan);
       if (!allowed) {
         await log(LogLevel.WARN, "Chat session blocked: daily limit reached", {

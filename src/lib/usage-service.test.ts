@@ -51,7 +51,7 @@ const {
   registerResumeGeneration: (profileId: string) => Promise<Record<string, unknown>>;
 } = req("./usage-service");
 
-const { Plan } = req("./enums") as { Plan: { BASIC: string } };
+const { Plan } = req("./enums") as { Plan: { BASIC: string; INTERMEDIARY: string; PREMIUM: string } };
 
 function makeDailyUsage(sessionsStarted: number, resumeGenerations = 0) {
   return {
@@ -105,29 +105,44 @@ describe("getTodayUsage", () => {
 // ── canStartChatSession ────────────────────────────────────────────
 
 describe("canStartChatSession", () => {
-  it("returns true when under the daily limit", async () => {
-    mockResolvedValueOnce(makeDailyUsage(3));
-    expect(await canStartChatSession("pf_test", Plan.BASIC)).toBe(true);
+  it("returns true when under the daily limit (INTERMEDIARY: limit 3)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(2));
+    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(true);
   });
 
-  it("returns false when at the daily limit", async () => {
-    mockResolvedValueOnce(makeDailyUsage(10));
-    expect(await canStartChatSession("pf_test", Plan.BASIC)).toBe(false);
+  it("returns false when at the daily limit (INTERMEDIARY: limit 3)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(3));
+    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(false);
   });
 
   it("returns false when over the daily limit (bypass recovery)", async () => {
-    mockResolvedValueOnce(makeDailyUsage(11));
-    expect(await canStartChatSession("pf_test", Plan.BASIC)).toBe(false);
+    mockResolvedValueOnce(makeDailyUsage(4));
+    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(false);
   });
 
-  it("returns true at sessionsStarted = limit - 1", async () => {
-    mockResolvedValueOnce(makeDailyUsage(9));
-    expect(await canStartChatSession("pf_test", Plan.BASIC)).toBe(true);
+  it("returns true at sessionsStarted = limit - 1 (INTERMEDIARY: 2 of 3)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(2));
+    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(true);
   });
 
   it("allows on first session ever (sessionsStarted=0)", async () => {
     mockResolvedValueOnce(makeDailyUsage(0));
-    expect(await canStartChatSession("pf_new", Plan.BASIC)).toBe(true);
+    expect(await canStartChatSession("pf_new", Plan.INTERMEDIARY)).toBe(true);
+  });
+
+  it("BASIC plan always returns false (chat disabled)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0));
+    expect(await canStartChatSession("pf_test", Plan.BASIC)).toBe(false);
+  });
+
+  it("PREMIUM allows up to 10 sessions", async () => {
+    mockResolvedValueOnce(makeDailyUsage(9));
+    expect(await canStartChatSession("pf_test", Plan.PREMIUM)).toBe(true);
+  });
+
+  it("PREMIUM blocks at 10 sessions", async () => {
+    mockResolvedValueOnce(makeDailyUsage(10));
+    expect(await canStartChatSession("pf_test", Plan.PREMIUM)).toBe(false);
   });
 });
 
@@ -173,13 +188,14 @@ describe("registerChatSession", () => {
 
 describe("session limit enforcement integrity", () => {
   it("two back-to-back canStart calls at limit-1 both pass (TOCTOU gap documented)", async () => {
-    const doc = makeDailyUsage(9);
+    // INTERMEDIARY limit is 3, so 2 is limit-1
+    const doc = makeDailyUsage(2);
     // Both calls read the same doc — gap is in the read-then-act pattern
     mockResolvedValueOnce(doc);
-    const a = await canStartChatSession("pf_test", Plan.BASIC);
+    const a = await canStartChatSession("pf_test", Plan.INTERMEDIARY);
 
     mockResolvedValueOnce(doc);
-    const b = await canStartChatSession("pf_test", Plan.BASIC);
+    const b = await canStartChatSession("pf_test", Plan.INTERMEDIARY);
 
     expect(a).toBe(true);
     expect(b).toBe(true);
@@ -191,23 +207,23 @@ describe("session limit enforcement integrity", () => {
 // ── canGenerateResume ─────────────────────────────────────────────
 
 describe("canGenerateResume", () => {
-  it("returns true when under the daily limit", async () => {
+  it("returns true when under the daily limit (BASIC: limit 3)", async () => {
     mockResolvedValueOnce(makeDailyUsage(0, 2));
     expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(true);
   });
 
-  it("returns false when at the daily limit", async () => {
-    mockResolvedValueOnce(makeDailyUsage(0, 5));
+  it("returns false when at the daily limit (BASIC: limit 3)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 3));
     expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(false);
   });
 
   it("returns false when over the daily limit", async () => {
-    mockResolvedValueOnce(makeDailyUsage(0, 7));
+    mockResolvedValueOnce(makeDailyUsage(0, 5));
     expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(false);
   });
 
-  it("returns true at generations = limit - 1", async () => {
-    mockResolvedValueOnce(makeDailyUsage(0, 4));
+  it("returns true at generations = limit - 1 (BASIC: 2 of 3)", async () => {
+    mockResolvedValueOnce(makeDailyUsage(0, 2));
     expect(await canGenerateResume("pf_test", Plan.BASIC)).toBe(true);
   });
 
@@ -255,7 +271,8 @@ describe("registerResumeGeneration", () => {
 
 describe("resume limit enforcement integrity", () => {
   it("two back-to-back canGenerateResume calls at limit-1 both pass (TOCTOU gap documented)", async () => {
-    const doc = makeDailyUsage(0, 4);
+    // BASIC limit is 3, so 2 is limit-1
+    const doc = makeDailyUsage(0, 2);
     mockResolvedValueOnce(doc);
     const a = await canGenerateResume("pf_test", Plan.BASIC);
 

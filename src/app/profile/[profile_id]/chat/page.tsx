@@ -55,6 +55,7 @@ export default function ChatPage() {
   }, []);
 
   const canStartNew = !usage || usage.canStartSession;
+  const chatAvailable = usage?.chatAvailable ?? true; // optimistic: assume available until API responds
 
   const handleNewSession = useCallback(() => {
     if (!canStartNew) return;
@@ -242,7 +243,8 @@ export default function ChatPage() {
                 <br />
                 entrevistas ou planejamento profissional.
               </p>
-              {canStartNew ? (
+              {chatAvailable ? (
+              canStartNew ? (
                 <button
                   onClick={handleNewSession}
                   className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
@@ -253,7 +255,20 @@ export default function ChatPage() {
                 <p className="mt-6 text-sm text-gray-400">
                   Limite diário de conversas atingido.
                 </p>
-              )}
+              )
+            ) : (
+              <div className="mt-6 space-y-3">
+                <p className="text-sm text-gray-500">
+                  O Chat Coach está disponível a partir do plano Intermediário.
+                </p>
+                <a
+                  href="./config"
+                  className="inline-block px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
+                >
+                  Fazer upgrade
+                </a>
+              </div>
+            )}
             </div>
           </div>
         )}

@@ -3,7 +3,7 @@ import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";
 import { UserStatus } from "@/lib/enums";
-import { getPlanLimits } from "@/lib/plan-service";
+import { getPlanLimits, isChatAvailable } from "@/lib/plan-service";
 import { getTodayUsage } from "@/lib/usage-service";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -25,10 +25,13 @@ export async function GET(req: Request) {
     const usage = await getTodayUsage(user._id.toString());
     const limits = getPlanLimits(user.plan);
 
+    const chatAvailable = isChatAvailable(user.plan);
+
     return NextResponse.json({
       sessionsStarted: usage.chat.sessionsStarted,
       sessionsLimit: limits.chatSessionsPerDay,
-      canStartSession: usage.chat.sessionsStarted < limits.chatSessionsPerDay,
+      canStartSession: chatAvailable && usage.chat.sessionsStarted < limits.chatSessionsPerDay,
+      chatAvailable,
       tokenLimit: limits.chatSessionTokenLimit,
       resumeGenerations: usage.resume.generations,
       resumeGenerationsLimit: limits.resumeGenerationsPerDay,

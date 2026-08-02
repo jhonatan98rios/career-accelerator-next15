@@ -1,7 +1,21 @@
-import { RoadmapStatus } from "@/lib/enums";
+import { Plan, RoadmapStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+// ponytail: insight cooldown per plan — the "aha moment" urgency ladder
+function insightCooldownMs(plan: Plan): number {
+  switch (plan) {
+    case Plan.BASIC:
+      return 7 * DAY_IN_MS;
+    case Plan.INTERMEDIARY:
+      return 48 * 60 * 60 * 1000;
+    case Plan.PREMIUM:
+      return DAY_IN_MS;
+    default:
+      return 7 * DAY_IN_MS; // fallback: conservative
+  }
+}
 
 type ProfileGuardrailInput = {
   lastInsightGeneratedAt?: Date | string | null;
@@ -48,6 +62,7 @@ function toDate(value?: Date | string | null): Date | null {
 
 export function getInsightGuardrailState(
   profile: ProfileGuardrailInput,
+  plan: Plan = Plan.BASIC,
   now = new Date()
 ): InsightGuardrailState {
   if (profile.skipAiGenerationGuardrails) {
@@ -70,7 +85,8 @@ export function getInsightGuardrailState(
     };
   }
 
-  const unlockAt = new Date(lastInsightGeneratedAt.getTime() + DAY_IN_MS);
+  const cooldown = insightCooldownMs(plan);
+  const unlockAt = new Date(lastInsightGeneratedAt.getTime() + cooldown);
 
   if (unlockAt <= now) {
     return {

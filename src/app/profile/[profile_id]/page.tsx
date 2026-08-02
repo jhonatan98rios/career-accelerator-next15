@@ -6,7 +6,9 @@ import { Profile } from "@/models/Profile";
 import { CareerInsight } from "@/models/CarrerInsight";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
 import { Persona } from "@/models/Persona";
-import { RoadmapStatus } from "@/lib/enums";
+import { Plan, RoadmapStatus } from "@/lib/enums";
+import { getTodayUsage } from "@/lib/usage-service";
+import { getPlanLimits, getPlanLabel, isChatAvailable } from "@/lib/plan-service";
 import DownloadButton from "./components/DownloadButton";
 
 export default async function Page() {
@@ -17,6 +19,11 @@ export default async function Page() {
   }
 
   const user = await Profile.findOne({ email: session.user.email });
+  const usage = await getTodayUsage(user._id.toString());
+  const limits = getPlanLimits(user.plan as Plan);
+  const planLabel = getPlanLabel(user.plan as Plan);
+  const chatSessionsUsed = usage.chat.sessionsStarted;
+  const resumesUsed = usage.resume.generations;
 
   const latestInsight = await CareerInsight.findOne(
     { user_id: user._id },
@@ -50,6 +57,40 @@ export default async function Page() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Uso do Plano */}
+        <DashboardCard title={`Uso — ${planLabel.name}`} icon="📊" className="md:col-span-2">
+          <div className="flex flex-wrap gap-4 text-sm">
+            {isChatAvailable(user.plan as Plan) ? (
+              <UsageBar
+                label="Chat"
+                used={chatSessionsUsed}
+                limit={limits.chatSessionsPerDay}
+                unit="sessões"
+              />
+            ) : (
+              <div className="flex-1 min-w-[180px]">
+                <p className="text-gray-600 font-medium">Chat</p>
+                <p className="text-gray-400 text-xs">Disponível a partir do Intermediário</p>
+              </div>
+            )}
+            <UsageBar
+              label="Currículos"
+              used={resumesUsed}
+              limit={limits.resumeGenerationsPerDay}
+              unit="/dia"
+            />
+          </div>
+          {(chatSessionsUsed > 0 && chatSessionsUsed >= limits.chatSessionsPerDay * 0.8) ||
+           (resumesUsed >= limits.resumeGenerationsPerDay * 0.8) ? (
+            <Link
+              href={`/profile/${user.id}/config`}
+              className="mt-3 inline-block text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-80"
+            >
+              Fazer upgrade →
+            </Link>
+          ) : null}
+        </DashboardCard>
+
         {/* Último Insight */}
         <DashboardCard
           title="Último Insight"
@@ -210,6 +251,40 @@ function ResumeCardBody({
         </p>
       )}
       <DownloadButton jwtToken={jwtToken} />
+    </div>
+  );
+}
+
+function UsageBar({
+  label,
+  used,
+  limit,
+  unit,
+}: {
+  label: string;
+  used: number;
+  limit: number;
+  unit: string;
+}) {
+  const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+  const nearLimit = pct >= 80;
+
+  return (
+    <div className="flex-1 min-w-[180px]">
+      <div className="flex justify-between mb-1">
+        <p className="text-gray-600 font-medium">{label}</p>
+        <p className={`text-xs font-semibold ${nearLimit ? "text-amber-600" : "text-gray-400"}`}>
+          {used}/{limit} {unit}
+        </p>
+      </div>
+      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          style={{ width: `${pct}%` }}
+          className={`h-full rounded-full transition-all duration-500 ${
+            nearLimit ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-purple-500 to-indigo-500"
+          }`}
+        />
+      </div>
     </div>
   );
 }

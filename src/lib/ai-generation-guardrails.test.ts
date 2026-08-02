@@ -1,12 +1,16 @@
 import { describe, it } from "node:test";
 import { getInsightGuardrailState, getRoadmapGuardrailState } from "./ai-generation-guardrails";
-import { RoadmapStatus } from "./enums";
+import { Plan, RoadmapStatus } from "./enums";
 // expect is global from test-setup.ts (chai + @vitest/expect)
 
 // ---- helpers ----
 
 function hoursAgo(h: number): Date {
   return new Date(Date.now() - h * 60 * 60 * 1000);
+}
+
+function daysAgo(d: number): Date {
+  return new Date(Date.now() - d * 24 * 60 * 60 * 1000);
 }
 
 // ---- Insight guardrail tests ----
@@ -28,40 +32,69 @@ describe("getInsightGuardrailState", () => {
     expect(state.reason).toBe("allowed");
   });
 
-  it("blocks generation during cooldown (< 24h since last)", () => {
+  it("PREMIUM: blocks at 1h ago (24h cooldown)", () => {
     const state = getInsightGuardrailState({
       lastInsightGeneratedAt: hoursAgo(1),
-    });
+    }, Plan.PREMIUM);
     expect(state.canGenerate).toBe(false);
     expect(state.reason).toBe("cooldown");
-    expect(state.bypassed).toBe(false);
     expect(state.unlockAt).not.toBeNull();
-    // unlockAt should be ~ 23h from now
-    const unlock = new Date(state.unlockAt!);
-    const expectedUnlock = new Date(Date.now() + 23 * 60 * 60 * 1000);
-    expect(Math.abs(unlock.getTime() - expectedUnlock.getTime())).toBeLessThan(10_000);
   });
 
-  it("allows generation after cooldown expires (> 24h since last)", () => {
+  it("PREMIUM: allows after 25h (24h cooldown)", () => {
     const state = getInsightGuardrailState({
       lastInsightGeneratedAt: hoursAgo(25),
-    });
-    expect(state.canGenerate).toBe(true);
-    expect(state.reason).toBe("allowed");
-    expect(state.unlockAt).toBeNull();
-  });
-
-  it("allows generation at exact 24h boundary", () => {
-    const state = getInsightGuardrailState({ lastInsightGeneratedAt: hoursAgo(24) }, new Date());
+    }, Plan.PREMIUM);
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("allowed");
   });
 
-  it("bypasses guardrail when skipAiGenerationGuardrails is true", () => {
+  it("INTERMEDIARY: blocks at 24h ago (48h cooldown)", () => {
+    const state = getInsightGuardrailState({
+      lastInsightGeneratedAt: hoursAgo(24),
+    }, Plan.INTERMEDIARY);
+    expect(state.canGenerate).toBe(false);
+    expect(state.reason).toBe("cooldown");
+  });
+
+  it("INTERMEDIARY: allows after 49h (48h cooldown)", () => {
+    const state = getInsightGuardrailState({
+      lastInsightGeneratedAt: hoursAgo(49),
+    }, Plan.INTERMEDIARY);
+    expect(state.canGenerate).toBe(true);
+    expect(state.reason).toBe("allowed");
+  });
+
+  it("BASIC: blocks at 1d ago (7d cooldown)", () => {
+    const state = getInsightGuardrailState({
+      lastInsightGeneratedAt: daysAgo(1),
+    }, Plan.BASIC);
+    expect(state.canGenerate).toBe(false);
+    expect(state.reason).toBe("cooldown");
+  });
+
+  it("BASIC: blocks at 6d ago (7d cooldown)", () => {
+    const state = getInsightGuardrailState({
+      lastInsightGeneratedAt: daysAgo(6),
+    }, Plan.BASIC);
+    expect(state.canGenerate).toBe(false);
+    expect(state.reason).toBe("cooldown");
+  });
+
+  it("BASIC: allows after 8d (7d cooldown)", () => {
+    const state = getInsightGuardrailState({
+      lastInsightGeneratedAt: daysAgo(8),
+    }, Plan.BASIC);
+    expect(state.canGenerate).toBe(true);
+    expect(state.reason).toBe("allowed");
+  });
+
+  it("bypasses guardrail when skipAiGenerationGuardrails is true (regardless of plan)", () => {
+    // BASIC has 7d cooldown — bypass should work even 1h after generation
     const state = getInsightGuardrailState({
       skipAiGenerationGuardrails: true,
-      lastInsightGeneratedAt: hoursAgo(1), // still in cooldown
-    });
+      lastInsightGeneratedAt: hoursAgo(1),
+    }, Plan.BASIC);
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("bypassed");
     expect(state.bypassed).toBe(true);

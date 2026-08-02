@@ -11,6 +11,10 @@ import { ITerm, Term } from "@/models/Term";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import Link from "next/link";
 import { formatCep, formatCpf } from "@/lib/tax-profile";
+import { getPlanLimits, getPlanLabel, getNextPlan, getLowerPlans, isChatAvailable } from "@/lib/plan-service";
+import { changePlan } from "@/app/actions/change_plan";
+import { Subscription, ISubscription } from "@/models/Subscription";
+import { Plan } from "@/lib/enums";
 
 export default async function Page() {
   const [session] = await Promise.all([getSessionCached(), connectDB()]);
@@ -22,6 +26,9 @@ export default async function Page() {
   const { email } = session.user;
 
   const user = (await Profile.findOne({ email })) as IProfile | null;
+  const sub = user?.subscriptionId
+    ? ((await Subscription.findOne({ stripeSubscriptionId: user.subscriptionId })) as ISubscription | null)
+    : null;
   const term = (await Term.findOne({}, {}, { sort: { createdAt: -1 } })) as ITerm;
   const consent = (await Consent.findOne({
     email,
@@ -33,6 +40,13 @@ export default async function Page() {
   }
 
   const billingAddress = user.billingAddress;
+
+  const planLabel = getPlanLabel(user.plan);
+  const limits = getPlanLimits(user.plan);
+  const nextPlan = getNextPlan(user.plan);
+  const lowerPlans = getLowerPlans(user.plan);
+  const nextPlanLabel = nextPlan ? getPlanLabel(nextPlan) : null;
+  const isDowngrading = sub?.cancelAtPeriodEnd && sub?.currentPeriodEnd;
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -229,6 +243,55 @@ export default async function Page() {
               consent={consent?.status == ConsentEventStatus.AGREED}
               hasButton={false}
             />
+          </div>
+
+          {/* Plano */}
+          <div className="mt-10 rounded-xl border border-purple-200 bg-purple-50 p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-3">Seu Plano</h3>
+            <p className="text-gray-700">
+              <span className="font-semibold">{planLabel.name}</span> — {planLabel.price}
+            </p>
+            <div className="mt-2 text-sm text-gray-500 space-y-1">
+              {isChatAvailable(user.plan) ? (
+                <p>Chat: até {limits.chatSessionsPerDay} sessões/dia</p>
+              ) : (
+                <p>Chat: indisponível</p>
+              )}
+              <p>Currículos: {limits.resumeGenerationsPerDay}/dia</p>
+            </div>
+
+            {isDowngrading && (
+              <p className="mt-2 text-sm text-amber-700">
+                Seu plano será alterado em{" "}
+                {sub!.currentPeriodEnd!.toLocaleDateString("pt-BR")}.
+              </p>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              {nextPlanLabel && (
+                <form action={changePlan.bind(null, nextPlan!)}>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
+                  >
+                    Fazer upgrade para {nextPlanLabel.name}
+                  </button>
+                </form>
+              )}
+              {lowerPlans.map((lp) => {
+                const lpLabel = getPlanLabel(lp);
+                return (
+                  <form key={lp} action={changePlan.bind(null, lp)}>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition"
+                    >
+                      Mudar para {lpLabel.name}
+                    </button>
+                  </form>
+                );
+              })}
+            </div>
           </div>
 
           {/* Botões */}

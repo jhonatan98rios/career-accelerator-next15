@@ -335,9 +335,15 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
               className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
             >
               <option value="">Selecione um plano</option>
-              <option value={Plan.BASIC}>Basico - R$29,99/mes - 7 dias gratis</option>
-              <option disabled>Intermediario (em breve)</option>
-              <option disabled>Premium (em breve)</option>
+              <option value={Plan.BASIC}>
+                Basico - R$29,99/mes - Insight e curriculo
+              </option>
+              <option value={Plan.INTERMEDIARY}>
+                Intermediario - R$59,99/mes - Chat com IA + 10 curriculos/dia
+              </option>
+              <option value={Plan.PREMIUM}>
+                Premium - R$99,99/mes - Chat ilimitado + 30 curriculos/dia
+              </option>
             </select>
           </div>
 

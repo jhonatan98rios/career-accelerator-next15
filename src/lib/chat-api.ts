@@ -77,6 +77,7 @@ export interface ChatUsage {
   sessionsStarted: number;
   sessionsLimit: number;
   canStartSession: boolean;
+  chatAvailable: boolean;
   tokenLimit: number;
 }
 

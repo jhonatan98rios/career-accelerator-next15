@@ -4,6 +4,7 @@ import { STRIPE_CHECKOUT_CANCEL_URL, STRIPE_CHECKOUT_SUCCESS_URL } from "./const
 import { Plan, UserStatus } from "./enums";
 import { log, LogLevel } from "@/lib/logger";
 import { Profile } from "@/models/Profile";
+import { getPlanLimits } from "@/lib/plan-service";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -23,19 +24,40 @@ export type CreatedSubscription = {
 };
 
 function getStripePriceId(plan: Plan) {
-  if (plan !== Plan.BASIC) {
-    throw new Error("Only the Basic monthly plan is supported");
+  let priceId: string | undefined;
+
+  switch (plan) {
+    case Plan.BASIC:
+      priceId = process.env.STRIPE_BASIC_MONTHLY_PRICE_ID;
+      break;
+    case Plan.INTERMEDIARY:
+      priceId = process.env.STRIPE_INTERMEDIARY_MONTHLY_PRICE_ID;
+      break;
+    case Plan.PREMIUM:
+      priceId = process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID;
+      break;
+    default:
+      throw new Error(`No Stripe price ID configured for plan: ${plan}`);
   }
 
-  if (!process.env.STRIPE_BASIC_MONTHLY_PRICE_ID) {
-    throw new Error("STRIPE_BASIC_MONTHLY_PRICE_ID is not configured");
+  if (!priceId) {
+    throw new Error(`Stripe price ID not configured for plan: ${plan}`);
   }
 
-  return process.env.STRIPE_BASIC_MONTHLY_PRICE_ID;
+  return priceId;
 }
 
 export function getStripe() {
   return stripe;
+}
+
+// ponytail: reverse lookup — map Stripe price ID back to Plan enum
+export function planFromPriceId(priceId: string): Plan | null {
+  for (const plan of [Plan.BASIC, Plan.INTERMEDIARY, Plan.PREMIUM]) {
+    const id = process.env[`STRIPE_${plan.toUpperCase()}_MONTHLY_PRICE_ID`];
+    if (id && id === priceId) return plan;
+  }
+  return null;
 }
 
 async function findOrCreateCustomer({
@@ -246,10 +268,27 @@ export async function syncProfileFromStripeSubscription(stripeSubscription: Stri
     return;
   }
 
-  const query = profileId ? { _id: profileId } : { email };
-  await Profile.findOneAndUpdate(query, {
+  // ponytail: detect plan change from Stripe price ID
+  const firstItem = subscription.items?.data?.[0];
+  const stripePriceId: string | undefined = firstItem?.price?.id;
+  const resolvedPlan = stripePriceId ? planFromPriceId(stripePriceId) : null;
+
+  const update: Record<string, unknown> = {
     status,
     subscriptionId: subscription.id,
     stripeCustomerId,
-  });
+  };
+
+  if (resolvedPlan) {
+    update.plan = resolvedPlan;
+    await log(LogLevel.INFO, "Stripe plan change detected", {
+      email,
+      profileId,
+      stripePriceId,
+      plan: resolvedPlan,
+    });
+  }
+
+  const query = profileId ? { _id: profileId } : { email };
+  await Profile.findOneAndUpdate(query, update);
 }
