@@ -79,7 +79,14 @@ export const resumeExamplePt: Resume = {
   awards: [],
   publications: [],
   references: [],
-  social: { github: null, twitter: null, stackoverflow: null, medium: null, behance: null, dribbble: null },
+  social: {
+    github: null,
+    twitter: null,
+    stackoverflow: null,
+    medium: null,
+    behance: null,
+    dribbble: null,
+  },
 };
 
 export const resumeExampleEn: Resume = {
@@ -139,14 +146,58 @@ export const resumeExampleEn: Resume = {
   awards: [],
   publications: [],
   references: [],
-  social: { github: null, twitter: null, stackoverflow: null, medium: null, behance: null, dribbble: null },
+  social: {
+    github: null,
+    twitter: null,
+    stackoverflow: null,
+    medium: null,
+    behance: null,
+    dribbble: null,
+  },
 };
 
-export function getResumeSystemPrompt(userData?: UserData, language: "pt" | "en" = "pt", notes?: string): string {
+export function getResumeSystemPrompt(
+  userData?: UserData,
+  language: "pt" | "en" = "pt",
+  notes?: string
+): string {
   const context = buildContext(userData, language);
   const example = language === "en" ? resumeExampleEn : resumeExamplePt;
   const langName = language === "en" ? "English" : "Portuguese";
   const today = new Date().toISOString().split("T")[0];
+
+  // Placeholder labels — written in the resume language so the professional
+  // sees exactly what to fill in.
+  const PH =
+    language === "en"
+      ? {
+          company: "Company name",
+          position: "Job title",
+          experience: "Describe what you did in this role",
+          achievement: "Achievement 1",
+          institution: "Institution name",
+          degree: "Degree / qualification",
+          field: "Field of study",
+          project: "Project name",
+          projectDescription: "Project description",
+          whatYouDid: "What you did",
+          hardSkills: "Core stack / main technologies",
+          softSkills: "Key soft skills",
+        }
+      : {
+          company: "Nome da empresa",
+          position: "Cargo",
+          experience: "Descreva o que você fez neste cargo",
+          achievement: "Realização 1",
+          institution: "Nome da instituição",
+          degree: "Grau / Nível de formação",
+          field: "Área de estudo",
+          project: "Nome do projeto",
+          projectDescription: "Descrição do projeto",
+          whatYouDid: "O que você fez",
+          hardSkills: "Stack / tecnologias principais",
+          softSkills: "Soft skills principais",
+        };
 
   return `
 Current date: ${today}
@@ -167,10 +218,31 @@ The "Career direction" fields (short/medium/long-term goals) are provided ONLY a
 
 But DO NOT quote, paraphrase, or embed these goals in the resume. They are private context, not resume content.
 
+## ANTI-FABRICATION — the most important rule
+
+You MUST NEVER invent facts. There are exactly TWO sources of truth: (1) the User Profile Data section above, and (2) the user's free-text message. Every fact in the resume — companies, positions, dates, achievements, metrics, project names, institutions, degrees, skills, tools, certifications, languages, URLs — must come from one of these two sources. Never guess, extrapolate, or fill gaps with plausible content.
+
+- If the user's message describes experience, education, or projects, structure THAT content into the resume (positions, dates, and achievements exactly as stated).
+- If a section has NO data from either source, do not invent it — use the placeholders below.
+- The example JSON at the bottom is a shape illustration ONLY. Never copy its content (TechCorp, USP, João Silva, MIT, ...) into your output.
+- List only skills the profile data or the user's message explicitly names. Never add skills that seem "typical for the role".
+
+### Placeholder conventions
+
+When a section has no real data, emit ONE entry with clearly marked [bracketed] values, written in ${langName}, that the professional must replace with their real information:
+
+- experience: [{"company": "[${PH.company}]", "position": "[${PH.position}]", "startDate": null, "endDate": null, "current": false, "location": null, "description": "[${PH.experience}]", "highlights": ["[${PH.achievement}]"]}]
+- education: [{"institution": "[${PH.institution}]", "degree": "[${PH.degree}]", "field": "[${PH.field}]", "startDate": null, "endDate": null, "gpa": null, "description": null}]
+- projects: [{"name": "[${PH.project}]", "description": "[${PH.projectDescription}]", "url": null, "highlights": ["[${PH.whatYouDid}]"], "startDate": null, "endDate": null}]
+- skills.hard: [{"name": "[${PH.hardSkills}]", "level": null}] — same for skills.soft with "[${PH.softSkills}]"
+- All other sections (certifications, languages, volunteer, awards, publications, references): return [] when there is no data.
+
+Placeholder dates are always null. Never invent dates, numbers, or metrics.
+
 ## ATS Keyword Optimization
 
 To ensure the resume ranks well in AI-powered job matching systems:
-1. Extract key technical terms, tools, methodologies, and industry jargon from the candidate's skills, experience, target role, and industries.
+1. Extract key technical terms, tools, methodologies, and industry jargon ONLY from the skills, experience, target role, and industries that appear in the profile data or the user's message — never invent keywords.
 2. Weave these keywords naturally into the summary, experience descriptions, and highlights — never as a standalone keyword dump.
 3. Use both full terms and common acronyms where appropriate (e.g., "Natural Language Processing (NLP)").
 4. Mirror standard industry job titles and skill names as they appear in job descriptions.
@@ -210,9 +282,9 @@ ${JSON.stringify(example, null, 2)}
 
 CRITICAL RULES — follow these exactly or the output will be rejected:
 
-1. **Use the provided user data first.** The "${language === "en" ? "User Profile Data" : "Dados do Usuário"}" section above contains verified information. Use it to fill in the resume. Only fall back to the free-text input for details not covered (like specific job descriptions, achievements, project details).
-2. **Unknow fields must be null.** If a field is not in the data or free-text, set it to null (not empty string, not undefined).
-3. **Empty lists stay empty.** If no items for a section, return []. Never remove the array property.
+1. **Use the two sources of truth — profile data and free-text — and nothing else.** Every fact must come from the User Profile Data section or the user's free-text message. Never invent content (see ANTI-FABRICATION above).
+2. **Unknown fields must be null.** If a field is not in the data or free-text, set it to null (not empty string, not undefined).
+3. **Sections without data.** experience, education, projects, and skills must contain ONE placeholder entry (see Placeholder conventions) when the sources have no content for them. All other sections (certifications, languages, volunteer, awards, publications, references) return []. Never remove array properties.
 4. **Never remove properties from the schema.** Every property must appear even if null/empty.
 5. **Summarize long texts** to 2-3 sentences preserving key context.
 6. **meta.language:** Always set to "${language}".
@@ -248,7 +320,10 @@ function buildProfileLines(ud: UserData, isEn: boolean): string[] {
     [ud.certifications?.join(", "), L("Certificações", "Certifications")],
     [ud.hardSkills?.join(", "), L("Hard skills", "Hard skills")],
     [ud.softSkills?.join(", "), L("Soft skills", "Soft skills")],
-    [ud.languages?.map((l) => `${l.name} (${l.proficiency})`).join(", "), L("Idiomas", "Languages")],
+    [
+      ud.languages?.map((l) => `${l.name} (${l.proficiency})`).join(", "),
+      L("Idiomas", "Languages"),
+    ],
   ];
   for (const [val, label] of fields) {
     if (val != null && val !== "") {
@@ -276,7 +351,8 @@ function buildContext(userData?: UserData, language: "pt" | "en" = "pt"): string
   if (profileLines.length > 0) {
     parts.push(
       (isEn ? "## User Profile Data (use directly)" : "## Dados do Usuário (usar diretamente)") +
-      "\n" + profileLines.join("\n"),
+        "\n" +
+        profileLines.join("\n")
     );
   }
 
@@ -286,7 +362,8 @@ function buildContext(userData?: UserData, language: "pt" | "en" = "pt"): string
       (isEn
         ? "## Career Direction (CONTEXT ONLY — do NOT quote or include in resume. Use to infer seniority, target roles, and industry focus)"
         : "## Direção de Carreira (APENAS CONTEXTO — NÃO citar nem incluir no currículo. Use para inferir senioridade, cargos alvo e foco de indústria)") +
-      "\n" + directionLines.join("\n"),
+        "\n" +
+        directionLines.join("\n")
     );
   }
 

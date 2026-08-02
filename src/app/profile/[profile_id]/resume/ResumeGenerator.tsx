@@ -46,13 +46,17 @@ export default function ResumeGenerator({ jwtToken }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [international, setInternational] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const limitReached = usage != null && usage.resumeGenerations >= usage.resumeGenerationsLimit;
 
   useEffect(() => {
     fetch("/api/chat/usage", { headers: { Authorization: `Bearer ${jwtToken}` } })
       .then((r) => r.json())
       .then((d) => {
         if (d.resumeGenerations != null) {
-          setUsage({ resumeGenerations: d.resumeGenerations, resumeGenerationsLimit: d.resumeGenerationsLimit });
+          setUsage({
+            resumeGenerations: d.resumeGenerations,
+            resumeGenerationsLimit: d.resumeGenerationsLimit,
+          });
         }
       })
       .catch(() => {});
@@ -106,17 +110,25 @@ export default function ResumeGenerator({ jwtToken }: Props) {
         </p>
       </div>
 
+      {/* Daily limit reached — warning on top, input blocked */}
+      {limitReached && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+          Você atingiu o limite diário de {usage!.resumeGenerationsLimit} currículos. O gerador será
+          liberado novamente amanhã.
+        </div>
+      )}
+
       {usage && (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm flex items-center justify-between">
           <span>
-            {usage.resumeGenerations >= usage.resumeGenerationsLimit
-              ? "Limite diário de currículos atingido."
-              : `Você gerou ${usage.resumeGenerations} de ${usage.resumeGenerationsLimit} currículos hoje.`}
+            {`Você gerou ${usage.resumeGenerations} de ${usage.resumeGenerationsLimit} currículos hoje.`}
           </span>
           <div className="flex-1 max-w-[120px] mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, (usage.resumeGenerations / usage.resumeGenerationsLimit) * 100)}%` }}
+              style={{
+                width: `${Math.min(100, (usage.resumeGenerations / usage.resumeGenerationsLimit) * 100)}%`,
+              }}
             />
           </div>
         </div>
@@ -124,9 +136,10 @@ export default function ResumeGenerator({ jwtToken }: Props) {
 
       <div className="space-y-4">
         <textarea
-          className="w-full h-48 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-y"
+          className="w-full h-48 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-y disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
           placeholder="Ex.: Sou desenvolvedor full-stack com 5 anos de experiência em React e Node.js. Trabalhei na TechCorp como sênior liderando um time de 4 devs..."
           value={input}
+          disabled={limitReached}
           onChange={(e) => {
             if (e.target.value.length <= MAX_CHARS) {
               setInput(e.target.value);
@@ -136,7 +149,9 @@ export default function ResumeGenerator({ jwtToken }: Props) {
         />
 
         <div className="text-right">
-          <span className={`text-xs ${input.length >= MAX_CHARS ? "text-red-500 font-semibold" : "text-gray-400"}`}>
+          <span
+            className={`text-xs ${input.length >= MAX_CHARS ? "text-red-500 font-semibold" : "text-gray-400"}`}
+          >
             {input.length.toLocaleString("pt-BR")} / {MAX_CHARS.toLocaleString("pt-BR")}
           </span>
         </div>
@@ -154,19 +169,15 @@ export default function ResumeGenerator({ jwtToken }: Props) {
         <div className="text-right">
           <button
             type="button"
-            disabled={isPending || !input.trim() || (usage != null && usage.resumeGenerations >= usage.resumeGenerationsLimit)}
+            disabled={isPending || !input.trim() || limitReached}
             onClick={handleGenerate}
             className={`px-6 py-3 rounded-xl font-bold text-white transition ${
-              isPending || !input.trim() || (usage != null && usage.resumeGenerations >= usage.resumeGenerationsLimit)
+              isPending || !input.trim() || limitReached
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:scale-105"
             }`}
           >
-            {usage != null && usage.resumeGenerations >= usage.resumeGenerationsLimit
-              ? "Limite diário atingido"
-              : isPending
-                ? "Gerando..."
-                : "Gerar Currículo"}
+            {limitReached ? "Limite diário atingido" : isPending ? "Gerando..." : "Gerar Currículo"}
           </button>
         </div>
       </div>
