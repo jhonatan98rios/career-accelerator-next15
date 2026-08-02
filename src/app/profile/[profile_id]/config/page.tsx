@@ -325,28 +325,28 @@ function PlanCard({
         </p>
       )}
 
+      {/* ponytail: buttons use formAction to override parent form action — nested <form> is invalid HTML (hydration error). changePlan ignores form data, so extra fields are harmless. */}
       <div className="mt-4 flex flex-wrap gap-3">
         {nextPlanLabel && nextPlan && (
-          <form action={changePlan.bind(null, nextPlan)}>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
-            >
-              Fazer upgrade para {nextPlanLabel.name}
-            </button>
-          </form>
+          <button
+            type="submit"
+            formAction={changePlan.bind(null, nextPlan)}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
+          >
+            Fazer upgrade para {nextPlanLabel.name}
+          </button>
         )}
         {lowerPlans.map((lp) => {
           const lpLabel = getPlanLabel(lp);
           return (
-            <form key={lp} action={changePlan.bind(null, lp)}>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition"
-              >
-                Mudar para {lpLabel.name}
-              </button>
-            </form>
+            <button
+              key={lp}
+              type="submit"
+              formAction={changePlan.bind(null, lp)}
+              className="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition"
+            >
+              Mudar para {lpLabel.name}
+            </button>
           );
         })}
       </div>

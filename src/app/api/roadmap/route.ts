@@ -9,7 +9,6 @@ import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { IProfile, Profile } from "@/models/Profile";
-import { CareerInsight } from "@/models/CarrerInsight";
 import { getRoadmapGuardrailState } from "@/lib/ai-generation-guardrails";
 
 type RouteBody = {
@@ -52,33 +51,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Roadmap not found" }, { status: HttpStatus.NOT_FOUND });
     }
 
-    const insight = (await CareerInsight.findById(roadmap.insight_id, { createdAt: 1 }).lean()) as {
-      createdAt: Date;
-    } | null;
-
-    if (!insight) {
-      await log(LogLevel.ERROR, "POST /roadmap: Insight not found", {
-        roadmapId,
-        insight_id: roadmap.insight_id.toString(),
-      });
-      throw new Error("Insight not found");
-    }
-
-    const guardrail = getRoadmapGuardrailState(user, roadmap, insight.createdAt);
+    const guardrail = getRoadmapGuardrailState(user, roadmap);
 
     if (!guardrail.canGenerate) {
       await log(LogLevel.WARN, "POST /roadmap: Roadmap generation locked", {
         roadmapId,
         reason: guardrail.reason,
-        retryWindowEndsAt: guardrail.retryWindowEndsAt,
       });
 
       return NextResponse.json(
         {
-          error: "Complete the current roadmap or use the one-time retry while it is available.",
+          error: "Complete the current roadmap before generating new steps.",
           code: "ROADMAP_GUARDRAIL_LOCKED",
           reason: guardrail.reason,
-          retryWindowEndsAt: guardrail.retryWindowEndsAt,
         },
         { status: HttpStatus.FORBIDDEN }
       );
@@ -111,8 +96,6 @@ export async function POST(req: Request) {
       roadmapId,
       {
         $set: {
-          correctiveRetryUsedAt:
-            guardrail.reason === "retry" ? new Date() : (roadmap.correctiveRetryUsedAt ?? null),
           steps: mergedRoadmap.map((step) => ({
             ...step,
             status: step.status || RoadmapStatus.PENDING,

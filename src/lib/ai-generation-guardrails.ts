@@ -24,18 +24,10 @@ type ProfileGuardrailInput = {
 
 type RoadmapGuardrailInput = {
   steps: Array<{ status: RoadmapStatus | string }>;
-  correctiveRetryUsedAt?: Date | string | null;
 };
 
 type InsightGuardrailReason = "allowed" | "cooldown" | "bypassed";
-type RoadmapGuardrailReason =
-  | "allowed"
-  | "complete"
-  | "retry"
-  | "incomplete"
-  | "retry_used"
-  | "retry_window_expired"
-  | "bypassed";
+type RoadmapGuardrailReason = "allowed" | "complete" | "incomplete" | "bypassed";
 
 export type InsightGuardrailState = {
   canGenerate: boolean;
@@ -47,9 +39,6 @@ export type InsightGuardrailState = {
 export type RoadmapGuardrailState = {
   canGenerate: boolean;
   reason: RoadmapGuardrailReason;
-  unlockAt: string | null;
-  retryWindowEndsAt: string | null;
-  retryEligible: boolean;
   bypassed: boolean;
 };
 
@@ -113,78 +102,16 @@ export function getInsightGuardrailState(
 
 export function getRoadmapGuardrailState(
   profile: ProfileGuardrailInput,
-  roadmap: RoadmapGuardrailInput,
-  insightCreatedAt: Date | string,
-  now = new Date()
+  roadmap: RoadmapGuardrailInput
 ): RoadmapGuardrailState {
   if (profile.skipAiGenerationGuardrails) {
-    return {
-      canGenerate: true,
-      reason: "bypassed",
-      unlockAt: null,
-      retryWindowEndsAt: null,
-      retryEligible: false,
-      bypassed: true,
-    };
+    return { canGenerate: true, reason: "bypassed", bypassed: true };
   }
 
+  // Roadmap is immutable once generated: next steps unlock only on full completion.
   const allStepsDone = roadmap.steps.every((step) => step.status === RoadmapStatus.DONE);
 
-  if (allStepsDone) {
-    return {
-      canGenerate: true,
-      reason: "complete",
-      unlockAt: null,
-      retryWindowEndsAt: null,
-      retryEligible: false,
-      bypassed: false,
-    };
-  }
-
-  const retryWindowEndsAtDate = new Date(new Date(insightCreatedAt).getTime() + DAY_IN_MS);
-  const retryWindowEndsAt = retryWindowEndsAtDate.toISOString();
-  const correctiveRetryUsedAt = toDate(roadmap.correctiveRetryUsedAt);
-
-  if (correctiveRetryUsedAt) {
-    void log(LogLevel.WARN, "Roadmap generation blocked: retry already used", {
-      reason: "retry_used",
-      retryUsedAt: correctiveRetryUsedAt.toISOString(),
-      insightCreatedAt: new Date(insightCreatedAt).toISOString(),
-    });
-
-    return {
-      canGenerate: false,
-      reason: "retry_used",
-      unlockAt: null,
-      retryWindowEndsAt,
-      retryEligible: false,
-      bypassed: false,
-    };
-  }
-
-  if (retryWindowEndsAtDate > now) {
-    return {
-      canGenerate: true,
-      reason: "retry",
-      unlockAt: null,
-      retryWindowEndsAt,
-      retryEligible: true,
-      bypassed: false,
-    };
-  }
-
-  void log(LogLevel.WARN, "Roadmap generation blocked: retry window expired", {
-    reason: "retry_window_expired",
-    retryWindowEndsAt,
-    insightCreatedAt: new Date(insightCreatedAt).toISOString(),
-  });
-
-  return {
-    canGenerate: false,
-    reason: "retry_window_expired",
-    unlockAt: null,
-    retryWindowEndsAt,
-    retryEligible: false,
-    bypassed: false,
-  };
+  return allStepsDone
+    ? { canGenerate: true, reason: "complete", bypassed: false }
+    : { canGenerate: false, reason: "incomplete", bypassed: false };
 }

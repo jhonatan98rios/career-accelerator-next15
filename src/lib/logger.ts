@@ -43,8 +43,6 @@ export type ErrorCode =
   | "webhook/processing_failed"
   | "webhook/idempotency_miss"
   | "guardrail/insight_cooldown"
-  | "guardrail/roadmap_retry_used"
-  | "guardrail/roadmap_retry_expired"
   | "usage/daily_sessions_exceeded"
   | "usage/token_limit_exceeded"
   | "input/validation_failed"
