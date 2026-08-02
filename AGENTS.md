@@ -248,3 +248,108 @@ If a file is stale, fix it in the same task rather than leaving drift behind.
 - Do not run IDD slash commands (`/idd-discover`, `/idd-init`,
   `/idd-feature`, `/idd-lint`) automatically. They are user-initiated
   only; their procedures live under `.github/prompts/`.
+
+---
+
+## §11 MCP Usage
+
+MCP servers let agents call external APIs (Vercel, etc.) through the
+`mcp()` tool. Config lives in `.mcp.json` at repo root. First attempt
+must work: a failed MCP session here cost ~30k tokens. Follow this
+section exactly.
+
+### §11.1 Command Grammar
+
+| Goal                     | Call                                     |
+| ------------------------ | ---------------------------------------- |
+| Server status            | `mcp({})`                                |
+| List tools from a server | `mcp({ server: "vercel" })`              |
+| Connect / reconnect      | `mcp({ connect: "vercel" })`             |
+| Find a tool by name      | `mcp({ search: "deploy" })`              |
+| Show tool parameters     | `mcp({ describe: "<tool>" })`            |
+| Call a tool              | `mcp({ tool: "<name>", args: { ... } })` |
+
+Order when a server fails: `mcp({})` (status) → `mcp({ connect: ... })`
+(reconnect) → check auth (below) → fall back to direct HTTP (below).
+Do not retry blindly.
+
+### §11.2 Authentication
+
+- Credentials go in the agent process environment, referenced from
+  `.mcp.json` via `$env:<VAR>`, e.g.
+  `"bearerToken": "$env:VERCEL_TOKEN"`.
+- `export VAR=...` inside a bash tool call does **NOT** reach the MCP
+  gateway — bash tool runs in a subprocess. The variable must exist in
+  the environment of the process that launched the agent.
+- If a server reports `invalid_token` / `No authorization provided`,
+  the var is missing from the process env. Fix: set it in the shell
+  profile, then restart the agent session.
+
+### §11.3 Token-Efficiency Rules (non-negotiable)
+
+- Never dump raw API JSON into the conversation. Write to a temp file
+  and parse with `ctx_execute` (javascript), printing only the summary.
+- Pattern: `curl -s -o /tmp/x.json -H "Authorization: Bearer $TOKEN" URL`
+  then `ctx_execute({ language: "javascript", code: "parse /tmp/x.json, console.log(only what matters)" })`.
+- This is where the 30k-token blowup happened: raw event streams were
+  echoed. Read errors via filtered extraction, never wholesale.
+
+### §11.4 Vercel
+
+#### §11.4.1 Config and Credential
+
+- Server config: `.mcp.json` → `vercel` server → `https://mcp.vercel.com`,
+  auth `bearer`, token from `$env:VERCEL_TOKEN`.
+- Token lives in `~/.bashrc`:
+  `export VERCEL_TOKEN=vcp_...` (60 chars, `vcp_` prefix).
+- Generate at https://vercel.com/account/settings/tokens (token must
+  include team access; `vcp_` scope tokens are fine for read ops).
+
+#### §11.4.2 MCP Tools
+
+If the server connects, list tools with `mcp({ server: "vercel" })` and
+inspect params with `mcp({ describe: "<tool>" })` before calling.
+Do not guess tool names.
+
+#### §11.4.3 Direct API Fallback (verified working)
+
+When the MCP server is down/unauthenticated, the REST API is the
+escape hatch. Team slug: `jhonatan98rios-projects`. Deployment URL id
+shape: `career-accelerator-next15-<hash>-jhonatan98rios-projects.vercel.app`.
+
+```bash
+TOKEN=$(grep -oP 'VERCEL_TOKEN=\K.*' ~/.bashrc)
+# 1. list deployments, find the `url` field of the failing one
+curl -s -o /tmp/deploys.json -H "Authorization: Bearer $TOKEN" \
+  "https://api.vercel.com/v6/deployments?limit=10"
+# 2. deployment detail (use the URL from step 1, NOT the short id)
+curl -s -o /tmp/deploy.json -H "Authorization: Bearer $TOKEN" \
+  "https://api.vercel.com/v13/deployments/<url>"
+# 3. build logs / events
+curl -s -o /tmp/events.json -H "Authorization: Bearer $TOKEN" \
+  "https://api.vercel.com/v2/deployments/<url>/events?builds=1&limit=200"
+```
+
+Then parse with `ctx_execute` and print only `Error:` / `exited with`
+lines from `/tmp/events.json`.
+
+#### §11.4.4 Common Errors
+
+| Error                                                                                  | Cause                                                                | Fix                                                                        |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `invalid_token` / `No authorization provided`                                          | `VERCEL_TOKEN` missing from agent process env                        | export in profile, restart session (§11.2)                                 |
+| `404 Deployment not found` on `/v13/deployments/{id}` or `/v2/deployments/{id}/events` | short id from the URL bar is not accepted on detail/events endpoints | resolve via `/v6/deployments` list → use the `url` field instead of the id |
+| `403 forbidden` on `/v2/teams`                                                         | token lacks team scope                                               | regenerate token with team access                                          |
+| Raw JSON floods context                                                                | echoing full API payloads                                            | always `-o /tmp/...` + `ctx_execute` parse (§11.3)                         |
+
+Notes:
+
+- The short deployment id from the browser URL
+  (`vercel.com/<team>/<project>/<id>`) works in `/v6/deployments` but
+  404s on detail/events. Always resolve to the `url` first.
+- `x-vercel-scope: <team-slug>` header is required for team-scoped
+  endpoints; the read endpoints above worked without it.
+- Deployment URL id extraction example:
+  `https://vercel.com/jhonatan98rios-projects/career-accelerator-next15/4yqNrny3EpCVd6eUApibdhfPnrri`
+  → project `career-accelerator-next15`, id `4yqNrny3EpCVd6eUApibdhfPnrri`,
+  team `jhonatan98rios-projects`.

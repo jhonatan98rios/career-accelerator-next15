@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "vercel": {
+      "url": "https://mcp.vercel.com",
+      "auth": "bearer",
+      "bearerToken": "$env:VERCEL_TOKEN"
+    }
+  }
+}

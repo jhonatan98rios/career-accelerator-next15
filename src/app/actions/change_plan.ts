@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { getSessionCached } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";
-import { Subscription } from "@/models/Subscription";
 import { Plan } from "@/lib/enums";
 import { createSubscription } from "@/lib/subscription";
 import { log, LogLevel } from "@/lib/logger";
