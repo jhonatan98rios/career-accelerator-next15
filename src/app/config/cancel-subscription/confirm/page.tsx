@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { IProfile, Profile } from "@/models/Profile";
+import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { isDevelopment } from "@/lib/environment";
 import { cancelSubscription } from "@/lib/subscription";
@@ -12,25 +13,32 @@ export default async function ConfirmCancelPage() {
     redirect("/gateway");
   }
 
-  // Check if the user exists on MongoDB
   await connectDB();
 
   const user = (await Profile.findOne({ email: session.user.email })) as IProfile | null;
 
   if (!user) {
+    await log(LogLevel.WARN, "ConfirmCancelPage: user not found in DB, redirecting to gateway", {
+      email: session.user.email,
+    });
     redirect("/gateway");
   }
 
-  // ponytail: dev bypass — no Stripe subscription to cancel
+  // ponytail: dev bypass — no Stripe subscription to cancel, simulate immediate cancel
   if (isDevelopment) {
-    await log(LogLevel.INFO, "Dev mode: skipping Stripe subscription cancellation", {
+    await log(LogLevel.INFO, "Dev mode: simulating subscription cancellation", {
       email: user.email,
+      previousStatus: user.status,
     });
-    redirect("/auth/logout");
+    await Profile.findByIdAndUpdate(user._id, { status: UserStatus.INACTIVE });
+    redirect("/auth/logout?returnTo=/");
   }
 
   if (!user.subscriptionId) {
-    await log(LogLevel.ERROR, "ConfirmCancelPage: User has no subscriptionId", { user });
+    await log(LogLevel.ERROR, "ConfirmCancelPage: User has no subscriptionId", {
+      userId: String(user._id),
+      email: user.email,
+    });
     return (
       <section className="min-h-dvh flex items-center justify-center bg-gray-50">
         <div className="bg-white shadow-lg rounded-xl p-8 text-center space-y-4">
@@ -48,6 +56,7 @@ export default async function ConfirmCancelPage() {
     subscriptionId: user.subscriptionId,
   });
 
+  let stripeFailed = false;
   try {
     await cancelSubscription(user.subscriptionId!);
   } catch (error) {
@@ -56,7 +65,10 @@ export default async function ConfirmCancelPage() {
       email: user.email,
       subscriptionId: user.subscriptionId,
     });
+    stripeFailed = true;
+  }
 
+  if (stripeFailed) {
     return (
       <section className="min-h-dvh flex items-center justify-center bg-gray-50">
         <div className="bg-white shadow-lg rounded-xl p-8 text-center space-y-4">
@@ -69,12 +81,14 @@ export default async function ConfirmCancelPage() {
     );
   }
 
-  await log(LogLevel.INFO, "ConfirmCancelPage: Stripe subscription cancellation requested", {
-    email: user.email,
-    subscriptionId: user.subscriptionId,
-  });
+  await log(
+    LogLevel.INFO,
+    "ConfirmCancelPage: Stripe subscription cancellation requested, logging out",
+    {
+      email: user.email,
+      subscriptionId: user.subscriptionId,
+    }
+  );
 
-  redirect("/auth/logout");
-
-  return null;
+  redirect("/auth/logout?returnTo=/");
 }

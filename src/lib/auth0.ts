@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { jwtVerify, createRemoteJWKSet, JWTVerifyResult } from "jose";
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
+import { NextResponse } from "next/server";
 import { log, LogLevel } from "./logger";
 
 // Initialize the Auth0 client
@@ -17,6 +18,26 @@ export const auth0 = new Auth0Client({
     // Instead, we need to provide the values explicitly.
     scope: process.env.AUTH0_SCOPE,
     audience: process.env.AUTH0_AUDIENCE,
+  },
+  // ponytail: log callback errors instead of silent 500
+  onCallback: async (error, ctx, _session) => {
+    if (error) {
+      await log(LogLevel.ERROR, "Auth0 callback failed", {
+        code: "code" in error ? String((error as unknown as { code: unknown }).code) : "unknown",
+        message: error.message,
+        returnTo: ctx.returnTo ?? "/",
+      });
+      return new NextResponse("An error occurred during authentication. Please try again.", {
+        status: 500,
+      });
+    }
+    const appBaseUrl = ctx.appBaseUrl;
+    if (!appBaseUrl) {
+      await log(LogLevel.ERROR, "Auth0 callback: appBaseUrl not resolved", {});
+      return new NextResponse("Configuration error.", { status: 500 });
+    }
+    const url = new URL(ctx.returnTo || "/", appBaseUrl);
+    return NextResponse.redirect(url);
   },
 });
 

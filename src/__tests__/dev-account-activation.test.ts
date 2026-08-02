@@ -152,13 +152,15 @@ describe("CancelSubscription — dev mode skip", () => {
   });
 
   it("skips cancelSubscription() call in dev", () => {
-    expect(cancelSubscriptionPage).toContain(
-      '"Dev mode: skipping Stripe subscription cancellation"'
-    );
+    expect(cancelSubscriptionPage).toContain('"Dev mode: simulating subscription cancellation"');
   });
 
-  it("redirects to /auth/logout in dev path", () => {
-    expect(cancelSubscriptionPage).toContain('redirect("/auth/logout")');
+  it("sets user to INACTIVE in dev path", () => {
+    expect(cancelSubscriptionPage).toContain("status: UserStatus.INACTIVE");
+  });
+
+  it("redirects to /auth/logout with returnTo in dev path", () => {
+    expect(cancelSubscriptionPage).toContain('redirect("/auth/logout?returnTo=/")');
   });
 
   it("prod path still calls cancelSubscription", () => {
