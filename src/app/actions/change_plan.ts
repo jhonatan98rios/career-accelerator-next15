@@ -7,6 +7,7 @@ import { Profile, IProfile } from "@/models/Profile";
 import { Plan } from "@/lib/enums";
 import { createSubscription } from "@/lib/subscription";
 import { log, LogLevel } from "@/lib/logger";
+import { isDevelopment } from "@/lib/environment";
 
 // ponytail: server action for plan upgrade/downgrade via Stripe Checkout.
 // Creates a new Checkout Session — Stripe handles subscription replacement.
@@ -35,6 +36,17 @@ export async function changePlan(plan: Plan) {
     to: plan,
     profileId: user._id.toString(),
   });
+
+  // ponytail: dev bypass — direct DB update, no Stripe checkout
+  if (isDevelopment) {
+    await Profile.findOneAndUpdate({ email }, { plan });
+    await log(LogLevel.INFO, "Dev mode: plan updated directly", {
+      email,
+      from: user.plan,
+      to: plan,
+    });
+    redirect(`/profile/${user._id}`);
+  }
 
   const { checkoutUrl } = await createSubscription({
     plan,

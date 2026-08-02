@@ -8,6 +8,7 @@ import { Persona } from "@/models/Persona";
 import { HttpStatus } from "@/types/httpStatus";
 import { log, LogLevel } from "@/lib/logger";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
+import { isDevelopment } from "@/lib/environment";
 import { BillingAddressInput, normalizeTaxProfile } from "@/lib/tax-profile";
 
 export type RegisterBody = {
@@ -104,6 +105,33 @@ export async function POST(req: Request) {
         { error: "Invalid plan selected" },
         { status: HttpStatus.BAD_REQUEST }
       );
+    }
+
+    // ponytail: dev bypass — no Stripe checkout, activate immediately
+    if (isDevelopment) {
+      await log(LogLevel.INFO, "POST /register: Dev mode — creating active user", { email, plan });
+
+      const profile = await Profile.create({
+        name: normalizedTaxProfile.data.name,
+        email,
+        billingEmail: normalizedTaxProfile.data.billingEmail,
+        taxDocumentType: normalizedTaxProfile.data.taxDocumentType,
+        taxDocument: normalizedTaxProfile.data.taxDocument,
+        billingAddress: normalizedTaxProfile.data.billingAddress,
+        billingProfileCompletedAt: normalizedTaxProfile.data.billingProfileCompletedAt,
+        cpf: normalizedTaxProfile.data.legacy.cpf,
+        cep: normalizedTaxProfile.data.legacy.cep,
+        address: normalizedTaxProfile.data.legacy.address,
+        address2: normalizedTaxProfile.data.legacy.address2,
+        plan,
+        picture,
+        externalAuthId: sub,
+        status: UserStatus.ACTIVE,
+      });
+
+      await Persona.create({ profile_id: profile._id });
+
+      return NextResponse.json(null, { status: HttpStatus.CREATED });
     }
 
     await log(LogLevel.INFO, "Creating a new inactive user", { email, plan });

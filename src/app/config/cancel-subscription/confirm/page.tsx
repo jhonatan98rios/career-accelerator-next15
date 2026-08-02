@@ -3,6 +3,7 @@ import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { IProfile, Profile } from "@/models/Profile";
 import { log, LogLevel } from "@/lib/logger";
+import { isDevelopment } from "@/lib/environment";
 import { cancelSubscription } from "@/lib/subscription";
 
 export default async function ConfirmCancelPage() {
@@ -18,6 +19,14 @@ export default async function ConfirmCancelPage() {
 
   if (!user) {
     redirect("/gateway");
+  }
+
+  // ponytail: dev bypass — no Stripe subscription to cancel
+  if (isDevelopment) {
+    await log(LogLevel.INFO, "Dev mode: skipping Stripe subscription cancellation", {
+      email: user.email,
+    });
+    redirect("/auth/logout");
   }
 
   if (!user.subscriptionId) {

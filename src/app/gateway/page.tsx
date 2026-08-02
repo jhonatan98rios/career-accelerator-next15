@@ -8,6 +8,7 @@ import { IProfile, Profile } from "@/models/Profile";
 import { createSubscription } from "@/lib/subscription";
 import { sendPaymentEmail } from "@/lib/emailService";
 import { log, LogLevel } from "@/lib/logger";
+import { isDevelopment } from "@/lib/environment";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import { ITerm, Term } from "@/models/Term";
 
@@ -46,45 +47,76 @@ export default async function Gateway() {
   }
 
   if (user && user.status === UserStatus.INACTIVE) {
-    let inactiveError = false;
-    try {
-      await log(LogLevel.INFO, "User inactive, creating new subscription", {
+    // ponytail: dev auto-activate — skip Stripe checkout recreation
+    if (isDevelopment) {
+      await log(LogLevel.INFO, "Dev mode: auto-activating inactive profile", {
         email: user.email,
-        plan: user.plan,
       });
-      const subscription = await createSubscription({
-        plan: user.plan,
-        email: user.email!,
-        profileId: String(user._id),
-        externalAuthId: user.externalAuthId,
-        stripeCustomerId: user.stripeCustomerId,
-      });
+      await Profile.findByIdAndUpdate(user._id, { status: UserStatus.ACTIVE });
+      user.status = UserStatus.ACTIVE;
+      // fall through to ACTIVE check below
+    } else {
+      let inactiveError = false;
+      try {
+        await log(LogLevel.INFO, "User inactive, creating new subscription", {
+          email: user.email,
+          plan: user.plan,
+        });
+        const subscription = await createSubscription({
+          plan: user.plan,
+          email: user.email!,
+          profileId: String(user._id),
+          externalAuthId: user.externalAuthId,
+          stripeCustomerId: user.stripeCustomerId,
+        });
 
-      await Profile.findByIdAndUpdate(user._id, {
-        stripeCustomerId: subscription.stripeCustomerId,
-        subscriptionId: subscription.stripeSubscriptionId || subscription.checkoutSessionId,
-      });
+        await Profile.findByIdAndUpdate(user._id, {
+          stripeCustomerId: subscription.stripeCustomerId,
+          subscriptionId: subscription.stripeSubscriptionId || subscription.checkoutSessionId,
+        });
 
-      await log(LogLevel.INFO, "Sending payment email", {
-        email: user.email,
-        plan: user.plan,
-        paymentLink: subscription.checkoutUrl,
-      });
-      await sendPaymentEmail({
-        name: user.name!,
-        to: user.email!,
-        plan: user.plan,
-        paymentLink: subscription.checkoutUrl,
-      });
-    } catch (error: unknown) {
-      inactiveError = true;
-      await log(LogLevel.ERROR, "Failed to create subscription for inactive user", {
-        email: user.email,
-        error,
-      });
-    }
+        await log(LogLevel.INFO, "Sending payment email", {
+          email: user.email,
+          plan: user.plan,
+          paymentLink: subscription.checkoutUrl,
+        });
+        await sendPaymentEmail({
+          name: user.name!,
+          to: user.email!,
+          plan: user.plan,
+          paymentLink: subscription.checkoutUrl,
+        });
+      } catch (error: unknown) {
+        inactiveError = true;
+        await log(LogLevel.ERROR, "Failed to create subscription for inactive user", {
+          email: user.email,
+          error,
+        });
+      }
 
-    if (inactiveError) {
+      if (inactiveError) {
+        return (
+          <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+            <TrackedLink
+              href="/auth/logout"
+              navCategory="gateway"
+              navLabel="Logout"
+              className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
+            >
+              Logout
+            </TrackedLink>
+            <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
+              <h1 className="text-3xl font-bold mb-4 text-red-600">Erro</h1>
+              <p className="mb-4 text-gray-700">
+                Não foi possível processar sua assinatura no momento.
+                <br />
+                Por favor, tente novamente mais tarde.
+              </p>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
           <TrackedLink
@@ -96,38 +128,17 @@ export default async function Gateway() {
             Logout
           </TrackedLink>
           <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
-            <h1 className="text-3xl font-bold mb-4 text-red-600">Erro</h1>
+            <h1 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
+              Conta Inativa
+            </h1>
             <p className="mb-4 text-gray-700">
-              Não foi possível processar sua assinatura no momento.
-              <br />
-              Por favor, tente novamente mais tarde.
+              Sua conta está inativa devido a problemas no pagamento. <br />
+              Te enviamos um novo link de pagamento por email.
             </p>
           </div>
         </div>
       );
     }
-
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-        <TrackedLink
-          href="/auth/logout"
-          navCategory="gateway"
-          navLabel="Logout"
-          className="absolute top-2 right-4 text-sm text-gray-600 hover:text-gray-900"
-        >
-          Logout
-        </TrackedLink>
-        <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center">
-          <h1 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
-            Conta Inativa
-          </h1>
-          <p className="mb-4 text-gray-700">
-            Sua conta está inativa devido a problemas no pagamento. <br />
-            Te enviamos um novo link de pagamento por email.
-          </p>
-        </div>
-      </div>
-    );
   }
 
   // Improve the validation below
