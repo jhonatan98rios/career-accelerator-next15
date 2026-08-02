@@ -209,15 +209,15 @@ const EDUCATION_LEVEL_KEYWORDS: [string[], string][] = [
   [["ensino médio", "ensino medio", "colegial", "técnico", "tecnico"], "high_school"],
 ];
 
-function deriveJobSearchKeyword(
+export function deriveJobSearchKeyword(
   targetRole?: string,
   hardSkills?: string[],
   currentRole?: string
 ): string | undefined {
   const keyword = targetRole || hardSkills?.[0] || currentRole;
   if (!keyword) return undefined;
-  // Extract the core term: take first word or hyphenated tech (e.g. "Engenheiro de Software" -> "engenheiro")
-  return keyword.split(/[,/\s]+/)[0].toLowerCase();
+  // Keep full role phrase ("AI Engineer" -> "ai engineer"); split only on list separators like "," or "/"
+  return keyword.split(/[,/]+/)[0].toLowerCase().trim();
 }
 
 function guessEducationLevel(value?: string): string | undefined {
