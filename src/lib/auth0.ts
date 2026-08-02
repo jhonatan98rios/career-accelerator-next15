@@ -22,9 +22,12 @@ export const auth0 = new Auth0Client({
   // ponytail: log callback errors instead of silent 500
   onCallback: async (error, ctx, _session) => {
     if (error) {
+      const code =
+        "code" in error ? String((error as unknown as { code: unknown }).code) : "unknown";
+      console.error(`[auth0 callback failed] code=${code} message=${error.message}`);
       await log(LogLevel.ERROR, "Auth0 callback failed", {
-        code: "code" in error ? String((error as unknown as { code: unknown }).code) : "unknown",
-        message: error.message,
+        code,
+        errorMessage: error.message,
         returnTo: ctx.returnTo ?? "/",
       });
       return new NextResponse("An error occurred during authentication. Please try again.", {
