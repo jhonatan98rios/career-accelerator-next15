@@ -159,8 +159,8 @@ describe("CancelSubscription — dev mode skip", () => {
     expect(cancelSubscriptionPage).toContain("status: UserStatus.INACTIVE");
   });
 
-  it("redirects to /auth/logout with returnTo in dev path", () => {
-    expect(cancelSubscriptionPage).toContain('redirect("/auth/logout?returnTo=/")');
+  it("redirects to /auth/logout with absolute returnTo in dev path", () => {
+    expect(cancelSubscriptionPage).toContain("redirect(`/auth/logout?returnTo=${APP_URL}`)");
   });
 
   it("prod path still calls cancelSubscription", () => {

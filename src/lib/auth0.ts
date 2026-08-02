@@ -31,7 +31,7 @@ export const auth0 = new Auth0Client({
         status: 500,
       });
     }
-    const appBaseUrl = ctx.appBaseUrl;
+    const appBaseUrl = process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
     if (!appBaseUrl) {
       await log(LogLevel.ERROR, "Auth0 callback: appBaseUrl not resolved", {});
       return new NextResponse("Configuration error.", { status: 500 });

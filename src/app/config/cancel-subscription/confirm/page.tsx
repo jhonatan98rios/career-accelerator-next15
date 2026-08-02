@@ -6,6 +6,7 @@ import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { isDevelopment } from "@/lib/environment";
 import { cancelSubscription } from "@/lib/subscription";
+import { APP_URL } from "@/lib/constants";
 
 export default async function ConfirmCancelPage() {
   const session = await auth0.getSession();
@@ -31,7 +32,7 @@ export default async function ConfirmCancelPage() {
       previousStatus: user.status,
     });
     await Profile.findByIdAndUpdate(user._id, { status: UserStatus.INACTIVE });
-    redirect("/auth/logout?returnTo=/");
+    redirect(`/auth/logout?returnTo=${APP_URL}`);
   }
 
   if (!user.subscriptionId) {
@@ -90,5 +91,5 @@ export default async function ConfirmCancelPage() {
     }
   );
 
-  redirect("/auth/logout?returnTo=/");
+  redirect(`/auth/logout?returnTo=${APP_URL}`);
 }
