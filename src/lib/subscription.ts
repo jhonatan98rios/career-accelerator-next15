@@ -29,11 +29,11 @@ function getStripePriceId(plan: Plan) {
     case Plan.BASIC:
       priceId = process.env.STRIPE_BASIC_MONTHLY_PRICE_ID;
       break;
-    case Plan.INTERMEDIARY:
-      priceId = process.env.STRIPE_INTERMEDIARY_MONTHLY_PRICE_ID;
+    case Plan.PLUS:
+      priceId = process.env.STRIPE_PLUS_MONTHLY_PRICE_ID;
       break;
-    case Plan.PREMIUM:
-      priceId = process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID;
+    case Plan.ULTRA:
+      priceId = process.env.STRIPE_ULTRA_MONTHLY_PRICE_ID;
       break;
     default:
       throw new Error(`No Stripe price ID configured for plan: ${plan}`);
@@ -52,7 +52,7 @@ export function getStripe() {
 
 // ponytail: reverse lookup — map Stripe price ID back to Plan enum
 export function planFromPriceId(priceId: string): Plan | null {
-  for (const plan of [Plan.BASIC, Plan.INTERMEDIARY, Plan.PREMIUM]) {
+  for (const plan of [Plan.BASIC, Plan.PLUS, Plan.ULTRA]) {
     const id = process.env[`STRIPE_${plan.toUpperCase()}_MONTHLY_PRICE_ID`];
     if (id && id === priceId) return plan;
   }

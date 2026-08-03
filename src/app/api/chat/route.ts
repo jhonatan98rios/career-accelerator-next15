@@ -60,7 +60,7 @@ export async function POST(req: Request) {
           plan: user.plan,
         });
         return NextResponse.json(
-          { error: "Chat disponivel a partir do plano Intermediario", code: "UPGRADE_REQUIRED" },
+          { error: "Chat disponivel a partir do plano Plus", code: "UPGRADE_REQUIRED" },
           { status: HttpStatus.FORBIDDEN }
         );
       }
@@ -226,7 +226,7 @@ export async function POST(req: Request) {
                 personaSnapshot,
                 out,
                 remainingBudget,
-                notesContext || undefined,
+                notesContext || undefined
               );
               for await (const token of generator) {
                 if (cancelled) break;

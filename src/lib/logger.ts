@@ -5,20 +5,26 @@ export enum LogLevel {
 }
 
 export async function log(level: LogLevel, message: string, meta: Record<string, any> = {}) {
-  await fetch("https://http-intake.logs.datadoghq.com/v1/input", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "DD-API-KEY": process.env.DD_API_KEY!, // set in Vercel env vars
-    },
-    body: JSON.stringify({
-      ddsource: "vercel",
-      service: "aceler.ai",
-      message,
-      level,
-      ...meta,
-    }),
-  });
+  try {
+    const res = await fetch("https://http-intake.logs.datadoghq.com/v1/input", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "DD-API-KEY": process.env.DD_API_KEY!,
+      },
+      body: JSON.stringify({
+        ddsource: "vercel",
+        service: "aceler.ai",
+        level,
+        ...meta,
+        message,
+      }),
+    });
+    if (!res.ok) console.error(`[datadog ${res.status}] ${message}`, meta);
+  } catch (err) {
+    // ponytail: never let logging break the request; surface to console instead
+    console.error(`[datadog] ${message}`, meta, err);
+  }
 }
 
 // ── Standardized application error ──────────────────────────────────
@@ -37,8 +43,6 @@ export type ErrorCode =
   | "webhook/processing_failed"
   | "webhook/idempotency_miss"
   | "guardrail/insight_cooldown"
-  | "guardrail/roadmap_retry_used"
-  | "guardrail/roadmap_retry_expired"
   | "usage/daily_sessions_exceeded"
   | "usage/token_limit_exceeded"
   | "input/validation_failed"

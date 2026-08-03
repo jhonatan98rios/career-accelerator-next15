@@ -51,7 +51,7 @@ const {
   registerResumeGeneration: (profileId: string) => Promise<Record<string, unknown>>;
 } = req("./usage-service");
 
-const { Plan } = req("./enums") as { Plan: { BASIC: string; INTERMEDIARY: string; PREMIUM: string } };
+const { Plan } = req("./enums") as { Plan: { BASIC: string; PLUS: string; ULTRA: string } };
 
 function makeDailyUsage(sessionsStarted: number, resumeGenerations = 0) {
   return {
@@ -105,29 +105,29 @@ describe("getTodayUsage", () => {
 // ── canStartChatSession ────────────────────────────────────────────
 
 describe("canStartChatSession", () => {
-  it("returns true when under the daily limit (INTERMEDIARY: limit 3)", async () => {
+  it("returns true when under the daily limit (PLUS: limit 3)", async () => {
     mockResolvedValueOnce(makeDailyUsage(2));
-    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(true);
+    expect(await canStartChatSession("pf_test", Plan.PLUS)).toBe(true);
   });
 
-  it("returns false when at the daily limit (INTERMEDIARY: limit 3)", async () => {
+  it("returns false when at the daily limit (PLUS: limit 3)", async () => {
     mockResolvedValueOnce(makeDailyUsage(3));
-    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(false);
+    expect(await canStartChatSession("pf_test", Plan.PLUS)).toBe(false);
   });
 
   it("returns false when over the daily limit (bypass recovery)", async () => {
     mockResolvedValueOnce(makeDailyUsage(4));
-    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(false);
+    expect(await canStartChatSession("pf_test", Plan.PLUS)).toBe(false);
   });
 
-  it("returns true at sessionsStarted = limit - 1 (INTERMEDIARY: 2 of 3)", async () => {
+  it("returns true at sessionsStarted = limit - 1 (PLUS: 2 of 3)", async () => {
     mockResolvedValueOnce(makeDailyUsage(2));
-    expect(await canStartChatSession("pf_test", Plan.INTERMEDIARY)).toBe(true);
+    expect(await canStartChatSession("pf_test", Plan.PLUS)).toBe(true);
   });
 
   it("allows on first session ever (sessionsStarted=0)", async () => {
     mockResolvedValueOnce(makeDailyUsage(0));
-    expect(await canStartChatSession("pf_new", Plan.INTERMEDIARY)).toBe(true);
+    expect(await canStartChatSession("pf_new", Plan.PLUS)).toBe(true);
   });
 
   it("BASIC plan always returns false (chat disabled)", async () => {
@@ -135,14 +135,14 @@ describe("canStartChatSession", () => {
     expect(await canStartChatSession("pf_test", Plan.BASIC)).toBe(false);
   });
 
-  it("PREMIUM allows up to 10 sessions", async () => {
+  it("ULTRA allows up to 10 sessions", async () => {
     mockResolvedValueOnce(makeDailyUsage(9));
-    expect(await canStartChatSession("pf_test", Plan.PREMIUM)).toBe(true);
+    expect(await canStartChatSession("pf_test", Plan.ULTRA)).toBe(true);
   });
 
-  it("PREMIUM blocks at 10 sessions", async () => {
+  it("ULTRA blocks at 10 sessions", async () => {
     mockResolvedValueOnce(makeDailyUsage(10));
-    expect(await canStartChatSession("pf_test", Plan.PREMIUM)).toBe(false);
+    expect(await canStartChatSession("pf_test", Plan.ULTRA)).toBe(false);
   });
 });
 
@@ -178,9 +178,7 @@ describe("registerChatSession", () => {
     mockResolvedValueOnce(doc);
 
     const result = await registerChatSession("pf_new");
-    expect(
-      (result as ReturnType<typeof makeDailyUsage>).chat.sessionsStarted
-    ).toBe(1);
+    expect((result as ReturnType<typeof makeDailyUsage>).chat.sessionsStarted).toBe(1);
   });
 });
 
@@ -188,14 +186,14 @@ describe("registerChatSession", () => {
 
 describe("session limit enforcement integrity", () => {
   it("two back-to-back canStart calls at limit-1 both pass (TOCTOU gap documented)", async () => {
-    // INTERMEDIARY limit is 3, so 2 is limit-1
+    // PLUS limit is 3, so 2 is limit-1
     const doc = makeDailyUsage(2);
     // Both calls read the same doc — gap is in the read-then-act pattern
     mockResolvedValueOnce(doc);
-    const a = await canStartChatSession("pf_test", Plan.INTERMEDIARY);
+    const a = await canStartChatSession("pf_test", Plan.PLUS);
 
     mockResolvedValueOnce(doc);
-    const b = await canStartChatSession("pf_test", Plan.INTERMEDIARY);
+    const b = await canStartChatSession("pf_test", Plan.PLUS);
 
     expect(a).toBe(true);
     expect(b).toBe(true);

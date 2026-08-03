@@ -8,7 +8,6 @@ import { getSessionCached } from "@/lib/auth0";
 import { Profile } from "@/models/Profile";
 import { ConfettiOnComplete } from "@/components/confetti";
 import { ProgressBar } from "@/components/progressBar";
-import { CareerInsight } from "@/models/CarrerInsight";
 import { getRoadmapGuardrailState } from "@/lib/ai-generation-guardrails";
 import { log, LogLevel } from "@/lib/logger";
 
@@ -41,19 +40,8 @@ export default async function Page({ params }: PageProps) {
   }
 
   const roadmap: ICareerRoadmap = JSON.parse(JSON.stringify(roadmapDoc));
-  const insight = (await CareerInsight.findById(roadmap.insight_id, { createdAt: 1 }).lean()) as {
-    createdAt: Date;
-  } | null;
 
-  if (!insight) {
-    await log(LogLevel.WARN, "Roadmap detail redirect: insight not found", {
-      roadmap_id,
-      insight_id: roadmap.insight_id,
-    });
-    redirect(`/profile/${user.id}/roadmaps`);
-  }
-
-  const roadmapGuardrail = getRoadmapGuardrailState(user, roadmap, insight.createdAt);
+  const roadmapGuardrail = getRoadmapGuardrailState(user, roadmap);
   const allDone = roadmap.steps.every((step) => step.status === RoadmapStatus.DONE);
   const progress = Math.round(
     (roadmap.steps.filter((step) => step.status === RoadmapStatus.DONE).length /

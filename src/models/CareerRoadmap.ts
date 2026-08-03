@@ -15,7 +15,6 @@ export interface ICareerRoadmap extends Document {
   insight_id: Types.ObjectId;
   title: string;
   steps: IStep[];
-  correctiveRetryUsedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,7 +24,6 @@ const CareerRoadmapSchema = new Schema<ICareerRoadmap>(
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     insight_id: { type: Schema.Types.ObjectId, ref: "CareerInsight", required: true },
     title: { type: String, required: true },
-    correctiveRetryUsedAt: { type: Date, required: false, default: null },
     steps: [
       {
         step: { type: Number, required: true },

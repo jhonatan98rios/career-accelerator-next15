@@ -1,7 +1,7 @@
 export enum Plan {
   BASIC = "basic",
-  INTERMEDIARY = "intermediary",
-  PREMIUM = "premium",
+  PLUS = "plus",
+  ULTRA = "ultra",
 }
 
 export enum UserStatus {

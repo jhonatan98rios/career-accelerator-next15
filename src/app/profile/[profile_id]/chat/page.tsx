@@ -4,7 +4,13 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import ChatSidebar, { type ChatSession } from "@/components/ChatSidebar";
 import ChatMessage, { type ChatMessageData } from "@/components/ChatMessage";
 import ChatComposer from "@/components/ChatComposer";
-import { streamChatMessage, type ChatMessage as ApiChatMessage, fetchChatUsage, type ChatUsage, type ChatSessionData } from "@/lib/chat-api";
+import {
+  streamChatMessage,
+  type ChatMessage as ApiChatMessage,
+  fetchChatUsage,
+  type ChatUsage,
+  type ChatSessionData,
+} from "@/lib/chat-api";
 
 let nextId = 100;
 
@@ -37,7 +43,9 @@ export default function ChatPage() {
 
   // Fetch usage on mount
   useEffect(() => {
-    fetchChatUsage().then(setUsage).catch(() => setUsage(null));
+    fetchChatUsage()
+      .then(setUsage)
+      .catch(() => setUsage(null));
   }, []);
 
   // Auto-scroll to bottom
@@ -67,16 +75,28 @@ export default function ChatPage() {
     setInput("");
     setError(null);
     // New session starts at zero tokens, limit from plan
-    setSessionTokens(usage
-      ? { sessionId: id, tokenLimit: usage.tokenLimit, promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-      : null);
+    setSessionTokens(
+      usage
+        ? {
+            sessionId: id,
+            tokenLimit: usage.tokenLimit,
+            promptTokens: 0,
+            completionTokens: 0,
+            totalTokens: 0,
+          }
+        : null
+    );
   }, [canStartNew, usage]);
 
   // ponytail: React 18+ auto-batches setState calls within the same synchronous
   // context, so every chunk from the reader triggers exactly one render. No rAF,
   // no flushSync, no race conditions — the reader's async boundary is the natural
   // batch point.
-  const runStream = async (apiMessages: ApiChatMessage[], assistantId: string, sessionId?: string) => {
+  const runStream = async (
+    apiMessages: ApiChatMessage[],
+    assistantId: string,
+    sessionId?: string
+  ) => {
     let content = "";
 
     const applyToken = (token: string) => {
@@ -192,13 +212,20 @@ export default function ChatPage() {
             className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 text-gray-600"
             aria-label="Abrir conversas"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M3 6h18M3 12h18M3 18h18" />
             </svg>
           </button>
 
           <h2 className="text-sm font-semibold text-gray-700 truncate">
-            {selectedSession ? selectedSession.title : "Coach de Carreira"}
+            {selectedSession ? selectedSession.title : "Conversar com IA"}
           </h2>
         </div>
 
@@ -235,40 +262,36 @@ export default function ChatPage() {
           /* Empty state — no session selected */
           <div className="flex-1 flex items-center justify-center px-4">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-700 mb-2">
-                Comece uma nova conversa.
-              </h2>
+              <h2 className="text-xl font-bold text-gray-700 mb-2">Comece uma nova conversa.</h2>
               <p className="text-gray-500 text-sm leading-relaxed">
                 Pergunte sobre carreira, currículo,
                 <br />
                 entrevistas ou planejamento profissional.
               </p>
               {chatAvailable ? (
-              canStartNew ? (
-                <button
-                  onClick={handleNewSession}
-                  className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
-                >
-                  + Nova conversa
-                </button>
+                canStartNew ? (
+                  <button
+                    onClick={handleNewSession}
+                    className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
+                  >
+                    + Nova conversa
+                  </button>
+                ) : (
+                  <p className="mt-6 text-sm text-gray-400">Limite diário de conversas atingido.</p>
+                )
               ) : (
-                <p className="mt-6 text-sm text-gray-400">
-                  Limite diário de conversas atingido.
-                </p>
-              )
-            ) : (
-              <div className="mt-6 space-y-3">
-                <p className="text-sm text-gray-500">
-                  O Chat Coach está disponível a partir do plano Intermediário.
-                </p>
-                <a
-                  href="./config"
-                  className="inline-block px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
-                >
-                  Fazer upgrade
-                </a>
-              </div>
-            )}
+                <div className="mt-6 space-y-3">
+                  <p className="text-sm text-gray-500">
+                    O Chat Coach está disponível a partir do plano Plus.
+                  </p>
+                  <a
+                    href="./config"
+                    className="inline-block px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
+                  >
+                    Fazer upgrade
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         )}

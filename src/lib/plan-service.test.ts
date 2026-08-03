@@ -1,5 +1,11 @@
 import { describe, it } from "node:test";
-import { getPlanLimits, isChatAvailable, getPlanLabel, getNextPlan, getLowerPlans } from "./plan-service";
+import {
+  getPlanLimits,
+  isChatAvailable,
+  getPlanLabel,
+  getNextPlan,
+  getLowerPlans,
+} from "./plan-service";
 import { Plan } from "./enums";
 
 // expect is global from test-setup.ts (chai + @vitest/expect)
@@ -14,15 +20,15 @@ describe("getPlanLimits", () => {
     expect(typeof limits.resumeGenerationsPerDay).toBe("number");
   });
 
-  it("returns INTERMEDIARY plan limits", () => {
-    const limits = getPlanLimits(Plan.INTERMEDIARY);
+  it("returns PLUS plan limits", () => {
+    const limits = getPlanLimits(Plan.PLUS);
     expect(limits.chatSessionsPerDay).toBe(3);
     expect(limits.chatSessionTokenLimit).toBe(150000);
     expect(limits.resumeGenerationsPerDay).toBe(10);
   });
 
-  it("returns PREMIUM plan limits", () => {
-    const limits = getPlanLimits(Plan.PREMIUM);
+  it("returns ULTRA plan limits", () => {
+    const limits = getPlanLimits(Plan.ULTRA);
     expect(limits.chatSessionsPerDay).toBe(10);
     expect(limits.chatSessionTokenLimit).toBe(300000);
     expect(limits.resumeGenerationsPerDay).toBe(30);
@@ -30,10 +36,10 @@ describe("getPlanLimits", () => {
 
   it("resume limits increase with plan tier", () => {
     const basic = getPlanLimits(Plan.BASIC);
-    const inter = getPlanLimits(Plan.INTERMEDIARY);
-    const prem = getPlanLimits(Plan.PREMIUM);
-    expect(basic.resumeGenerationsPerDay).toBeLessThan(inter.resumeGenerationsPerDay);
-    expect(inter.resumeGenerationsPerDay).toBeLessThan(prem.resumeGenerationsPerDay);
+    const plus = getPlanLimits(Plan.PLUS);
+    const ultra = getPlanLimits(Plan.ULTRA);
+    expect(basic.resumeGenerationsPerDay).toBeLessThan(plus.resumeGenerationsPerDay);
+    expect(plus.resumeGenerationsPerDay).toBeLessThan(ultra.resumeGenerationsPerDay);
   });
 
   it("returns the same instance for repeated calls (PLAN_LIMITS is a constant map)", () => {
@@ -59,13 +65,13 @@ describe("getPlanLimits", () => {
 
   it("chatSessionTokenLimit is high enough for a real chat session (plans with chat)", () => {
     // ponytail: sanity check — 1500 would be suspiciously low for a chat session
-    expect(getPlanLimits(Plan.INTERMEDIARY).chatSessionTokenLimit).toBeGreaterThanOrEqual(10_000);
-    expect(getPlanLimits(Plan.PREMIUM).chatSessionTokenLimit).toBeGreaterThanOrEqual(10_000);
+    expect(getPlanLimits(Plan.PLUS).chatSessionTokenLimit).toBeGreaterThanOrEqual(10_000);
+    expect(getPlanLimits(Plan.ULTRA).chatSessionTokenLimit).toBeGreaterThanOrEqual(10_000);
   });
 
-  it("INTERMEDIARY and PREMIUM have at least 1 chat session", () => {
-    expect(getPlanLimits(Plan.INTERMEDIARY).chatSessionsPerDay).toBeGreaterThanOrEqual(1);
-    expect(getPlanLimits(Plan.PREMIUM).chatSessionsPerDay).toBeGreaterThanOrEqual(1);
+  it("PLUS and ULTRA have at least 1 chat session", () => {
+    expect(getPlanLimits(Plan.PLUS).chatSessionsPerDay).toBeGreaterThanOrEqual(1);
+    expect(getPlanLimits(Plan.ULTRA).chatSessionsPerDay).toBeGreaterThanOrEqual(1);
   });
 
   it("BASIC has chat sessions disabled (0)", () => {
@@ -77,29 +83,29 @@ describe("getPlanLimits", () => {
     expect(isChatAvailable(Plan.BASIC)).toBe(false);
   });
 
-  it("isChatAvailable returns true for INTERMEDIARY", () => {
-    expect(isChatAvailable(Plan.INTERMEDIARY)).toBe(true);
+  it("isChatAvailable returns true for PLUS", () => {
+    expect(isChatAvailable(Plan.PLUS)).toBe(true);
   });
 
-  it("isChatAvailable returns true for PREMIUM", () => {
-    expect(isChatAvailable(Plan.PREMIUM)).toBe(true);
+  it("isChatAvailable returns true for ULTRA", () => {
+    expect(isChatAvailable(Plan.ULTRA)).toBe(true);
   });
 
   it("getPlanLabel returns correct labels", () => {
     expect(getPlanLabel(Plan.BASIC).name).toBe("Básico");
-    expect(getPlanLabel(Plan.INTERMEDIARY).name).toBe("Intermediário");
-    expect(getPlanLabel(Plan.PREMIUM).name).toBe("Premium");
+    expect(getPlanLabel(Plan.PLUS).name).toBe("Acelera.ai Plus");
+    expect(getPlanLabel(Plan.ULTRA).name).toBe("Acelera.ai Ultra");
   });
 
   it("getNextPlan returns the next tier", () => {
-    expect(getNextPlan(Plan.BASIC)).toBe(Plan.INTERMEDIARY);
-    expect(getNextPlan(Plan.INTERMEDIARY)).toBe(Plan.PREMIUM);
-    expect(getNextPlan(Plan.PREMIUM)).toBeNull();
+    expect(getNextPlan(Plan.BASIC)).toBe(Plan.PLUS);
+    expect(getNextPlan(Plan.PLUS)).toBe(Plan.ULTRA);
+    expect(getNextPlan(Plan.ULTRA)).toBeNull();
   });
 
   it("getLowerPlans returns plans below current tier", () => {
     expect(getLowerPlans(Plan.BASIC)).toEqual([]);
-    expect(getLowerPlans(Plan.INTERMEDIARY)).toEqual([Plan.BASIC]);
-    expect(getLowerPlans(Plan.PREMIUM)).toEqual([Plan.BASIC, Plan.INTERMEDIARY]);
+    expect(getLowerPlans(Plan.PLUS)).toEqual([Plan.BASIC]);
+    expect(getLowerPlans(Plan.ULTRA)).toEqual([Plan.BASIC, Plan.PLUS]);
   });
 });

@@ -11,6 +11,7 @@ import { HttpStatus } from "@/types/httpStatus";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { IProfile, Profile } from "@/models/Profile";
 import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
+import { deriveJobSearchKeyword } from "@/lib/job-search-keyword";
 
 type RouteBody = {
   answers: Record<string, string>;
@@ -208,17 +209,6 @@ const EDUCATION_LEVEL_KEYWORDS: [string[], string][] = [
   [["bootcamp"], "bootcamp"],
   [["ensino médio", "ensino medio", "colegial", "técnico", "tecnico"], "high_school"],
 ];
-
-function deriveJobSearchKeyword(
-  targetRole?: string,
-  hardSkills?: string[],
-  currentRole?: string
-): string | undefined {
-  const keyword = targetRole || hardSkills?.[0] || currentRole;
-  if (!keyword) return undefined;
-  // Extract the core term: take first word or hyphenated tech (e.g. "Engenheiro de Software" -> "engenheiro")
-  return keyword.split(/[,/\s]+/)[0].toLowerCase();
-}
 
 function guessEducationLevel(value?: string): string | undefined {
   if (!value) return undefined;

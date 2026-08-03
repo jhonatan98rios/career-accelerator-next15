@@ -33,17 +33,6 @@ export function RoadmapStepCheckbox({
   );
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) return null;
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
 export function RoadmapUpdateButton({
   roadmapId,
   jwtToken,
@@ -76,12 +65,7 @@ export function RoadmapUpdateButton({
           window.location.href = "/auth/logout";
           return;
         }
-        const retryWindowEndsAt = formatDateTime(data.retryWindowEndsAt ?? null);
-        setErrorMessage(
-          retryWindowEndsAt
-            ? `Esse ajuste ficou disponivel ate ${retryWindowEndsAt}.`
-            : data.error || "Nao foi possivel gerar novos passos agora."
-        );
+        setErrorMessage(data.error || "Nao foi possivel gerar novos passos agora.");
         return;
       }
 
@@ -104,21 +88,13 @@ export function RoadmapUpdateButton({
     });
   };
 
-  const buttonLabel = guardrail.bypassed
-    ? "Gerar novos passos"
-    : guardrail.reason === "retry"
-      ? "Ajustar roadmap"
-      : "Solicitar proximos passos";
+  const buttonLabel = guardrail.bypassed ? "Gerar novos passos" : "Solicitar proximos passos";
 
   const helperMessage = guardrail.bypassed
     ? "Sua conta ignora os limites de geracao."
-    : guardrail.reason === "retry"
-      ? `Voce pode pedir um ajuste unico ate ${formatDateTime(guardrail.retryWindowEndsAt)}.`
-      : guardrail.canGenerate
-        ? "Concluir este roadmap libera os proximos passos."
-        : guardrail.reason === "retry_used"
-          ? "O ajuste unico deste roadmap ja foi usado."
-          : "Conclua todas as etapas para liberar novos passos.";
+    : guardrail.canGenerate
+      ? "Roadmap concluido. Gere os proximos passos quando quiser."
+      : "Conclua todas as etapas para liberar novos passos.";
 
   return (
     <div className="mt-10 flex flex-col items-center gap-3">

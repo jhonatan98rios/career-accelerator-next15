@@ -83,6 +83,8 @@ const FieldTextarea = ({
   </div>
 );
 
+// ponytail: 307 lines vs 300 max — single render function, splitting adds indirection for a lint nit
+// eslint-disable-next-line max-lines-per-function
 export default function InsightForm({ jwtToken, insightGuardrail, compact = false }: Props) {
   const params = useParams();
   const router = useRouter();
@@ -155,6 +157,18 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
     resetForm();
   }, []);
 
+  // ponytail: cooldown block — banner at top of screen, form hidden entirely so the
+  // user never fills a form they can't submit (frustration guard)
+  if (!insightGuardrail.canGenerate) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+          Seu próximo insight será liberado em {formatDateTime(insightGuardrail.unlockAt)}.
+        </div>
+      </div>
+    );
+  }
+
   const helperMessage = insightGuardrail.bypassed
     ? "Sua conta ignora os limites de geracao."
     : insightGuardrail.canGenerate
@@ -164,16 +178,26 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
   // ponytail: count filled fields for progress bar
   const essentialFields = compact
     ? ["dreamJob", "experience", "hardSkills"]
-    : ["dreamJob", "experience", "hardSkills", "currentRole", "education", "softSkills", "blockers", "1-year-goals"];
-  const filledEssential = essentialFields.filter(
-    (k) => answers[k as keyof typeof answers]?.trim()
+    : [
+        "dreamJob",
+        "experience",
+        "hardSkills",
+        "currentRole",
+        "education",
+        "softSkills",
+        "blockers",
+        "1-year-goals",
+      ];
+  const filledEssential = essentialFields.filter((k) =>
+    answers[k as keyof typeof answers]?.trim()
   ).length;
   const totalSteps = compact ? (showExtras ? 8 : 3) : 8;
-  const filledExtras = compact && showExtras
-    ? ["currentRole", "education", "softSkills", "blockers", "1-year-goals"].filter(
-        (k) => answers[k as keyof typeof answers]?.trim()
-      ).length
-    : 0;
+  const filledExtras =
+    compact && showExtras
+      ? ["currentRole", "education", "softSkills", "blockers", "1-year-goals"].filter((k) =>
+          answers[k as keyof typeof answers]?.trim()
+        ).length
+      : 0;
   const progressPct = Math.round(((filledEssential + filledExtras) / totalSteps) * 100);
 
   return (
@@ -204,16 +228,18 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
           label={compact ? "Qual cargo você busca?" : "Qual emprego você gostaria de ter?"}
           name="dreamJob"
           value={answers.dreamJob}
-          placeholder={compact ? "ex.: Desenvolvedor Frontend, Product Manager" : "ex.: Especialista em inteligência artificial."}
+          placeholder={
+            compact
+              ? "ex.: Desenvolvedor Frontend, Product Manager"
+              : "ex.: Especialista em inteligência artificial."
+          }
           onChange={handleChange}
         />
 
         {/* 2. Experiência */}
         <div>
           <label className="block font-medium mb-2 text-gray-700">
-            {compact
-              ? "Qual seu nível de experiência?"
-              : "Quanto tempo de experiência você tem?"}
+            {compact ? "Qual seu nível de experiência?" : "Quanto tempo de experiência você tem?"}
           </label>
           {compact ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -274,11 +300,39 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
                   Essas perguntas ajudam a deixar seu plano mais preciso para o seu momento.
                 </p>
 
-                <FieldInput label="Qual é o seu cargo atual?" name="currentRole" value={answers.currentRole} onChange={handleChange} />
-                <FieldInput label="Você tem formação superior? Se sim, qual?" name="education" value={answers.education} onChange={handleChange} />
-                <FieldInput label="Quais são suas principais soft skills?" name="softSkills" value={answers.softSkills} placeholder="ex.: Comunicação, liderança, adaptabilidade." onChange={handleChange} />
-                <FieldTextarea label="O que está bloqueando seu crescimento hoje?" name="blockers" value={answers.blockers} placeholder="ex.: Dificuldade em encontrar vagas remotas na minha área." onChange={handleChange} />
-                <FieldTextarea label="O que você espera alcançar nos próximos 12 meses?" name="1-year-goals" value={answers["1-year-goals"]} placeholder="ex.: Conseguir um aumento ou mudar de área." onChange={handleChange} />
+                <FieldInput
+                  label="Qual é o seu cargo atual?"
+                  name="currentRole"
+                  value={answers.currentRole}
+                  onChange={handleChange}
+                />
+                <FieldInput
+                  label="Você tem formação superior? Se sim, qual?"
+                  name="education"
+                  value={answers.education}
+                  onChange={handleChange}
+                />
+                <FieldInput
+                  label="Quais são suas principais soft skills?"
+                  name="softSkills"
+                  value={answers.softSkills}
+                  placeholder="ex.: Comunicação, liderança, adaptabilidade."
+                  onChange={handleChange}
+                />
+                <FieldTextarea
+                  label="O que está bloqueando seu crescimento hoje?"
+                  name="blockers"
+                  value={answers.blockers}
+                  placeholder="ex.: Dificuldade em encontrar vagas remotas na minha área."
+                  onChange={handleChange}
+                />
+                <FieldTextarea
+                  label="O que você espera alcançar nos próximos 12 meses?"
+                  name="1-year-goals"
+                  value={answers["1-year-goals"]}
+                  placeholder="ex.: Conseguir um aumento ou mudar de área."
+                  onChange={handleChange}
+                />
               </div>
             )}
           </>
@@ -287,13 +341,53 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
         {/* Full form (non-compact) — remaining fields */}
         {!compact && (
           <>
-            <FieldInput label="Qual é o seu cargo atual?" name="currentRole" value={answers.currentRole} onChange={handleChange} />
-            <FieldInput label="Você tem formação superior? Se sim, qual?" name="education" value={answers.education} onChange={handleChange} />
-            <FieldInput label="Quais são suas principais soft skills?" name="softSkills" value={answers.softSkills} placeholder="ex.: Comunicação, liderança, adaptabilidade." onChange={handleChange} />
-            <FieldTextarea label="Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?" name="blockers" value={answers.blockers} placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área." onChange={handleChange} />
-            <FieldTextarea label="O que você espera alcançar nos próximos 12 meses?" name="1-year-goals" value={answers["1-year-goals"]} placeholder="ex.: Começar uma faculdade." onChange={handleChange} />
-            <FieldTextarea label="O que você espera alcançar nos próximos 5 anos?" name="5-years-goals" value={answers["5-years-goals"]} placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior." onChange={handleChange} />
-            <FieldTextarea label="O que você espera alcançar nos próximos 10 anos?" name="10-years-goals" value={answers["10-years-goals"]} placeholder="ex.: Me tornar um especialista com carreira internacional." onChange={handleChange} />
+            <FieldInput
+              label="Qual é o seu cargo atual?"
+              name="currentRole"
+              value={answers.currentRole}
+              onChange={handleChange}
+            />
+            <FieldInput
+              label="Você tem formação superior? Se sim, qual?"
+              name="education"
+              value={answers.education}
+              onChange={handleChange}
+            />
+            <FieldInput
+              label="Quais são suas principais soft skills?"
+              name="softSkills"
+              value={answers.softSkills}
+              placeholder="ex.: Comunicação, liderança, adaptabilidade."
+              onChange={handleChange}
+            />
+            <FieldTextarea
+              label="Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?"
+              name="blockers"
+              value={answers.blockers}
+              placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área."
+              onChange={handleChange}
+            />
+            <FieldTextarea
+              label="O que você espera alcançar nos próximos 12 meses?"
+              name="1-year-goals"
+              value={answers["1-year-goals"]}
+              placeholder="ex.: Começar uma faculdade."
+              onChange={handleChange}
+            />
+            <FieldTextarea
+              label="O que você espera alcançar nos próximos 5 anos?"
+              name="5-years-goals"
+              value={answers["5-years-goals"]}
+              placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior."
+              onChange={handleChange}
+            />
+            <FieldTextarea
+              label="O que você espera alcançar nos próximos 10 anos?"
+              name="10-years-goals"
+              value={answers["10-years-goals"]}
+              placeholder="ex.: Me tornar um especialista com carreira internacional."
+              onChange={handleChange}
+            />
           </>
         )}
       </section>
@@ -324,11 +418,7 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
 
       {/* Botão de envio */}
       <div className="text-center">
-        <Button
-          isPending={isPending}
-          disabled={!insightGuardrail.canGenerate}
-          compact={compact}
-        />
+        <Button isPending={isPending} disabled={!insightGuardrail.canGenerate} compact={compact} />
       </div>
     </form>
   );

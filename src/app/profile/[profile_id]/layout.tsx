@@ -8,6 +8,7 @@ import { ITerm, Term } from "@/models/Term";
 import { Consent, ConsentEventStatus, IConsent } from "@/models/Consent";
 import { log, LogLevel } from "@/lib/logger";
 import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
+import { isChatAvailable } from "@/lib/plan-service";
 import OnboardingTour from "@/components/onboardingTour";
 import { FirstAccessRedirect } from "./first-access-redirect";
 
@@ -52,7 +53,12 @@ export default async function ProfileLayout({ children, params }: LayoutProps) {
     <div className="flex flex-col min-h-screen h-full bg-gray-50 text-gray-900">
       <Header />
       <div className="flex">
-        <SideBar id={user.id} insightGuardrail={insightGuardrail} hasInsight={hasInsight} />
+        <SideBar
+          id={user.id}
+          insightGuardrail={insightGuardrail}
+          hasInsight={hasInsight}
+          chatEnabled={isChatAvailable(user.plan)}
+        />
         <FirstAccessRedirect profileId={user.id} hasInsight={hasInsight} />
 
         {/* Main content */}

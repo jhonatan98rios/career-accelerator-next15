@@ -9,6 +9,7 @@ interface SideBarProps {
   id: string;
   insightGuardrail: InsightGuardrailState;
   hasInsight: boolean;
+  chatEnabled: boolean;
 }
 
 function formatDateTime(value: string | null) {
@@ -26,6 +27,7 @@ function SideBarContent({
   id,
   insightGuardrail,
   hasInsight,
+  chatEnabled,
   onLinkClick,
 }: SideBarProps & { onLinkClick?: () => void }) {
   const unlockAt = formatDateTime(insightGuardrail.unlockAt);
@@ -52,10 +54,21 @@ function SideBarContent({
           disabled={!hasInsight}
           onClick={onLinkClick}
         />
+        {/* ponytail: progress kept next to insights (Início) per menu review */}
+        <MenuItem
+          href={`/profile/${id}/roadmaps`}
+          label="Acompanhe seu Progresso"
+          disabled={!hasInsight}
+          onClick={onLinkClick}
+        />
         <Link
           href={`/profile/${id}/input`}
           onClick={() => {
-            trackNavClick({ category: "sidebar", action: "click", label: "Novo Plano de Carreira" });
+            trackNavClick({
+              category: "sidebar",
+              action: "click",
+              label: "Novo Plano de Carreira",
+            });
             onLinkClick?.();
           }}
           className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
@@ -78,28 +91,43 @@ function SideBarContent({
           disabled={!hasInsight}
           onClick={onLinkClick}
         />
-        <MenuItem
-          href={`/profile/${id}/roadmaps`}
-          label="Acompanhe seu Progresso"
-          disabled={!hasInsight}
-          onClick={onLinkClick}
-        />
+        {chatEnabled ? (
+          <Link
+            href={`/profile/${id}/chat`}
+            onClick={() => {
+              trackNavClick({ category: "sidebar", action: "click", label: "Conversar com IA" });
+              onLinkClick?.();
+            }}
+            className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
+          >
+            Conversar com IA
+          </Link>
+        ) : (
+          <Link
+            href={`/profile/${id}/config`}
+            onClick={() => {
+              trackNavClick({
+                category: "sidebar",
+                action: "click",
+                label: "Conversar com IA (bloqueado)",
+              });
+              onLinkClick?.();
+            }}
+            title="Disponível a partir do plano Plus"
+            className="hover:bg-purple-600 p-2 rounded-lg font-semibold flex items-center gap-2"
+          >
+            Conversar com IA
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2a6 6 0 0 0-6 6v4H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V8a6 6 0 0 0-6-6zm4 10H8V8a4 4 0 1 1 8 0v4z" />
+            </svg>
+          </Link>
+        )}
         <MenuItem
           href={`/profile/${id}/config`}
           label="Configurações"
           disabled={!hasInsight}
           onClick={onLinkClick}
         />
-        <Link
-          href={`/profile/${id}/chat`}
-          onClick={() => {
-            trackNavClick({ category: "sidebar", action: "click", label: "Coach de Carreira" });
-            onLinkClick?.();
-          }}
-          className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
-        >
-          Coach de Carreira
-        </Link>
       </nav>
 
       <div className="p-4 bg-purple-600/40 m-4 rounded-lg shadow-inner mt-auto flex flex-col items-start gap-1">
@@ -127,7 +155,14 @@ export default function SideBar(props: SideBarProps) {
         className="md:hidden fixed z-50 top-4 left-4 p-2 rounded-lg bg-purple-600 text-white shadow-lg"
         aria-label="Abrir menu"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M3 6h18M3 12h18M3 18h18" />
         </svg>
       </button>
@@ -170,7 +205,10 @@ function MenuItem({
 }) {
   if (disabled) {
     return (
-      <span className="p-2 rounded-lg opacity-40 cursor-not-allowed select-none" title="Disponível após seu primeiro insight">
+      <span
+        className="p-2 rounded-lg opacity-40 cursor-not-allowed select-none"
+        title="Disponível após seu primeiro insight"
+      >
         {label}
       </span>
     );
