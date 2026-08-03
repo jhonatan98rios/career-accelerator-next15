@@ -11,6 +11,7 @@ import { HttpStatus } from "@/types/httpStatus";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { IProfile, Profile } from "@/models/Profile";
 import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
+import { deriveJobSearchKeyword } from "@/lib/job-search-keyword";
 
 type RouteBody = {
   answers: Record<string, string>;
@@ -208,17 +209,6 @@ const EDUCATION_LEVEL_KEYWORDS: [string[], string][] = [
   [["bootcamp"], "bootcamp"],
   [["ensino médio", "ensino medio", "colegial", "técnico", "tecnico"], "high_school"],
 ];
-
-export function deriveJobSearchKeyword(
-  targetRole?: string,
-  hardSkills?: string[],
-  currentRole?: string
-): string | undefined {
-  const keyword = targetRole || hardSkills?.[0] || currentRole;
-  if (!keyword) return undefined;
-  // Keep full role phrase ("AI Engineer" -> "ai engineer"); split only on list separators like "," or "/"
-  return keyword.split(/[,/]+/)[0].toLowerCase().trim();
-}
 
 function guessEducationLevel(value?: string): string | undefined {
   if (!value) return undefined;

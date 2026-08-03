@@ -1,23 +1,25 @@
-import { describe, it, expect } from "vitest";
-import { deriveJobSearchKeyword } from "./route";
+import { describe, it } from "node:test";
+import assert from "node:assert";
+import { deriveJobSearchKeyword } from "@/lib/job-search-keyword";
 
 describe("deriveJobSearchKeyword", () => {
   it("keeps full multi-word role, not just first token", () => {
-    expect(deriveJobSearchKeyword("AI Engineer")).toBe("ai engineer");
-    expect(deriveJobSearchKeyword("Engenheiro de Software")).toBe("engenheiro de software");
+    assert.equal(deriveJobSearchKeyword("AI Engineer"), "ai engineer");
+    assert.equal(deriveJobSearchKeyword("Engenheiro de Software"), "engenheiro de software");
   });
 
   it("splits only on list separators", () => {
-    expect(deriveJobSearchKeyword("AI Engineer, Machine Learning")).toBe("ai engineer");
-    expect(deriveJobSearchKeyword("Python/Django")).toBe("python");
-    expect(deriveJobSearchKeyword("Python / Django")).toBe("python");
+    assert.equal(deriveJobSearchKeyword("AI Engineer, Machine Learning"), "ai engineer");
+    assert.equal(deriveJobSearchKeyword("Python/Django"), "python");
+    assert.equal(deriveJobSearchKeyword("Python / Django"), "python");
   });
 
   it("falls back to hard skill, then current role", () => {
-    expect(deriveJobSearchKeyword(undefined, ["Python"], "Analista")).toBe("python");
-    expect(deriveJobSearchKeyword(undefined, undefined, "Analista de Dados")).toBe(
+    assert.equal(deriveJobSearchKeyword(undefined, ["Python"], "Analista"), "python");
+    assert.equal(
+      deriveJobSearchKeyword(undefined, undefined, "Analista de Dados"),
       "analista de dados"
     );
-    expect(deriveJobSearchKeyword()).toBeUndefined();
+    assert.equal(deriveJobSearchKeyword(), undefined);
   });
 });
