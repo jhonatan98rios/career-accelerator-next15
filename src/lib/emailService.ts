@@ -1,6 +1,8 @@
 // lib/emailService.ts
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { log, LogLevel } from "@/lib/logger";
+import { getPlanLabel } from "@/lib/plan-service";
+import { Plan } from "@/lib/enums";
 
 const ses = new SESClient({
   region: process.env.AWS_REGION,
@@ -11,7 +13,7 @@ const ses = new SESClient({
 });
 
 function getEmailTemplate(name: string, plan: string, paymentLink: string) {
-  const planLabel = plan === "basic" ? "Básico" : plan === "intermediary" ? "Intermediário" : plan;
+  const planLabel = getPlanLabel(plan as Plan).name;
 
   return `
   <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 20px;">

@@ -8,27 +8,35 @@ type PlanLimits = {
 
 const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   [Plan.BASIC]: { chatSessionsPerDay: 0, chatSessionTokenLimit: 0, resumeGenerationsPerDay: 3 },
-  [Plan.INTERMEDIARY]: { chatSessionsPerDay: 3, chatSessionTokenLimit: 150000, resumeGenerationsPerDay: 10 },
-  [Plan.PREMIUM]: { chatSessionsPerDay: 10, chatSessionTokenLimit: 300000, resumeGenerationsPerDay: 30 },
+  [Plan.PLUS]: {
+    chatSessionsPerDay: 3,
+    chatSessionTokenLimit: 150000,
+    resumeGenerationsPerDay: 10,
+  },
+  [Plan.ULTRA]: {
+    chatSessionsPerDay: 10,
+    chatSessionTokenLimit: 300000,
+    resumeGenerationsPerDay: 30,
+  },
 };
 
 export function getPlanLimits(plan: Plan) {
   return PLAN_LIMITS[plan] ?? PLAN_LIMITS[Plan.BASIC];
 }
 
-// ponytail: feature gate — chat only available from INTERMEDIARY up
+// ponytail: feature gate — chat only available from PLUS up
 export function isChatAvailable(plan: Plan): boolean {
   return getPlanLimits(plan).chatSessionsPerDay > 0;
 }
 
 const PLAN_LABELS: Record<Plan, { name: string; price: string }> = {
-  [Plan.BASIC]: { name: "Básico", price: "R$29,99/mês" },
-  [Plan.INTERMEDIARY]: { name: "Intermediário", price: "R$59,99/mês" },
-  [Plan.PREMIUM]: { name: "Premium", price: "R$99,99/mês" },
+  [Plan.BASIC]: { name: "Básico", price: "R$29,90/mês" },
+  [Plan.PLUS]: { name: "Acelera.ai Plus", price: "R$49,90/mês" },
+  [Plan.ULTRA]: { name: "Acelera.ai Ultra", price: "R$99,90/mês" },
 };
 
 // ponytail: tier order for upgrade logic
-const PLAN_TIERS: Plan[] = [Plan.BASIC, Plan.INTERMEDIARY, Plan.PREMIUM];
+const PLAN_TIERS: Plan[] = [Plan.BASIC, Plan.PLUS, Plan.ULTRA];
 
 export function getPlanLabel(plan: Plan) {
   return PLAN_LABELS[plan] ?? PLAN_LABELS[Plan.BASIC];

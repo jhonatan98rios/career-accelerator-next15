@@ -27,3 +27,4 @@ Repository-specific operational rules discovered through interaction with the co
 - Add or change rules only with explicit user approval unless the user directly asks to save the rule.
 - Pages Router migration to App Router is incomplete — only `src/pages/profile/[profile_id]/output/[output_id]/index.tsx` remains.
 - No test infrastructure exists; `next build` is the only verification path.
+- Plan rename 2026-08-02: `INTERMEDIARY`/`PREMIUM` → `PLUS`/`ULTRA` (enum string values `"intermediary"`/`"premium"` → `"plus"`/`"ultra"`). Legacy MongoDB docs with old plan strings fall back to BASIC limits/label via `PLAN_LIMITS[plan] ?? BASIC` — acceptable, product had no users at migration time. New Stripe price IDs: `STRIPE_PLUS_MONTHLY_PRICE_ID` (`price_1U099rAqYxZT24KBkucS64GR`), `STRIPE_ULTRA_MONTHLY_PRICE_ID` (`price_1U09AEAqYxZT24KBgVOLT6uN`).

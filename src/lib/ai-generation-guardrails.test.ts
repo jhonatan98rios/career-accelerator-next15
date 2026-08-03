@@ -32,46 +32,46 @@ describe("getInsightGuardrailState", () => {
     expect(state.reason).toBe("allowed");
   });
 
-  it("PREMIUM: blocks at 1h ago (24h cooldown)", () => {
+  it("ULTRA: blocks at 1h ago (24h cooldown)", () => {
     const state = getInsightGuardrailState(
       {
         lastInsightGeneratedAt: hoursAgo(1),
       },
-      Plan.PREMIUM
+      Plan.ULTRA
     );
     expect(state.canGenerate).toBe(false);
     expect(state.reason).toBe("cooldown");
     expect(state.unlockAt).not.toBeNull();
   });
 
-  it("PREMIUM: allows after 25h (24h cooldown)", () => {
+  it("ULTRA: allows after 25h (24h cooldown)", () => {
     const state = getInsightGuardrailState(
       {
         lastInsightGeneratedAt: hoursAgo(25),
       },
-      Plan.PREMIUM
+      Plan.ULTRA
     );
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("allowed");
   });
 
-  it("INTERMEDIARY: blocks at 24h ago (48h cooldown)", () => {
+  it("PLUS: blocks at 24h ago (48h cooldown)", () => {
     const state = getInsightGuardrailState(
       {
         lastInsightGeneratedAt: hoursAgo(24),
       },
-      Plan.INTERMEDIARY
+      Plan.PLUS
     );
     expect(state.canGenerate).toBe(false);
     expect(state.reason).toBe("cooldown");
   });
 
-  it("INTERMEDIARY: allows after 49h (48h cooldown)", () => {
+  it("PLUS: allows after 49h (48h cooldown)", () => {
     const state = getInsightGuardrailState(
       {
         lastInsightGeneratedAt: hoursAgo(49),
       },
-      Plan.INTERMEDIARY
+      Plan.PLUS
     );
     expect(state.canGenerate).toBe(true);
     expect(state.reason).toBe("allowed");

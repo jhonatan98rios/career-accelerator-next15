@@ -335,14 +335,12 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
               className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
             >
               <option value="">Selecione um plano</option>
-              <option value={Plan.BASIC}>
-                Basico - R$29,99/mes - Insight e curriculo
+              <option value={Plan.BASIC}>Basico - R$29,90/mes - Insight e curriculo</option>
+              <option value={Plan.PLUS}>
+                Acelera.ai Plus - R$49,90/mes - Chat com IA + 10 curriculos/dia
               </option>
-              <option value={Plan.INTERMEDIARY}>
-                Intermediario - R$59,99/mes - Chat com IA + 10 curriculos/dia
-              </option>
-              <option value={Plan.PREMIUM}>
-                Premium - R$99,99/mes - Chat ilimitado + 30 curriculos/dia
+              <option value={Plan.ULTRA}>
+                Acelera.ai Ultra - R$99,90/mes - Chat ilimitado + 30 curriculos/dia
               </option>
             </select>
           </div>

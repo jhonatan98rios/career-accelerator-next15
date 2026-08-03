@@ -8,9 +8,9 @@ function insightCooldownMs(plan: Plan): number {
   switch (plan) {
     case Plan.BASIC:
       return 7 * DAY_IN_MS;
-    case Plan.INTERMEDIARY:
+    case Plan.PLUS:
       return 48 * 60 * 60 * 1000;
-    case Plan.PREMIUM:
+    case Plan.ULTRA:
       return DAY_IN_MS;
     default:
       return 7 * DAY_IN_MS; // fallback: conservative

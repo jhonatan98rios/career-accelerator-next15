@@ -282,7 +282,7 @@ export default function ChatPage() {
               ) : (
                 <div className="mt-6 space-y-3">
                   <p className="text-sm text-gray-500">
-                    O Chat Coach está disponível a partir do plano Intermediário.
+                    O Chat Coach está disponível a partir do plano Plus.
                   </p>
                   <a
                     href="./config"

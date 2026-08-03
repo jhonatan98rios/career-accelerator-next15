@@ -30,10 +30,10 @@ export default async function Page() {
     { "hero.title": 1, "hero.subtitle": 1, createdAt: 1, _id: 1 }
   ).sort({ createdAt: -1 });
 
-  const persona = await Persona.findOne(
+  const persona = (await Persona.findOne(
     { profile_id: user._id },
     { resume: 1, resumeGeneratedAt: 1 }
-  ).lean() as { resume?: Record<string, unknown>; resumeGeneratedAt?: Date } | null;
+  ).lean()) as { resume?: Record<string, unknown>; resumeGeneratedAt?: Date } | null;
 
   const roadmaps = await CareerRoadmap.find(
     { user_id: user._id },
@@ -70,7 +70,7 @@ export default async function Page() {
             ) : (
               <div className="flex-1 min-w-[180px]">
                 <p className="text-gray-600 font-medium">Chat</p>
-                <p className="text-gray-400 text-xs">Disponível a partir do Intermediário</p>
+                <p className="text-gray-400 text-xs">Disponível a partir do plano Plus</p>
               </div>
             )}
             <UsageBar
@@ -81,7 +81,7 @@ export default async function Page() {
             />
           </div>
           {(chatSessionsUsed > 0 && chatSessionsUsed >= limits.chatSessionsPerDay * 0.8) ||
-           (resumesUsed >= limits.resumeGenerationsPerDay * 0.8) ? (
+          resumesUsed >= limits.resumeGenerationsPerDay * 0.8 ? (
             <Link
               href={`/profile/${user.id}/config`}
               className="mt-3 inline-block text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-80"
@@ -130,7 +130,8 @@ export default async function Page() {
             />
           ) : (
             <p className="text-sm text-gray-500">
-              Gere um currículo otimizado com IA a partir da descrição da sua experiência profissional.
+              Gere um currículo otimizado com IA a partir da descrição da sua experiência
+              profissional.
             </p>
           )}
         </DashboardCard>
@@ -198,7 +199,9 @@ function DashboardCard({
   className?: string;
 }) {
   return (
-    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col ${className}`}>
+    <div
+      className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col ${className}`}
+    >
       <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
         <span>{icon}</span>
         {title}
@@ -237,18 +240,26 @@ function ResumeCardBody({
       {personal?.name != null && (
         <p className="font-semibold text-gray-800">{String(personal.name)}</p>
       )}
-      {summary && (
-        <p className="text-sm text-gray-500 line-clamp-3">{summary}</p>
-      )}
+      {summary && <p className="text-sm text-gray-500 line-clamp-3">{summary}</p>}
       <div className="flex gap-4 text-xs text-gray-400">
-        {experience > 0 && <span>{experience} experiência{experience > 1 ? "s" : ""}</span>}
-        {hardCount > 0 && <span>{hardCount} hard skill{hardCount > 1 ? "s" : ""}</span>}
-        {softCount > 0 && <span>{softCount} soft skill{softCount > 1 ? "s" : ""}</span>}
+        {experience > 0 && (
+          <span>
+            {experience} experiência{experience > 1 ? "s" : ""}
+          </span>
+        )}
+        {hardCount > 0 && (
+          <span>
+            {hardCount} hard skill{hardCount > 1 ? "s" : ""}
+          </span>
+        )}
+        {softCount > 0 && (
+          <span>
+            {softCount} soft skill{softCount > 1 ? "s" : ""}
+          </span>
+        )}
       </div>
       {date && (
-        <p className="text-xs text-gray-400">
-          Gerado em {date.toLocaleDateString("pt-BR")}
-        </p>
+        <p className="text-xs text-gray-400">Gerado em {date.toLocaleDateString("pt-BR")}</p>
       )}
       <DownloadButton jwtToken={jwtToken} />
     </div>
@@ -281,7 +292,9 @@ function UsageBar({
         <div
           style={{ width: `${pct}%` }}
           className={`h-full rounded-full transition-all duration-500 ${
-            nearLimit ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-purple-500 to-indigo-500"
+            nearLimit
+              ? "bg-gradient-to-r from-amber-400 to-orange-500"
+              : "bg-gradient-to-r from-purple-500 to-indigo-500"
           }`}
         />
       </div>

@@ -72,7 +72,7 @@ export default function Home() {
             <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[460px]">
               <h3 className="text-2xl font-bold text-purple-500">Básico</h3>
               <p className="mt-4 text-4xl font-extrabold">
-                R$29,99<span className="text-base font-normal">/mês</span>
+                R$29,90<span className="text-base font-normal">/mês</span>
               </p>
               <ul className="mt-6 space-y-3 text-gray-600">
                 <li>✅ Estatísticas de mercado</li>
@@ -91,42 +91,52 @@ export default function Home() {
               </TrackedLink>
             </div>
 
-            {/* Intermediate */}
-            <div className="border rounded-xl shadow-lg p-8 flex flex-col items-center opacity-60 min-h-[460px]">
-              <h3 className="text-2xl font-bold text-gray-500">Intermediário</h3>
-              <p className="mt-4 text-xl font-semibold text-gray-500">Em breve</p>
-              <ul className="mt-6 space-y-3 text-gray-400">
+            {/* Plus */}
+            <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[460px]">
+              <h3 className="text-2xl font-bold text-purple-500">Acelera.ai Plus</h3>
+              <p className="mt-4 text-4xl font-extrabold">
+                R$49,90<span className="text-base font-normal">/mês</span>
+              </p>
+              <ul className="mt-6 space-y-3 text-gray-600">
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
-                <li>✅ Currículo otimizado para cada vaga</li>
-                <li>✅ 120 tokens mensais </li>
+                <li>✅ Chat Coach com IA (3 sessões/dia)</li>
+                <li>✅ 10 currículos/dia</li>
+                <li>✅ 7 dias grátis para testar </li>
               </ul>
-              <button
-                disabled
-                className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed"
+              <TrackedLink
+                href="/auth/login?returnTo=/gateway"
+                navCategory="pricing"
+                navLabel="Ver mais"
+                className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform"
               >
-                Em breve
-              </button>
+                Ver mais
+              </TrackedLink>
             </div>
 
-            {/* Premium */}
-            <div className="border rounded-xl shadow-lg p-8 flex flex-col items-center opacity-60 min-h-[460px]">
-              <h3 className="text-2xl font-bold text-gray-500">Premium</h3>
-              <p className="mt-4 text-xl font-semibold text-gray-500">Em breve</p>
-              <ul className="mt-6 space-y-3 text-gray-400">
+            {/* Ultra */}
+            <div className="border rounded-xl shadow-lg p-8 flex flex-col items-center min-h-[460px]">
+              <h3 className="text-2xl font-bold text-gray-800">Acelera.ai Ultra</h3>
+              <p className="mt-4 text-4xl font-extrabold">
+                R$99,90<span className="text-base font-normal">/mês</span>
+              </p>
+              <ul className="mt-6 space-y-3 text-gray-600">
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
-                <li>✅ Currículo otimizado para cada vaga</li>
-                <li>✅ 300 tokens mensais </li>
+                <li>✅ Chat Coach com IA (10 sessões/dia)</li>
+                <li>✅ 30 currículos/dia</li>
+                <li>✅ 7 dias grátis para testar </li>
               </ul>
-              <button
-                disabled
-                className="mt-auto px-6 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed"
+              <TrackedLink
+                href="/auth/login?returnTo=/gateway"
+                navCategory="pricing"
+                navLabel="Ver mais"
+                className="mt-auto px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform"
               >
-                Em breve
-              </button>
+                Ver mais
+              </TrackedLink>
             </div>
           </div>
         </div>

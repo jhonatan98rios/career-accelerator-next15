@@ -113,7 +113,7 @@ function SideBarContent({
               });
               onLinkClick?.();
             }}
-            title="Disponível a partir do plano Intermediário"
+            title="Disponível a partir do plano Plus"
             className="hover:bg-purple-600 p-2 rounded-lg font-semibold flex items-center gap-2"
           >
             Conversar com IA
