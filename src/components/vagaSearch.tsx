@@ -8,7 +8,11 @@ type VagaLink = {
   highlighted: boolean;
 };
 
-function buildVagaUrl(keyword: string, datePosted: "past-24h" | "past-week" | "past-month", international: boolean): string {
+function buildVagaUrl(
+  keyword: string,
+  datePosted: "past-24h" | "past-week" | "past-month",
+  international: boolean
+): string {
   const hiringWord = international ? "hiring" : "contratando";
   const encoded = `%22${encodeURIComponent(keyword)}%22%20and%20%22${hiringWord}%22`;
   return `https://www.linkedin.com/search/results/content/?keywords=${encoded}&origin=FACETED_SEARCH&datePosted=%5B%22${datePosted}%22%5D`;
@@ -59,7 +63,7 @@ export default function VagaSearch({ initialKeyword }: Props) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto w-full min-h-96">
+    <div className="w-full min-h-96 -mx-8 md:-ml-80 md:-mr-14 lg:-ml-96 lg:-mr-20">
       <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
         Encontrar Vagas
       </h1>
@@ -95,7 +99,7 @@ export default function VagaSearch({ initialKeyword }: Props) {
       )}
 
       {loading && (
-        <div className="w-full max-w-lg space-y-4">
+        <div className="w-full grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="p-5 rounded-xl border border-gray-200 bg-gray-50 animate-pulse">
               <div className="h-5 bg-gray-200 rounded w-2/3 mb-3" />
@@ -106,7 +110,7 @@ export default function VagaSearch({ initialKeyword }: Props) {
       )}
 
       {!loading && links && (
-        <div className="w-full max-w-lg space-y-4">
+        <div className="w-full grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {links.map((link) => (
             <a
               key={link.label}
