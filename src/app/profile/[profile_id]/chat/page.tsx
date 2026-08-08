@@ -189,7 +189,7 @@ export default function ChatPage() {
   const selectedSession = sessions.find((s) => s.id === selectedId) ?? null;
 
   return (
-    <div className="max-w-3xl mx-auto flex min-h-[75vh] rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+    <div className="flex h-[calc(100dvh-6rem)] md:h-[calc(100dvh-7.5rem)] -mx-8 md:-ml-80 md:-mr-14 lg:-ml-96 lg:-mr-20 -mb-20 rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
       {/* Sidebar */}
       <ChatSidebar
         sessions={sessions}
@@ -238,23 +238,25 @@ export default function ChatPage() {
               </div>
             )}
 
-            {messages.map((m) => (
-              <ChatMessage key={m.id} message={m} />
-            ))}
+            <div className="max-w-3xl mx-auto">
+              {messages.map((m) => (
+                <ChatMessage key={m.id} message={m} />
+              ))}
 
-            {error && (
-              <div className="flex justify-center my-3">
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm text-center max-w-md">
-                  <p>{error}</p>
-                  <button
-                    onClick={() => setError(null)}
-                    className="mt-1.5 text-xs underline text-red-600 hover:text-red-800"
-                  >
-                    Dispensar
-                  </button>
+              {error && (
+                <div className="flex justify-center my-3">
+                  <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm text-center max-w-md">
+                    <p>{error}</p>
+                    <button
+                      onClick={() => setError(null)}
+                      className="mt-1.5 text-xs underline text-red-600 hover:text-red-800"
+                    >
+                      Dispensar
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <div ref={messagesEndRef} />
           </div>
