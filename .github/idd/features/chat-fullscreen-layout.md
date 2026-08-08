@@ -14,8 +14,8 @@ Rebuild the chat page's layout shell so the conversation list and message area u
       Verify: `grep -q "max-w-3xl mx-auto flex" "src/app/profile/[profile_id]/chat/page.tsx" && echo "STILL-CAPPED" || echo "UNCAPPED"` — Red: `STILL-CAPPED`; Green: `UNCAPPED` — **verde em 2026-08-07**
 - [x] AC-2 — O chat ocupa a altura total da viewport abaixo do header, sem gerar scroll vertical de página.
       Verify: `grep -q "100dvh" "src/app/profile/[profile_id]/chat/page.tsx" && grep -q -- "-mb-20" "src/app/profile/[profile_id]/chat/page.tsx" && echo "FULL-HEIGHT" || echo "NOT-FULL-HEIGHT"` — Red: `NOT-FULL-HEIGHT`; Green: `FULL-HEIGHT` — **verde em 2026-08-07**
-- [x] AC-3 — As margens negativas espelham exatamente o padding do `<main>` do profile layout (mobile, md e lg) e o topo NÃO é cancelado (o Header fixo flutua acima).
-      Verify: `grep -q -- "-mx-8 md:-ml-80 md:-mr-14 lg:-ml-96 lg:-mr-20" "src/app/profile/[profile_id]/chat/page.tsx" && echo "MIRRORED" || echo "NOT-MIRRORED"` — Red: `NOT-MIRRORED`; Green: `MIRRORED` — **verde em 2026-08-07**
+- [x] AC-3 — As margens negativas cancelam apenas o gap além da sidebar fixa (`w-64` = 256px): `md:-ml-16 lg:-ml-32`; o topo NÃO é cancelado (o Header fixo flutua acima).
+      Verify: `grep -q -- "md:-ml-16 md:-mr-14 lg:-ml-32 lg:-mr-20" "src/app/profile/[profile_id]/chat/page.tsx" && echo "MIRRORED" || echo "NOT-MIRRORED"` — Red: `NOT-MIRRORED`; Green: `MIRRORED` — **verde em 2026-08-07 (corrigido: gap-only, sem invadir a sidebar)**
 - [x] AC-4 — As mensagens mantêm coluna de leitura confortável em telas largas (wrapper interno `max-w-3xl mx-auto` ao redor da lista de mensagens e do erro), em vez de esticar até as bordas.
       Verify: `grep -A7 'overflow-y-auto px-4 py-4' "src/app/profile/[profile_id]/chat/page.tsx" | grep -q "max-w-3xl mx-auto" && echo "READABLE-COLUMN" || echo "NO-COLUMN"` — Red: `NO-COLUMN`; Green: `READABLE-COLUMN`; confirmed visually at 1920px width (manual) — **verde (grep) em 2026-08-07**
 - [ ] AC-5 — Composer permanece fixo no rodapé do chat em altura cheia, com textarea centralizado em `max-w-3xl`.
@@ -36,7 +36,7 @@ Cada AC executa o `Verify` antes (deve falhar) e depois (deve passar) da impleme
 ### Constraints
 
 - Alterar apenas `src/app/profile/[profile_id]/chat/page.tsx` — nenhum outro arquivo de fonte muda (layout, sidebar, composer, message são leitura-only)
-- Margens negativas devem espelhar `code::src/app/profile/[profile_id]/layout.tsx::ProfileLayout` `<main>`: `mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-24 md:mt-30 mb-20`
+- Margens negativas espelham apenas o gap além da sidebar fixa `w-64`: `md:-ml-16` (ml-80 − 256px) e `lg:-ml-32` (ml-96 − 256px); direita e mobile cancelados por completo (`-mx-8 md:-mr-14 lg:-mr-20`). NUNCA cancelar a margem esquerda inteira (`-ml-80`/`-ml-96`) — empurra o conteúdo para debaixo da sidebar
 - Altura do container: `h-[calc(100dvh-6rem)] md:h-[calc(100dvh-7.5rem)]` casando com `mt-24`/`md:mt-30` — o topo não é cancelado porque o Header fixo (z-50) flutua acima
 - `-mb-20` cancela a margem inferior do `<main>` para não gerar scroll vertical de página
 - Bubbles (`ChatMessage`) permanecem `max-w-[80%]`; a coluna interna `max-w-3xl` já limita a largura útil

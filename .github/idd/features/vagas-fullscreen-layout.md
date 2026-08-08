@@ -10,8 +10,8 @@ Rebuild the layout shell of `VagaSearch` so the search results use the full avai
 
 ## Acceptance Criteria
 
-- [ ] AC-1 — O container perde `max-w-3xl mx-auto` e ganha as margens negativas espelhadas do `<main>` do profile layout.
-      Verify: `grep -q -- "-mx-8 md:-ml-80 md:-mr-14 lg:-ml-96 lg:-mr-20" "src/components/vagaSearch.tsx" && echo "FULL-BLEED" || echo "CAPPED"` — Red: `CAPPED`; Green: `FULL-BLEED`
+- [x] AC-1 — O container perde `max-w-3xl mx-auto` e ganha as margens negativas espelhadas do `<main>` do profile layout (gap-only, respeitando a sidebar fixa `w-64`).
+      Verify: `grep -q -- "-mx-8 md:-ml-16 md:-mr-14 lg:-ml-32 lg:-mr-20" "src/components/vagaSearch.tsx" && echo "FULL-BLEED" || echo "CAPPED"` — Red: `CAPPED`; Green: `FULL-BLEED` — **verde em 2026-08-07 (corrigido: gap-only, sem invadir a sidebar)**
 - [ ] AC-2 — Resultados deixam de ser coluna única `max-w-lg` e viram grid responsivo (1 col mobile, 2 md, 3 lg).
       Verify: `grep -q "md:grid-cols-2" "src/components/vagaSearch.tsx" && grep -q "lg:grid-cols-3" "src/components/vagaSearch.tsx" && ! grep -q "max-w-lg" "src/components/vagaSearch.tsx" && echo "GRID" || echo "SINGLE-COLUMN"` — Red: `SINGLE-COLUMN`; Green: `GRID`
 - [ ] AC-3 — O skeleton de carregamento também usa o grid (mesmas colunas), sem saltar layout quando a resposta chega.
@@ -32,7 +32,7 @@ Cada AC executa o `Verify` antes (deve falhar) e depois (deve passar) da impleme
 ### Constraints
 
 - Alterar apenas `src/components/vagaSearch.tsx` — página e layout são read-only
-- Margens negativas espelham `code::src/app/profile/[profile_id]/layout.tsx::ProfileLayout` `<main>`: `mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20` (padrão idêntico ao `chat-fullscreen-layout`, sem topo/altura — a tela segue no fluxo normal da página)
+- Margens negativas espelham apenas o gap além da sidebar fixa `w-64`: `md:-ml-16` (ml-80 − 256px) e `lg:-ml-32` (ml-96 − 256px); direita e mobile cancelados por completo (`-mx-8 md:-mr-14 lg:-mr-20`). NUNCA cancelar a margem esquerda inteira (`-ml-80`/`-ml-96`) — empurra o conteúdo para debaixo da sidebar
 - Manter `min-h-96` e o fluxo vertical natural (não usar `100dvh` aqui — não é uma tela de app)
 - UI strings em pt-BR; comentários em inglês (`code::.github/idd/learned.md` style rule)
 

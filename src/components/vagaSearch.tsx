@@ -63,7 +63,7 @@ export default function VagaSearch({ initialKeyword }: Props) {
   };
 
   return (
-    <div className="w-full min-h-96 -mx-8 md:-ml-80 md:-mr-14 lg:-ml-96 lg:-mr-20">
+    <div className="w-full min-h-96 -mx-8 md:-ml-16 md:-mr-14 lg:-ml-32 lg:-mr-20">
       <h1 className="text-2xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">
         Encontrar Vagas
       </h1>

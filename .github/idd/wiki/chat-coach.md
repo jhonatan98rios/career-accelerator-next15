@@ -14,7 +14,7 @@ Career Coach chat: a ChatGPT-like interface in pt-BR where users converse with a
 
 **Layout model.** The chat is one flex panel: conversation list (left) + message area (right, with pinned composer). On mobile the conversation list is a drawer toggled by a hamburger; on desktop it is a static column. The panel is _full-bleed on desktop_: it escapes the padded `<main>` of the profile layout with negative margins mirrored from `layout.tsx`, spans from the fixed app `SideBar` to the viewport right edge, and fills the viewport height below the fixed `Header`. Message bubbles keep a readable centered column (`max-w-3xl`) so wide screens don't stretch text edge-to-edge.
 
-**The escape-hatch constraint.** `layout.tsx`'s `<main>` uses `mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-24 md:mt-30 mb-20`. The chat cancels exactly those paddings (`-mx-8 md:-ml-80 md:-mr-14 lg:-ml-96 lg:-mr-20 -mb-20`) and sets `h-[calc(100dvh-6rem)] md:h-[calc(100dvh-7.5rem)]` to match the top margin. If the layout's margins change, these mirrored classes must change with them — the top margin is NOT cancelled because the fixed `Header` floats above it.
+**The escape-hatch constraint.** `layout.tsx`'s `<main>` uses `mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-24 md:mt-30 mb-20`. The chat cancels only the _gap beyond the fixed `SideBar`_ (`w-64` = 256px): `md:ml-80` = 256 + 64 gap → `md:-ml-16`; `lg:ml-96` = 256 + 128 gap → `lg:-ml-32`. Right side and mobile are cancelled fully (`-mr-14`/`-mr-20`, `-mx-8`), plus `-mb-20`, and height is set to `h-[calc(100dvh-6rem)] md:h-[calc(100dvh-7.5rem)]` to match the top margin. The top margin is NOT cancelled because the fixed `Header` floats above it. Cancelling the full left margin (`-ml-80`/`-ml-96`) would slide content under the sidebar — never do that.
 
 ## Anchors
 
@@ -30,7 +30,7 @@ Career Coach chat: a ChatGPT-like interface in pt-BR where users converse with a
 
 ## Decisions
 
-- **2026-08-07 — Desktop layout: embedded box → full-bleed panel.** The chat previously rendered as a `max-w-3xl mx-auto min-h-[75vh]` card inside the padded `<main>`, reading as a small iframe on desktop. The container now escapes the layout padding with mirrored negative margins and fills the viewport height; message text stays in a centered `max-w-3xl` column for readability. Mobile (drawer) is unchanged. Constraint: the mirrored classes must track `layout.tsx`'s margins.
+- **2026-08-07 — Desktop layout: embedded box → full-bleed panel.** The chat previously rendered as a `max-w-3xl mx-auto min-h-[75vh]` card inside the padded `<main>`, reading as a small iframe on desktop. The container now escapes the layout padding with mirrored negative margins (gap-only, respecting the `w-64` sidebar) and fills the viewport height; message text stays in a centered `max-w-3xl` column for readability. Mobile (drawer) is unchanged. Constraint: the mirrored classes must track `layout.tsx`'s margins.
 
 ## Open Questions
 
