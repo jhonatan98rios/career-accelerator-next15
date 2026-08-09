@@ -71,7 +71,7 @@ function SideBarContent({
             });
             onLinkClick?.();
           }}
-          className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
+          className="hover:bg-purple-600 p-2 rounded-lg"
         >
           Novo Plano de Carreira
         </Link>
@@ -81,7 +81,7 @@ function SideBarContent({
             trackNavClick({ category: "sidebar", action: "click", label: "Gerar Currículo" });
             onLinkClick?.();
           }}
-          className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
+          className="hover:bg-purple-600 p-2 rounded-lg"
         >
           Gerar Currículo
         </Link>
@@ -98,29 +98,20 @@ function SideBarContent({
               trackNavClick({ category: "sidebar", action: "click", label: "Conversar com IA" });
               onLinkClick?.();
             }}
-            className="hover:bg-purple-600 p-2 rounded-lg font-semibold"
+            className="hover:bg-purple-600 p-2 rounded-lg"
           >
             Conversar com IA
           </Link>
         ) : (
-          <Link
-            href={`/profile/${id}/config`}
-            onClick={() => {
-              trackNavClick({
-                category: "sidebar",
-                action: "click",
-                label: "Conversar com IA (bloqueado)",
-              });
-              onLinkClick?.();
-            }}
+          <span
             title="Disponível a partir do plano Plus"
-            className="hover:bg-purple-600 p-2 rounded-lg font-semibold flex items-center gap-2"
+            className="p-2 rounded-lg opacity-40 cursor-not-allowed select-none flex items-center gap-2"
           >
             Conversar com IA
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 2a6 6 0 0 0-6 6v4H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V8a6 6 0 0 0-6-6zm4 10H8V8a4 4 0 1 1 8 0v4z" />
             </svg>
-          </Link>
+          </span>
         )}
         <MenuItem
           href={`/profile/${id}/config`}

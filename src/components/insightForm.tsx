@@ -83,13 +83,10 @@ const FieldTextarea = ({
   </div>
 );
 
-// ponytail: 307 lines vs 300 max — single render function, splitting adds indirection for a lint nit
-// eslint-disable-next-line max-lines-per-function
 export default function InsightForm({ jwtToken, insightGuardrail, compact = false }: Props) {
   const params = useParams();
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showExtras, setShowExtras] = useState(false);
 
   const { profile_id } = params as unknown as PageProps;
   const [isPending, startTransition] = useTransition();
@@ -155,7 +152,7 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
 
   useEffect(() => {
     resetForm();
-  }, []);
+  }, [resetForm]);
 
   // ponytail: cooldown block — banner at top of screen, form hidden entirely so the
   // user never fills a form they can't submit (frustration guard)
@@ -175,30 +172,22 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
       ? "Seu proximo plano pode ser gerado agora."
       : `Seu proximo insight sera liberado em ${formatDateTime(insightGuardrail.unlockAt)}.`;
 
-  // ponytail: count filled fields for progress bar
-  const essentialFields = compact
-    ? ["dreamJob", "experience", "hardSkills"]
-    : [
-        "dreamJob",
-        "experience",
-        "hardSkills",
-        "currentRole",
-        "education",
-        "softSkills",
-        "blockers",
-        "1-year-goals",
-      ];
-  const filledEssential = essentialFields.filter((k) =>
-    answers[k as keyof typeof answers]?.trim()
-  ).length;
-  const totalSteps = compact ? (showExtras ? 8 : 3) : 8;
-  const filledExtras =
-    compact && showExtras
-      ? ["currentRole", "education", "softSkills", "blockers", "1-year-goals"].filter((k) =>
-          answers[k as keyof typeof answers]?.trim()
-        ).length
-      : 0;
-  const progressPct = Math.round(((filledEssential + filledExtras) / totalSteps) * 100);
+  // ponytail: count filled fields for progress bar — all fields always visible now
+  const allFields = [
+    "currentRole",
+    "experience",
+    "dreamJob",
+    "1-year-goals",
+    "5-years-goals",
+    "10-years-goals",
+    "hardSkills",
+    "softSkills",
+    "education",
+    "blockers",
+  ];
+  const filledCount = allFields.filter((k) => answers[k as keyof typeof answers]?.trim()).length;
+  const allFilled = filledCount === allFields.length;
+  const progressPct = Math.round((filledCount / allFields.length) * 100);
 
   return (
     <form className="max-w-3xl mx-auto space-y-12" onSubmit={handleSubmit}>
@@ -221,175 +210,128 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
         </span>
       </div>
 
-      {/* Perguntas guiadas */}
+      {/* Perguntas por contexto */}
       <section className="space-y-8">
-        {/* 1. Cargo desejado */}
-        <FieldInput
-          label={compact ? "Qual cargo você busca?" : "Qual emprego você gostaria de ter?"}
-          name="dreamJob"
-          value={answers.dreamJob}
-          placeholder={
-            compact
-              ? "ex.: Desenvolvedor Frontend, Product Manager"
-              : "ex.: Especialista em inteligência artificial."
-          }
-          onChange={handleChange}
-        />
-
-        {/* 2. Experiência */}
-        <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            {compact ? "Qual seu nível de experiência?" : "Quanto tempo de experiência você tem?"}
-          </label>
-          {compact ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { label: "Júnior (0-2 anos)", value: "2 anos" },
-                { label: "Pleno (3-5 anos)", value: "4 anos" },
-                { label: "Sênior (6+ anos)", value: "8 anos" },
-              ].map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setAnswers({ ...answers, experience: opt.value })}
-                  className={`px-3 py-3 text-sm rounded-xl border-2 transition font-medium ${
-                    answers.experience === opt.value
-                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <input
-              name="experience"
-              type="text"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-              value={answers.experience}
-              onChange={handleChange}
-            />
-          )}
+        {/* 1. Seu emprego atual */}
+        <div className="space-y-8">
+          <h2 className="text-xl font-bold text-gray-900">💼 Seu emprego atual</h2>
+          <FieldInput
+            label="Qual é o seu cargo atual?"
+            name="currentRole"
+            value={answers.currentRole}
+            onChange={handleChange}
+          />
+          <div>
+            <label className="block font-medium mb-2 text-gray-700">
+              {compact ? "Qual seu nível de experiência?" : "Quanto tempo de experiência você tem?"}
+            </label>
+            {compact ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { label: "Júnior (0-2 anos)", value: "2 anos" },
+                  { label: "Pleno (3-5 anos)", value: "4 anos" },
+                  { label: "Sênior (6+ anos)", value: "8 anos" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setAnswers({ ...answers, experience: opt.value })}
+                    className={`px-3 py-3 text-sm rounded-xl border-2 transition font-medium ${
+                      answers.experience === opt.value
+                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <input
+                name="experience"
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                value={answers.experience}
+                onChange={handleChange}
+              />
+            )}
+          </div>
         </div>
 
-        {/* 3. Hard skills */}
-        <FieldInput
-          label="Quais são suas principais habilidades técnicas?"
-          name="hardSkills"
-          value={answers.hardSkills}
-          placeholder="ex.: JavaScript, SQL, Excel, Python"
-          hint="Separe por vírgulas — quanto mais específico, melhores serão suas vagas."
-          onChange={handleChange}
-        />
+        {/* 2. Seu objetivo */}
+        <div className="space-y-8">
+          <h2 className="text-xl font-bold text-gray-900">🎯 Seu objetivo</h2>
+          <FieldInput
+            label={compact ? "Qual cargo você busca?" : "Qual emprego você gostaria de ter?"}
+            name="dreamJob"
+            value={answers.dreamJob}
+            placeholder={
+              compact
+                ? "ex.: Desenvolvedor Frontend, Product Manager"
+                : "ex.: Especialista em inteligência artificial."
+            }
+            onChange={handleChange}
+          />
+          <FieldTextarea
+            label="O que você espera alcançar nos próximos 12 meses?"
+            name="1-year-goals"
+            value={answers["1-year-goals"]}
+            placeholder="ex.: Conseguir um aumento ou mudar de área."
+            onChange={handleChange}
+          />
+          <FieldTextarea
+            label="O que você espera alcançar nos próximos 5 anos?"
+            name="5-years-goals"
+            value={answers["5-years-goals"]}
+            placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior."
+            onChange={handleChange}
+          />
+          <FieldTextarea
+            label="O que você espera alcançar nos próximos 10 anos?"
+            name="10-years-goals"
+            value={answers["10-years-goals"]}
+            placeholder="ex.: Me tornar um especialista com carreira internacional."
+            onChange={handleChange}
+          />
+        </div>
 
-        {/* Expandable extras (compact mode only) */}
-        {compact && (
-          <>
-            {!showExtras ? (
-              <button
-                type="button"
-                onClick={() => setShowExtras(true)}
-                className="w-full py-3 text-sm font-medium text-purple-600 hover:text-purple-700 border-2 border-dashed border-purple-200 hover:border-purple-300 rounded-xl transition"
-              >
-                ✨ Quero um plano ainda mais personalizado (5 perguntas extras)
-              </button>
-            ) : (
-              <div className="space-y-8 pt-4 border-t border-gray-100">
-                <p className="text-sm text-gray-400">
-                  Essas perguntas ajudam a deixar seu plano mais preciso para o seu momento.
-                </p>
+        {/* 3. Suas habilidades e formação */}
+        <div className="space-y-8">
+          <h2 className="text-xl font-bold text-gray-900">🛠️ Suas habilidades e formação</h2>
+          <FieldInput
+            label="Quais são suas principais habilidades técnicas?"
+            name="hardSkills"
+            value={answers.hardSkills}
+            placeholder="ex.: JavaScript, SQL, Excel, Python"
+            hint="Separe por vírgulas — quanto mais específico, melhores serão suas vagas."
+            onChange={handleChange}
+          />
+          <FieldInput
+            label="Quais são suas principais soft skills?"
+            name="softSkills"
+            value={answers.softSkills}
+            placeholder="ex.: Comunicação, liderança, adaptabilidade."
+            onChange={handleChange}
+          />
+          <FieldInput
+            label="Você tem formação superior? Se sim, qual?"
+            name="education"
+            value={answers.education}
+            onChange={handleChange}
+          />
+        </div>
 
-                <FieldInput
-                  label="Qual é o seu cargo atual?"
-                  name="currentRole"
-                  value={answers.currentRole}
-                  onChange={handleChange}
-                />
-                <FieldInput
-                  label="Você tem formação superior? Se sim, qual?"
-                  name="education"
-                  value={answers.education}
-                  onChange={handleChange}
-                />
-                <FieldInput
-                  label="Quais são suas principais soft skills?"
-                  name="softSkills"
-                  value={answers.softSkills}
-                  placeholder="ex.: Comunicação, liderança, adaptabilidade."
-                  onChange={handleChange}
-                />
-                <FieldTextarea
-                  label="O que está bloqueando seu crescimento hoje?"
-                  name="blockers"
-                  value={answers.blockers}
-                  placeholder="ex.: Dificuldade em encontrar vagas remotas na minha área."
-                  onChange={handleChange}
-                />
-                <FieldTextarea
-                  label="O que você espera alcançar nos próximos 12 meses?"
-                  name="1-year-goals"
-                  value={answers["1-year-goals"]}
-                  placeholder="ex.: Conseguir um aumento ou mudar de área."
-                  onChange={handleChange}
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Full form (non-compact) — remaining fields */}
-        {!compact && (
-          <>
-            <FieldInput
-              label="Qual é o seu cargo atual?"
-              name="currentRole"
-              value={answers.currentRole}
-              onChange={handleChange}
-            />
-            <FieldInput
-              label="Você tem formação superior? Se sim, qual?"
-              name="education"
-              value={answers.education}
-              onChange={handleChange}
-            />
-            <FieldInput
-              label="Quais são suas principais soft skills?"
-              name="softSkills"
-              value={answers.softSkills}
-              placeholder="ex.: Comunicação, liderança, adaptabilidade."
-              onChange={handleChange}
-            />
-            <FieldTextarea
-              label="Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?"
-              name="blockers"
-              value={answers.blockers}
-              placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área."
-              onChange={handleChange}
-            />
-            <FieldTextarea
-              label="O que você espera alcançar nos próximos 12 meses?"
-              name="1-year-goals"
-              value={answers["1-year-goals"]}
-              placeholder="ex.: Começar uma faculdade."
-              onChange={handleChange}
-            />
-            <FieldTextarea
-              label="O que você espera alcançar nos próximos 5 anos?"
-              name="5-years-goals"
-              value={answers["5-years-goals"]}
-              placeholder="ex.: Aprender uma segunda lingua e conseguir um emprego remoto para o exterior."
-              onChange={handleChange}
-            />
-            <FieldTextarea
-              label="O que você espera alcançar nos próximos 10 anos?"
-              name="10-years-goals"
-              value={answers["10-years-goals"]}
-              placeholder="ex.: Me tornar um especialista com carreira internacional."
-              onChange={handleChange}
-            />
-          </>
-        )}
+        {/* 4. Seus desafios */}
+        <div className="space-y-8">
+          <h2 className="text-xl font-bold text-gray-900">🚧 Seus desafios</h2>
+          <FieldTextarea
+            label="Na sua percepção, quais são os maiores desafios que bloqueiam seu crescimento?"
+            name="blockers"
+            value={answers.blockers}
+            placeholder="ex.: Tenho dificuldade em encontrar vagas remotas na minha área."
+            onChange={handleChange}
+          />
+        </div>
       </section>
 
       {/* Note */}
@@ -406,9 +348,11 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
         />
       </section>
 
-      <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm">
-        {helperMessage}
-      </div>
+      {allFilled && (
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm">
+          {helperMessage}
+        </div>
+      )}
 
       {errorMessage && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -416,9 +360,13 @@ export default function InsightForm({ jwtToken, insightGuardrail, compact = fals
         </div>
       )}
 
-      {/* Botão de envio */}
+      {/* Botão de envio — blocked until all fields filled */}
       <div className="text-center">
-        <Button isPending={isPending} disabled={!insightGuardrail.canGenerate} compact={compact} />
+        <Button
+          isPending={isPending}
+          disabled={!insightGuardrail.canGenerate || !allFilled}
+          compact={compact}
+        />
       </div>
     </form>
   );
@@ -454,7 +402,7 @@ const Button = ({
           : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:scale-105 cursor-pointer"
       }`}
     >
-      {compact ? "Gerar meu plano gratuito →" : "Gerar meu roadmap"}
+      {compact ? "Gerar meu plano →" : "Gerar meu roadmap"}
     </button>
   );
 };

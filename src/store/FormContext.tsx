@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 
 interface Answers {
   currentRole: string;
@@ -46,7 +46,7 @@ export const FormProvider = ({ children }: { children: ReactNode }) => {
     "10-years-goals": "",
   });
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setManualDescription("");
     setAnswers({
       currentRole: "",
@@ -60,7 +60,7 @@ export const FormProvider = ({ children }: { children: ReactNode }) => {
       "5-years-goals": "",
       "10-years-goals": "",
     });
-  };
+  }, []);
 
   return (
     <FormContext.Provider

@@ -21,7 +21,7 @@ export default async function Header() {
 
   return (
     <header className="w-full fixed z-50 flex items-center px-6 pl-16 md:pl-6 bg-white shadow-sm">
-      <h1 className="flex-1 md:flex-none text-center md:text-left p-4 md:p-6 text-2xl font-extrabold whitespace-nowrap">
+      <h1 className="flex-1 text-center md:text-left p-4 md:p-6 text-2xl font-extrabold whitespace-nowrap">
         🚀 AcelerAi
       </h1>
 

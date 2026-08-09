@@ -35,6 +35,40 @@ const EMPTY_ADDRESS: BillingAddressState = {
   country: "BR",
 };
 
+// ponytail: shared field wrapper — 11 near-identical inputs, keeps GatewayForm under max-lines-per-function
+const Field = ({
+  label,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  disabled = false,
+  hint,
+}: {
+  label: string;
+  type?: string;
+  value: string;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  hint?: string;
+}) => (
+  <div>
+    <label className="block text-gray-700 font-semibold mb-2 text-left">{label}</label>
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={`w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 ${
+        disabled ? "text-gray-400" : "text-gray-700"
+      }`}
+    />
+    {hint && <p className="mt-2 text-left text-sm text-gray-500">{hint}</p>}
+  </div>
+);
+
 type ViaCepResponse = {
   erro?: boolean;
   logradouro?: string;
@@ -96,7 +130,21 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
     }
 
     if (res.status === HttpStatus.BAD_REQUEST && Array.isArray(data?.fields)) {
-      setMessage("Revise os dados fiscais obrigatorios antes de continuar.");
+      const fieldLabels: Record<string, string> = {
+        name: "nome",
+        billingEmail: "email de faturamento",
+        taxDocument: "cpf",
+        "billingAddress.cep": "cep",
+        "billingAddress.street": "logradouro",
+        "billingAddress.number": "numero",
+        "billingAddress.neighborhood": "bairro",
+        "billingAddress.city": "cidade",
+        "billingAddress.state": "uf",
+        "billingAddress.country": "pais",
+      };
+      const labels = data.fields.map((field: string) => fieldLabels[field] ?? field);
+      const missing = labels.join(", ").replace(/, ([^,]*)$/, " e $1");
+      setMessage(`Revise os dados fiscais obrigatorios (${missing}) antes de continuar.`);
       setMessageTone("error");
       return;
     }
@@ -189,140 +237,78 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
 
       {!isLoading && (
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">
-              E-mail da conta
-            </label>
-            <input
-              className="w-full p-3 text-gray-400 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              disabled
-              value={email}
-              type="email"
-            />
-          </div>
+          <Field label="E-mail da conta" type="email" value={email} disabled />
 
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">
-              Nome completo
-            </label>
-            <input
-              value={fullName}
-              onChange={(event) => setFullName(event.target.value)}
-              type="text"
-              placeholder="Digite o nome completo"
-              className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
+          <Field
+            label="Nome completo"
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            placeholder="Digite o nome completo"
+          />
 
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">
-              E-mail para faturamento
-            </label>
-            <input
-              value={billingEmail}
-              onChange={(event) => setBillingEmail(event.target.value)}
-              type="email"
-              placeholder="Digite o e-mail para receber a nota"
-              className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
+          <Field
+            label="E-mail para faturamento"
+            type="email"
+            value={billingEmail}
+            onChange={(event) => setBillingEmail(event.target.value)}
+            placeholder="Digite o e-mail para receber a nota"
+          />
 
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">CPF</label>
-            <input
-              value={taxDocument}
-              onChange={handleCpf}
-              type="text"
-              placeholder="Digite o CPF"
-              className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
+          <Field label="CPF" value={taxDocument} onChange={handleCpf} placeholder="Digite o CPF" />
 
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-left">CEP</label>
-            <input
-              value={billingAddress.cep}
-              onChange={handleCep}
-              type="text"
-              placeholder="Digite o CEP"
-              className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          <Field
+            label="CEP"
+            value={billingAddress.cep}
+            onChange={handleCep}
+            placeholder="Digite o CEP"
+            hint={isLookingUpCep ? "Consultando CEP..." : undefined}
+          />
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Field
+              label="Logradouro"
+              value={billingAddress.street}
+              onChange={(event) => updateBillingAddress("street", event.target.value)}
+              placeholder="Rua, avenida, travessa..."
             />
-            {isLookingUpCep && (
-              <p className="mt-2 text-left text-sm text-gray-500">Consultando CEP...</p>
-            )}
+            <Field
+              label="Numero"
+              value={billingAddress.number}
+              onChange={(event) => updateBillingAddress("number", event.target.value)}
+              placeholder="Numero"
+            />
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <label className="block text-gray-700 font-semibold mb-2 text-left">Logradouro</label>
-              <input
-                value={billingAddress.street}
-                onChange={(event) => updateBillingAddress("street", event.target.value)}
-                type="text"
-                placeholder="Rua, avenida, travessa..."
-                className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-2 text-left">Numero</label>
-              <input
-                value={billingAddress.number}
-                onChange={(event) => updateBillingAddress("number", event.target.value)}
-                type="text"
-                placeholder="Numero"
-                className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
+            <Field
+              label="Complemento (opcional)"
+              value={billingAddress.complement}
+              onChange={(event) => updateBillingAddress("complement", event.target.value)}
+              placeholder="Apartamento, bloco, sala..."
+            />
+            <Field
+              label="Bairro"
+              value={billingAddress.neighborhood}
+              onChange={(event) => updateBillingAddress("neighborhood", event.target.value)}
+              placeholder="Bairro"
+            />
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <label className="block text-gray-700 font-semibold mb-2 text-left">
-                Complemento
-              </label>
-              <input
-                value={billingAddress.complement}
-                onChange={(event) => updateBillingAddress("complement", event.target.value)}
-                type="text"
-                placeholder="Apartamento, bloco, sala..."
-                className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-2 text-left">Bairro</label>
-              <input
-                value={billingAddress.neighborhood}
-                onChange={(event) => updateBillingAddress("neighborhood", event.target.value)}
-                type="text"
-                placeholder="Bairro"
-                className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="md:col-span-1">
-              <label className="block text-gray-700 font-semibold mb-2 text-left">Cidade</label>
-              <input
-                value={billingAddress.city}
-                onChange={(event) => updateBillingAddress("city", event.target.value)}
-                type="text"
-                placeholder="Cidade"
-                className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-2 text-left">UF</label>
-              <input
-                value={billingAddress.state}
-                onChange={(event) =>
-                  updateBillingAddress("state", event.target.value.toUpperCase().slice(0, 2))
-                }
-                type="text"
-                placeholder="UF"
-                className="w-full p-3 text-gray-700 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
+            <Field
+              label="Cidade"
+              value={billingAddress.city}
+              onChange={(event) => updateBillingAddress("city", event.target.value)}
+              placeholder="Cidade"
+            />
+            <Field
+              label="UF"
+              value={billingAddress.state}
+              onChange={(event) =>
+                updateBillingAddress("state", event.target.value.toUpperCase().slice(0, 2))
+              }
+              placeholder="UF"
+            />
           </div>
 
           <div>

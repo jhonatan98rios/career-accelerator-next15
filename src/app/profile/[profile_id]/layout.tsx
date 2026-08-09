@@ -53,16 +53,24 @@ export default async function ProfileLayout({ children, params }: LayoutProps) {
     <div className="flex flex-col min-h-screen h-full bg-gray-50 text-gray-900">
       <Header />
       <div className="flex">
-        <SideBar
-          id={user.id}
-          insightGuardrail={insightGuardrail}
-          hasInsight={hasInsight}
-          chatEnabled={isChatAvailable(user.plan)}
-        />
+        {hasInsight && (
+          <SideBar
+            id={user.id}
+            insightGuardrail={insightGuardrail}
+            hasInsight={hasInsight}
+            chatEnabled={isChatAvailable(user.plan)}
+          />
+        )}
         <FirstAccessRedirect profileId={user.id} hasInsight={hasInsight} />
 
-        {/* Main content */}
-        <main className="flex-1 mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-24 md:mt-30 mb-20 space-y-10">
+        {/* Main content: centered when onboarding (no sidebar) */}
+        <main
+          className={
+            hasInsight
+              ? "flex-1 mx-8 md:ml-80 md:mr-14 lg:ml-96 lg:mr-20 mt-24 md:mt-30 mb-20 space-y-10"
+              : "flex-1 mx-8 md:mx-40 lg:mx-64 mt-24 md:mt-30 mb-20 space-y-10"
+          }
+        >
           {children}
         </main>
       </div>

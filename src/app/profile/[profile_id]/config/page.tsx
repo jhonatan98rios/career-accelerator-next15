@@ -183,7 +183,7 @@ async function ProfileForm({
             htmlFor="billing-complement"
             className="block text-sm font-semibold text-gray-700 mb-2"
           >
-            Complemento
+            Complemento (opcional)
           </label>
           <input
             id="billing-complement"
