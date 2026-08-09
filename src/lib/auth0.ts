@@ -11,6 +11,12 @@ export const auth0 = new Auth0Client({
   // domain: process.env.AUTH0_DOMAIN,
   // clientId: process.env.AUTH0_CLIENT_ID,
   // clientSecret: process.env.AUTH0_CLIENT_SECRET,
+  // appBaseUrl is not pinned here on purpose: on Vercel previews the SDK must
+  // infer the base URL from the request (x-forwarded-host) so login and callback
+  // land on the SAME host the user is browsing. A static APP_BASE_URL (e.g. the
+  // git-dev alias) makes the state cookie host-scoped to the login host while
+  // Auth0 redirects the callback to the pinned host -> cookie missing ->
+  // invalid_state. See .env.dev for env guidance.
   // appBaseUrl: process.env.APP_BASE_URL,
   // secret: process.env.AUTH0_SECRET,
   authorizationParameters: {
@@ -34,7 +40,12 @@ export const auth0 = new Auth0Client({
         status: 500,
       });
     }
-    const appBaseUrl = process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+    // Use ctx.appBaseUrl (SDK-resolved from the request when APP_BASE_URL is
+    // unset) so the post-login redirect stays on the host the user is on.
+    // Pinning to process.env.APP_BASE_URL here regressed dev preview logins:
+    // callback host != login host -> state cookie missing -> invalid_state.
+    const appBaseUrl =
+      ctx.appBaseUrl ?? process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
     if (!appBaseUrl) {
       await log(LogLevel.ERROR, "Auth0 callback: appBaseUrl not resolved", {});
       return new NextResponse("Configuration error.", { status: 500 });
