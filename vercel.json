@@ -1,0 +1,48 @@
+{
+  "security": {
+    "firewall": {
+      "rules": [
+        {
+          "name": "rate-limit-llm-insight",
+          "description": "LLM call mais cara — cooldown normal é 1/dia, bypass respeita 5/min",
+          "src": "/api/insight",
+          "action": {
+            "rateLimit": { "limit": 5, "window": "1m", "aggregateBy": "ip" }
+          }
+        },
+        {
+          "name": "rate-limit-llm-chat",
+          "description": "Chat SSE stream — multi-turn rápido cabe em 30/min",
+          "src": "/api/chat",
+          "action": {
+            "rateLimit": { "limit": 30, "window": "1m", "aggregateBy": "ip" }
+          }
+        },
+        {
+          "name": "rate-limit-llm-resume",
+          "description": "Geração de currículo — Ultra max 30/dia, 10/min seguro",
+          "src": "/api/resume",
+          "action": {
+            "rateLimit": { "limit": 10, "window": "1m", "aggregateBy": "ip" }
+          }
+        },
+        {
+          "name": "rate-limit-llm-roadmap",
+          "description": "Extensão de roadmap — completion-gated, bypass respeita 5/min",
+          "src": "/api/roadmap",
+          "action": {
+            "rateLimit": { "limit": 5, "window": "1m", "aggregateBy": "ip" }
+          }
+        },
+        {
+          "name": "rate-limit-register",
+          "description": "Registro — evita criação em massa",
+          "src": "/api/auth/register",
+          "action": {
+            "rateLimit": { "limit": 3, "window": "1h", "aggregateBy": "ip" }
+          }
+        }
+      ]
+    }
+  }
+}
