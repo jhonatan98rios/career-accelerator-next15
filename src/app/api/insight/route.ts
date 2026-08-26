@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { generateInsight } from "@/lib/llm";
 import { getRecentNotesContext } from "@/lib/chat-notes";
+import { ProfessionalProfile } from "@/models/ProfessionalProfile";
+import { formatProfessionalProfileForPrompt } from "@/lib/professional-profile";
 import { connectDB } from "@/lib/db";
 import { CareerInsight, ICareerInsight } from "@/models/CarrerInsight";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
@@ -68,6 +70,17 @@ export async function POST(req: Request) {
 
     const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
 
+    // Fetch professional profile for context
+    let profileContext = "";
+    try {
+      const professionalProfile = await ProfessionalProfile.findOne({ profile_id: user._id });
+      profileContext = formatProfessionalProfileForPrompt(professionalProfile);
+    } catch (profileErr) {
+      await log(LogLevel.WARN, "POST /insight: Failed to fetch professional profile, continuing", {
+        error: profileErr instanceof Error ? profileErr.message : String(profileErr),
+      });
+    }
+
     // Fetch recent chat notes for context
     let notesContext = "";
     try {
@@ -83,6 +96,7 @@ export async function POST(req: Request) {
       manualDescription,
       persona,
       notes: notesContext || undefined,
+      profileContext: profileContext || undefined,
     });
 
     if (!json) {

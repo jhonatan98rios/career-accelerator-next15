@@ -7,16 +7,20 @@ import type { Resume } from "./schema";
 
 const model = createModel();
 
-export type GenerateResult =
-  | { ok: true; data: Resume }
-  | { ok: false; error: string };
+export type GenerateResult = { ok: true; data: Resume } | { ok: false; error: string };
 
 /**
  * Generate a validated, normalized Resume from free-text input.
  *
  * Flow: input → LLM → JSON parse → Zod validate → normalize → Resume
  */
-export async function generate(input: string, userData?: UserData, language: "pt" | "en" = "pt", notes?: string): Promise<GenerateResult> {
+export async function generate(
+  input: string,
+  userData?: UserData,
+  language: "pt" | "en" = "pt",
+  notes?: string,
+  profileContext?: string
+): Promise<GenerateResult> {
   console.warn("[resume] step=start inputLength=%d hasUserData=%s", input.length, userData != null);
 
   // 1. LLM call — use raw messages to avoid LangChain template-parsing the JSON schema
@@ -24,14 +28,17 @@ export async function generate(input: string, userData?: UserData, language: "pt
   try {
     console.warn("[resume] step=llm-call");
     const response = await model.invoke([
-      new SystemMessage(getResumeSystemPrompt(userData, language, notes)),
+      new SystemMessage(getResumeSystemPrompt(userData, language, notes, profileContext)),
       new HumanMessage(input),
     ]);
     raw = (response.content as string) ?? "";
     console.warn("[resume] step=llm-done rawLength=%d", raw.length);
   } catch (err) {
     console.error("[resume] step=llm-failed", err);
-    return { ok: false, error: `LLM call failed: ${err instanceof Error ? err.message : String(err)}` };
+    return {
+      ok: false,
+      error: `LLM call failed: ${err instanceof Error ? err.message : String(err)}`,
+    };
   }
 
   // 2. Extract JSON from possible markdown fences
@@ -99,7 +106,7 @@ function sanitize(obj: Record<string, unknown>): void {
     const arr = obj[key];
     if (!Array.isArray(arr)) continue;
     obj[key] = arr.filter((item: Record<string, unknown>) =>
-      required.every((f) => typeof item[f] === "string" && item[f].trim().length > 0),
+      required.every((f) => typeof item[f] === "string" && item[f].trim().length > 0)
     );
   }
 
@@ -110,7 +117,7 @@ function sanitize(obj: Record<string, unknown>): void {
       const arr = skills[cat];
       if (Array.isArray(arr)) {
         skills[cat] = arr.filter(
-          (s: Record<string, unknown>) => typeof s.name === "string" && s.name.trim().length > 0,
+          (s: Record<string, unknown>) => typeof s.name === "string" && s.name.trim().length > 0
         );
       }
     }

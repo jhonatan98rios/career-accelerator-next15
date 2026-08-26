@@ -14,6 +14,7 @@ type InsightRequestInput = {
   answers: Record<string, string>;
   manualDescription: string;
   persona?: IPersona | null;
+  profileContext?: string;
 };
 
 const model = createModel();
@@ -23,6 +24,7 @@ export const generateInsight = async ({
   manualDescription,
   persona,
   notes,
+  profileContext,
 }: InsightRequestInput & { notes?: string }): Promise<string | null> => {
   const prompt = ChatPromptTemplate.fromMessages([
     ["system", getSystemPrompt(notes)],
@@ -36,12 +38,16 @@ export const generateInsight = async ({
     answers: JSON.stringify(answers, null, 2),
     manualDescription: manualDescription || "N/A",
     personaContext: formatPersonaForPrompt(persona),
+    profileContext: profileContext || "",
   });
 
   return response.content as string;
 };
 
-export const generateRoadmap = async (oldSteps: IStep[], notes?: string): Promise<string | null> => {
+export const generateRoadmap = async (
+  oldSteps: IStep[],
+  notes?: string
+): Promise<string | null> => {
   const systemPrompt = getRoadmapSystemPrompt(notes);
   const userPrompt = getRoadmapUserPrompt();
 

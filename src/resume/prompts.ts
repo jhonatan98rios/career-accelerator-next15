@@ -159,9 +159,10 @@ export const resumeExampleEn: Resume = {
 export function getResumeSystemPrompt(
   userData?: UserData,
   language: "pt" | "en" = "pt",
-  notes?: string
+  notes?: string,
+  profileContext?: string
 ): string {
-  const context = buildContext(userData, language);
+  const context = buildContext(userData, language, profileContext);
   const example = language === "en" ? resumeExampleEn : resumeExamplePt;
   const langName = language === "en" ? "English" : "Portuguese";
   const today = new Date().toISOString().split("T")[0];
@@ -342,10 +343,25 @@ function buildDirectionLines(ud: UserData, isEn: boolean): string[] {
   return lines;
 }
 
-function buildContext(userData?: UserData, language: "pt" | "en" = "pt"): string {
-  if (!userData) return "";
+function buildContext(
+  userData?: UserData,
+  language: "pt" | "en" = "pt",
+  profileContext?: string
+): string {
   const isEn = language === "en";
   const parts: string[] = [];
+
+  if (profileContext) {
+    parts.push(
+      (isEn
+        ? "## Professional Profile (written by the user — use as context, do NOT quote verbatim)"
+        : "## Perfil Profissional (escrito pelo usuário — usar como contexto, NÃO citar literalmente)") +
+        "\n" +
+        profileContext
+    );
+  }
+
+  if (!userData) return parts.join("\n\n");
 
   const profileLines = buildProfileLines(userData, isEn);
   if (profileLines.length > 0) {

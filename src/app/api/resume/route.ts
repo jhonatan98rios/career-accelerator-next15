@@ -9,6 +9,8 @@ import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 import { MAX_RESUME_INPUT_CHARS } from "@/lib/resume-constants";
 import { getRecentNotesContext } from "@/lib/chat-notes";
+import { ProfessionalProfile } from "@/models/ProfessionalProfile";
+import { formatProfessionalProfileForPrompt } from "@/lib/professional-profile";
 import { canGenerateResume, registerResumeGeneration } from "@/lib/usage-service";
 import { getPlanLimits } from "@/lib/plan-service";
 import { validateUserInput } from "@/lib/prompt-guard";
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
       return NextResponse.json({}, { status: HttpStatus.UNAUTHORIZED });
     }
 
-    const persona = await Persona.findOne({ profile_id: user._id }).lean() as IPersona | null;
+    const persona = (await Persona.findOne({ profile_id: user._id }).lean()) as IPersona | null;
 
     const userData: UserData = {
       name: user.name ?? undefined,
@@ -80,10 +82,7 @@ export async function POST(req: Request) {
         profileId: user._id.toString(),
         matched: inputCheck.matched,
       });
-      return NextResponse.json(
-        { error: inputCheck.error },
-        { status: HttpStatus.BAD_REQUEST }
-      );
+      return NextResponse.json({ error: inputCheck.error }, { status: HttpStatus.BAD_REQUEST });
     }
 
     // Fetch recent chat notes for context
@@ -96,8 +95,24 @@ export async function POST(req: Request) {
       });
     }
 
-    const result = await generate(input, userData, language === "en" ? "en" : "pt", notesContext || undefined);
+    // Fetch professional profile for context
+    let profileContext = "";
+    try {
+      const professionalProfile = await ProfessionalProfile.findOne({ profile_id: user._id });
+      profileContext = formatProfessionalProfileForPrompt(professionalProfile);
+    } catch (profileErr) {
+      await log(LogLevel.WARN, "POST /resume: Failed to fetch professional profile, continuing", {
+        error: profileErr instanceof Error ? profileErr.message : String(profileErr),
+      });
+    }
 
+    const result = await generate(
+      input,
+      userData,
+      language === "en" ? "en" : "pt",
+      notesContext || undefined,
+      profileContext || undefined
+    );
     if (!result.ok) {
       await log(LogLevel.ERROR, "Resume generation failed", { error: result.error });
       return NextResponse.json({ error: result.error }, { status: 500 });
@@ -116,17 +131,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: result.data });
   } catch (err) {
     if (err instanceof AuthError) {
-      return NextResponse.json(
-        { error: err.message, code: err.code },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 401 });
     }
     const message = err instanceof Error ? err.message : String(err);
     console.error("[resume] step=api-crash error=%s", message, err);
     await log(LogLevel.ERROR, "Resume API error", { error: message });
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -103,7 +103,8 @@ export const insightExample: InsightType = {
   roadmap: {
     title: "<string>",
     subtitle: "<string>",
-    objective: "<one clear, specific, realistic 6-month career goal derived from the user's profile — the ONE thing they will achieve by the end of this roadmap>",
+    objective:
+      "<one clear, specific, realistic 6-month career goal derived from the user's profile — the ONE thing they will achieve by the end of this roadmap>",
     steps: [
       {
         step: 1,
@@ -225,6 +226,8 @@ export const getUserPrompt = () => `
   - Manual Description: {manualDescription}
 
   {personaContext}
+
+  {profileContext}
 
   Use the latest job market data and trends to provide a comprehensive overview of opportunities, challenges, and recommendations for the user.
 `;

@@ -9,6 +9,8 @@ import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";
 import { Persona, IPersona } from "@/models/Persona";
+import { ProfessionalProfile } from "@/models/ProfessionalProfile";
+import { formatProfessionalProfileForPrompt } from "@/lib/professional-profile";
 import { ChatSession } from "@/models/ChatSession";
 import { ChatNotes } from "@/models/ChatNotes";
 import { generateChatNotes, getRecentNotesContext } from "@/lib/chat-notes";
@@ -137,6 +139,7 @@ export async function POST(req: Request) {
     // Fetch notes and persona for richer coaching context
     let notesContext = "";
     let personaSnapshot: PersonaSnapshot | undefined;
+    let profileContext = "";
     try {
       notesContext = await getRecentNotesContext(profileId);
     } catch (notesErr) {
@@ -179,6 +182,16 @@ export async function POST(req: Request) {
     } catch (dbErr) {
       // ponytail: persona fetch is best-effort — chat still works without it
       await log(LogLevel.WARN, "POST /api/chat: Failed to fetch persona, continuing without", {
+        error: dbErr instanceof Error ? dbErr.message : String(dbErr),
+      });
+    }
+
+    try {
+      const professionalProfile = await ProfessionalProfile.findOne({ profile_id: user._id });
+      profileContext = formatProfessionalProfileForPrompt(professionalProfile);
+    } catch (dbErr) {
+      // ponytail: profile fetch is best-effort — chat still works without it
+      await log(LogLevel.WARN, "POST /api/chat: Failed to fetch professional profile, continuing", {
         error: dbErr instanceof Error ? dbErr.message : String(dbErr),
       });
     }
@@ -226,7 +239,8 @@ export async function POST(req: Request) {
                 personaSnapshot,
                 out,
                 remainingBudget,
-                notesContext || undefined
+                notesContext || undefined,
+                profileContext || undefined
               );
               for await (const token of generator) {
                 if (cancelled) break;

@@ -31,7 +31,7 @@ describe("POST /api/resume — input length guard", () => {
     const maxCharsLine = lines.findIndex((l) =>
       l.includes("input.length > MAX_RESUME_INPUT_CHARS")
     );
-    const llmCallLine = lines.findIndex((l) => l.includes("generate(input, userData"));
+    const llmCallLine = lines.findIndex((l) => l.includes("await generate("));
     const connectDBLine = lines.findIndex((l) => l.includes("connectDB()"));
     const authLine = lines.findIndex((l) => l.includes("isAuthenticated(req.headers)"));
 
@@ -49,7 +49,7 @@ describe("POST /api/resume — input length guard", () => {
   it("emptiness check also precedes LLM call", () => {
     const lines = routeContent.split("\n");
     const emptyCheckLine = lines.findIndex((l) => l.includes("input.trim().length === 0"));
-    const llmCallLine2 = lines.findIndex((l) => l.includes("generate(input, userData"));
+    const llmCallLine2 = lines.findIndex((l) => l.includes("await generate("));
 
     expect(emptyCheckLine).toBeGreaterThan(0);
     expect(emptyCheckLine).toBeLessThan(llmCallLine2);

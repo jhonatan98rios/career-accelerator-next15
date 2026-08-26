@@ -27,6 +27,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - Email notifications via AWS SES
 - Datadog-structured logging (Vercel → DD HTTP intake)
 - Career roadmap CRUD with step-level status tracking
+- Professional profile section (perfil-profissional): user-edited "Quem sou eu" / "O que eu fiz" (experience list) / "O que eu pretendo fazer", injected as LLM context into insight, resume, and chat generation
 
 ## Runtime Topology
 
@@ -44,15 +45,16 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 
 ## Data Stores
 
-| Name          | Type             | Used By                                  | Notes                                                                                                                                                                   |
-| ------------- | ---------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Profile       | MongoDB/Mongoose | Auth, registration, user config          | Email-indexed, linked to Auth0 `externalAuthId`                                                                                                                         |
-| CareerInsight | MongoDB/Mongoose | LLM output, insight display              | Nested sections (hero, market snapshot, compensation, etc.)                                                                                                             |
-| CareerRoadmap | MongoDB/Mongoose | LLM output, step tracking                | Embedded steps array with status per step                                                                                                                               |
-| Persona       | MongoDB/Mongoose | LLM prompt enrichment, progress tracking | Career profile with zero PII, populated at 4 checkpoints (registration, insight generation, step completion, roadmap extension); upsert-on-first-write for legacy users |
-| Subscription  | MongoDB/Mongoose | Payment webhook, billing                 | Mirror of Stripe subscription state                                                                                                                                     |
-| Consent       | MongoDB/Mongoose | Legal compliance                         | Versioned event log per user                                                                                                                                            |
-| Term          | MongoDB/Mongoose | Legal compliance                         | Version registry of data-usage PDFs                                                                                                                                     |
+| Name                | Type             | Used By                                  | Notes                                                                                                                                                                   |
+| ------------------- | ---------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile             | MongoDB/Mongoose | Auth, registration, user config          | Email-indexed, linked to Auth0 `externalAuthId`                                                                                                                         |
+| CareerInsight       | MongoDB/Mongoose | LLM output, insight display              | Nested sections (hero, market snapshot, compensation, etc.)                                                                                                             |
+| CareerRoadmap       | MongoDB/Mongoose | LLM output, step tracking                | Embedded steps array with status per step                                                                                                                               |
+| Persona             | MongoDB/Mongoose | LLM prompt enrichment, progress tracking | Career profile with zero PII, populated at 4 checkpoints (registration, insight generation, step completion, roadmap extension); upsert-on-first-write for legacy users |
+| ProfessionalProfile | MongoDB/Mongoose | Profile section (who/experience/goals)   | One doc per user: running-text who/goals + experience item list; injected as LLM context into insight/resume/chat; upsert-on-first-write                                |
+| Subscription        | MongoDB/Mongoose | Payment webhook, billing                 | Mirror of Stripe subscription state                                                                                                                                     |
+| Consent             | MongoDB/Mongoose | Legal compliance                         | Versioned event log per user                                                                                                                                            |
+| Term                | MongoDB/Mongoose | Legal compliance                         | Version registry of data-usage PDFs                                                                                                                                     |
 
 ## Integrations
 
@@ -82,4 +84,9 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - `src/app/gateway/page.tsx` — Registration orchestration (profile + subscription + email + consent)
 - `src/pages/profile/[profile_id]/output/[output_id]/index.tsx` — Pages Router output page
 - `src/lib/ai-generation-guardrails.ts` — Shared eligibility logic for insight cooldown and roadmap retry rules
+- `src/lib/professional-profile.ts` — Formats the professional profile as LLM context (who/experience/goals), empty sections skipped
+- `src/app/actions/professional_profile.ts` — Server action for manual profile edits (validated, upsert)
+- `src/app/profile/[profile_id]/perfil-profissional/` — Server page + client component (textareas + experience list editor)
+- `src/models/ProfessionalProfile.ts` — Mongo model backing the section
+- `src/lib/prompt-builder.ts`, `src/resume/prompts.ts`, `src/lib/prompts.ts` — Templates that receive the profile as context
 - `src/lib/tax-profile.ts` — Shared fiscal-profile normalization and validation for manual invoicing data capture

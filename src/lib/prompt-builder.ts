@@ -6,13 +6,18 @@ import { PROMPT_SECURITY_GUARD } from "@/lib/prompt-guard";
 // All prompt text lives here; chat-service delegates to this class.
 
 export class PromptBuilder {
-  buildCareerCoachSystemPrompt(persona?: PersonaSnapshot, notes?: string): string {
+  buildCareerCoachSystemPrompt(
+    persona?: PersonaSnapshot,
+    notes?: string,
+    profile?: string
+  ): string {
     return [
       this.#date(),
       this.#identity(),
       this.#objective(),
       notes || "",
       persona ? this.#personaSection(persona) : "",
+      profile ? this.#profileSection(profile) : "",
       this.#principles(),
       this.#behavior(),
       this.#responseStructure(),
@@ -24,6 +29,11 @@ export class PromptBuilder {
   }
 
   // ── sections ──────────────────────────────────────────
+
+  #profileSection(profile: string): string {
+    return `## Perfil Profissional (escrito pelo usuário — use como contexto)
+${profile}`;
+  }
 
   #date(): string {
     return `Current date: ${new Date().toISOString().split("T")[0]}`;
@@ -90,39 +100,56 @@ Não use títulos, markdown complexo nem repita a pergunta do usuário.`;
 
     if (persona.currentRole) p.push(`- Cargo atual: ${persona.currentRole}`);
     if (persona.targetRole) p.push(`- Cargo desejado: ${persona.targetRole}`);
-    if (persona.yearsOfExperience != null) p.push(`- Anos de experiência: ${persona.yearsOfExperience}`);
+    if (persona.yearsOfExperience != null)
+      p.push(`- Anos de experiência: ${persona.yearsOfExperience}`);
     if (persona.careerStage) {
       const stageMap: Record<string, string> = {
-        entry: "iniciante", mid: "pleno", senior: "sênior", lead: "líder", executive: "executivo",
+        entry: "iniciante",
+        mid: "pleno",
+        senior: "sênior",
+        lead: "líder",
+        executive: "executivo",
       };
       p.push(`- Estágio de carreira: ${stageMap[persona.careerStage] ?? persona.careerStage}`);
     }
     if (persona.industries?.length) p.push(`- Setores: ${persona.industries.join(", ")}`);
     if (persona.employmentStatus) {
       const statusMap: Record<string, string> = {
-        employed: "empregado", unemployed: "desempregado", freelancer: "freelancer",
-        student: "estudante", retired: "aposentado",
+        employed: "empregado",
+        unemployed: "desempregado",
+        freelancer: "freelancer",
+        student: "estudante",
+        retired: "aposentado",
       };
       p.push(`- Situação: ${statusMap[persona.employmentStatus] ?? persona.employmentStatus}`);
     }
     if (persona.educationLevel) {
       const eduMap: Record<string, string> = {
-        high_school: "ensino médio", bootcamp: "bootcamp", bachelors: "graduação",
-        masters: "mestrado", phd: "doutorado", other: "outro",
+        high_school: "ensino médio",
+        bootcamp: "bootcamp",
+        bachelors: "graduação",
+        masters: "mestrado",
+        phd: "doutorado",
+        other: "outro",
       };
       p.push(`- Formação: ${eduMap[persona.educationLevel] ?? persona.educationLevel}`);
     }
     if (persona.fieldOfStudy) p.push(`- Área de formação: ${persona.fieldOfStudy}`);
-    if (persona.certifications?.length) p.push(`- Certificações: ${persona.certifications.join(", ")}`);
+    if (persona.certifications?.length)
+      p.push(`- Certificações: ${persona.certifications.join(", ")}`);
     if (persona.hardSkills?.length) p.push(`- Hard skills: ${persona.hardSkills.join(", ")}`);
     if (persona.softSkills?.length) p.push(`- Soft skills: ${persona.softSkills.join(", ")}`);
     if (persona.languages?.length) {
-      p.push(`- Idiomas: ${persona.languages.map((l) => `${l.language} (${l.proficiency})`).join(", ")}`);
+      p.push(
+        `- Idiomas: ${persona.languages.map((l) => `${l.language} (${l.proficiency})`).join(", ")}`
+      );
     }
     if (persona.tools?.length) p.push(`- Ferramentas: ${persona.tools.join(", ")}`);
-    if (persona.weeklyStudyHours != null) p.push(`- Horas de estudo/semana: ${persona.weeklyStudyHours}`);
+    if (persona.weeklyStudyHours != null)
+      p.push(`- Horas de estudo/semana: ${persona.weeklyStudyHours}`);
     if (persona.remotePreference) p.push(`- Preferência de trabalho: ${persona.remotePreference}`);
-    if (persona.willingToRelocate != null) p.push(`- Disponibilidade para mudança: ${persona.willingToRelocate ? "sim" : "não"}`);
+    if (persona.willingToRelocate != null)
+      p.push(`- Disponibilidade para mudança: ${persona.willingToRelocate ? "sim" : "não"}`);
     if (persona.shortTermGoal) p.push(`- Meta de curto prazo: ${persona.shortTermGoal}`);
     if (persona.mediumTermGoal) p.push(`- Meta de médio prazo: ${persona.mediumTermGoal}`);
     if (persona.longTermGoal) p.push(`- Meta de longo prazo: ${persona.longTermGoal}`);
