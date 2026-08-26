@@ -26,15 +26,6 @@ export default async function Header() {
       </h1>
 
       <TrackedLink
-        href={`/profile/${user?.id}/perfil-profissional`}
-        navCategory="header"
-        navLabel="Perfil Profissional"
-        className="hidden md:inline-flex items-center gap-2 mr-4 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-semibold hover:opacity-90 transition"
-      >
-        Perfil Profissional
-      </TrackedLink>
-
-      <TrackedLink
         href={`/profile/${user?.id}/config`}
         navCategory="header"
         navLabel={user?.name || "Perfil"}

@@ -114,6 +114,12 @@ function SideBarContent({
           </span>
         )}
         <MenuItem
+          href={`/profile/${id}/perfil-profissional`}
+          label="Perfil Profissional"
+          disabled={!hasInsight}
+          onClick={onLinkClick}
+        />
+        <MenuItem
           href={`/profile/${id}/config`}
           label="Configurações"
           disabled={!hasInsight}

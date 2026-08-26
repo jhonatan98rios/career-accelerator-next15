@@ -34,7 +34,7 @@ O perfil é **dado do usuário**: entra nos prompts como contexto ("use como con
 - `code::src/models/ProfessionalProfile.ts::IExperienceItem` — item da lista do meio (title/period/description)
 - `code::src/lib/professional-profile.ts::formatProfessionalProfileForPrompt` — formatter para contexto LLM
 - `code::src/app/actions/professional_profile.ts::saveProfessionalProfile` — edição manual (limites + prompt injection + upsert)
-- `code::src/components/header.tsx::Header` — botão da navbar
+- `code::src/components/sideBar.tsx::SideBar` — item de menu na sidebar
 - `code::src/app/profile/[profile_id]/perfil-profissional/page.tsx::Page` — página servidora
 - `code::src/app/profile/[profile_id]/perfil-profissional/ProfileSections.tsx::ProfileSections` — UI das 3 seções
 - `code::src/app/api/insight/route.ts::POST` — injeta profileContext no insight
@@ -59,6 +59,6 @@ O perfil é **dado do usuário**: entra nos prompts como contexto ("use como con
 - `src/lib/professional-profile.ts` + `src/lib/professional-profile.test.ts` — formatter e testes
 - `src/app/actions/professional_profile.ts` — action de edição manual
 - `src/app/profile/[profile_id]/perfil-profissional/` — página + componente cliente
-- `src/components/header.tsx` — botão na navbar
+- `src/components/sideBar.tsx` — item de menu na sidebar
 - `src/app/api/insight/route.ts`, `src/app/api/resume/route.ts`, `src/app/api/chat/route.ts` — injeção de contexto
 - `src/lib/prompt-builder.ts`, `src/resume/prompts.ts`, `src/lib/prompts.ts` — templates com a seção de perfil

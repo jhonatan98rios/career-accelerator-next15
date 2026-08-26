@@ -26,8 +26,8 @@ O conteúdo alimenta os fluxos de geração como contexto: `POST /api/insight`, 
       Verify: `rg -n "saveProfessionalProfile|validateUserInput|findOneAndUpdate" src/app/actions/professional_profile.ts` ✓
 - [x] AC-5: Página `perfil-profissional/page.tsx` renderiza as 3 seções; `ProfileSections.tsx` permite edição manual (textarea para who/goals, lista com add/remove para experience).
       Verify: `rg -n "Adicionar experiência|Editar" "src/app/profile/[profile_id]/perfil-profissional/ProfileSections.tsx"` ✓
-- [x] AC-6: Botão na navbar (`src/components/header.tsx`) aponta para `/profile/:id/perfil-profissional`.
-      Verify: `rg -n "perfil-profissional" src/components/header.tsx` ✓
+- [x] AC-6: Item de menu no sidebar (`src/components/sideBar.tsx`) aponta para `/profile/:id/perfil-profissional`, junto aos demais menus.
+      Verify: `rg -n "perfil-profissional" src/components/sideBar.tsx` ✓
 - [x] AC-7: Rota `POST /api/insight` busca o perfil e passa `profileContext` para `generateInsight` → template `getUserPrompt` com `{profileContext}`.
       Verify: `rg -n "profileContext" src/app/api/insight/route.ts src/lib/llm.ts src/lib/prompts.ts` ✓
 - [x] AC-8: Rota `POST /api/resume` busca o perfil e passa `profileContext` para `generate` → `getResumeSystemPrompt` → `buildContext`.
@@ -146,5 +146,5 @@ Modelo ProfessionalProfile (Mongoose)
 | `code::src/app/api/chat/route.ts::POST`                                       | source     | Injeta profileContext no chat coach.                 |
 | `code::src/lib/prompt-builder.ts::PromptBuilder.buildCareerCoachSystemPrompt` | source     | System prompt do chat com seção de perfil.           |
 | `code::src/resume/prompts.ts::getResumeSystemPrompt`                          | source     | System prompt do currículo com perfil como contexto. |
-| `code::src/components/header.tsx::Header`                                     | source     | Navbar com botão para a seção.                       |
+| `code::src/components/sideBar.tsx::SideBar`                                   | source     | Sidebar com item de menu para a seção.               |
 | `wiki::professional-profile::mental-model`                                    | wiki       | Modelo mental da seção e integração.                 |
