@@ -47,10 +47,13 @@ export async function saveProfessionalProfile(patch: SavePatch) {
 
   if (patch.who !== undefined) {
     $set.who = checkInput(patch.who, MAX_SECTION_CHARS, "Quem sou eu");
+    // ponytail: manual save locks the section against agent overwrite
+    $set.whoEditedByUser = true;
   }
 
   if (patch.goals !== undefined) {
     $set.goals = checkInput(patch.goals, MAX_SECTION_CHARS, "O que pretendo fazer");
+    $set.goalsEditedByUser = true;
   }
 
   if (patch.experience !== undefined) {

@@ -42,8 +42,8 @@ Você recebe os dados de carreira do usuário (respostas do questionário, descr
 Tarefa: identificar informações RELEVANTES para o perfil profissional que ainda NÃO estão presentes nele.
 Regras:
 - Inclua APENAS dados explicitamente presentes nos dados fornecidos. NÃO invente, não infira, não generalize.
-- "who": texto corrido sobre quem o usuário é profissionalmente (função atual, área, nível). Use SOMENTE se o campo atual estiver vazio.
-- "goals": texto corrido sobre o que o usuário pretende fazer (objetivos de carreira). Use SOMENTE se o campo atual estiver vazio.
+- "who": texto corrido sobre quem o usuário é profissionalmente (função atual, área, nível). Se estiver vazio, escreva um resumo. Se já tiver conteúdo e os dados novos o enriquecem, retorne a versão COMPLETA ATUALIZADA (conteúdo atual + melhorias). Se não quiser alterar o conteúdo atual, OMITA o campo.
+- "goals": idem — se vazio, escreva; se enriquecer, retorne a versão COMPLETA ATUALIZADA; se não, OMITA.
 - "experience": itens de experiência (title, period, description). Inclua APENAS itens cujo título ainda não existe no perfil atual.
 - Se não houver nada novo, retorne {}.
 Responda SOMENTE com JSON válido, sem markdown.`;
@@ -56,6 +56,8 @@ const USER_PROMPT = `Dados de carreira:
 
 Perfil profissional atual:
 {profileContext}
+
+Campos bloqueados (editados pelo usuário, NÃO alterar): {lockedFields}
 
 Extraia as informações novas e relevantes para o perfil profissional.`;
 
@@ -116,12 +118,19 @@ function normalizeTitle(title: string): string {
 }
 
 /**
- * Builds the additive MongoDB update for the current profile. who/goals are
- * only set when currently empty; experience items are appended only when
+ * Builds the additive MongoDB update for the current profile.
+ *
+ * who/goals: fully blocked when the user manually edited them
+ * (whoEditedByUser/goalsEditedByUser). Otherwise the extracted value is the
+ * COMPLETE updated version (current text + enrichment) and overwrites the
+ * field; identical text is skipped. experience: items are appended only when
  * their normalized title is not already present.
  */
 export function buildEnrichmentUpdate(
-  current: Pick<IProfessionalProfile, "who" | "experience" | "goals"> | null,
+  current: Pick<
+    IProfessionalProfile,
+    "who" | "experience" | "goals" | "whoEditedByUser" | "goalsEditedByUser"
+  > | null,
   extracted: EnrichmentExtraction
 ): { $set: Record<string, string>; $push?: Record<string, unknown> } {
   const $set: Record<string, string> = {};
@@ -133,8 +142,12 @@ export function buildEnrichmentUpdate(
     (current?.experience ?? []).map((item) => normalizeTitle(item.title ?? ""))
   );
 
-  if (extracted.who && !currentWho) $set.who = extracted.who;
-  if (extracted.goals && !currentGoals) $set.goals = extracted.goals;
+  if (extracted.who && !current?.whoEditedByUser && extracted.who !== currentWho) {
+    $set.who = extracted.who;
+  }
+  if (extracted.goals && !current?.goalsEditedByUser && extracted.goals !== currentGoals) {
+    $set.goals = extracted.goals;
+  }
 
   const newItems = (extracted.experience ?? []).filter(
     (item) => !existingTitles.has(normalizeTitle(item.title))
@@ -171,11 +184,17 @@ export async function enrichProfessionalProfile({
       ["system", SYSTEM_PROMPT],
       ["user", USER_PROMPT],
     ]);
+    const lockedFields =
+      [current?.whoEditedByUser ? "who" : null, current?.goalsEditedByUser ? "goals" : null]
+        .filter(Boolean)
+        .join(", ") || "nenhum";
+
     const response = await prompt.pipe(model).invoke({
       answers: JSON.stringify(answers ?? {}, null, 2),
       manualDescription: manualDescription?.trim() || "N/A",
       personaContext: formatPersonaForPrompt(persona),
       profileContext: formatProfessionalProfileForPrompt(current) || "(vazio)",
+      lockedFields,
     });
 
     const extracted = parseEnrichmentResponse(response.content as string);

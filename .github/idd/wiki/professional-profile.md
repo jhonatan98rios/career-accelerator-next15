@@ -45,14 +45,15 @@ O perfil é **dado do usuário**: entra nos prompts como contexto ("use como con
 
 ## Decisions
 
-- **Sem escrita agêntica nesta versão**: rota `/api/profile-section` e guardrails `canAgentEdit`/`applyAgentWrite` foram removidos. Se o produto quiser "Gerar com IA" de novo, o ponto de entrada deve reutilizar `formatProfessionalProfileForPrompt` + a action de save — e as guardrails de proteção de conteúdo do usuário voltam com ele.
+- **Enriquecimento agêntico aditivo (durante o insight)**: ao gerar um insight, uma requisição **paralela separada** (`enrichProfessionalProfile`) envia as respostas do questionário, a descrição manual, a persona e o perfil atual, e pergunta ao modelo quais dados relevantes ao perfil ainda não estão nele. A aplicação é **aditiva e protegida por flag**: `who`/`goals` são totalmente bloqueados contra sobrescrita quando `whoEditedByUser`/`goalsEditedByUser` = true (setados no save manual); com flag false o agente pode enriquecer retornando a **versão completa atualizada** (conteúdo atual + melhorias) que sobrescreve o campo, ou omitindo-o se não quiser mudar; itens de experiência só anexados se o título não existe (dedup). Tudo com os mesmos limites de edição + `validateUserInput`. Nunca falha o insight (best-effort).
+- **Sem escrita agêntica interativa nesta versão**: botão "Gerar com IA" na página e tool-calling no chat não fazem parte desta iteração; o enriquecimento automático acima é o único ponto de escrita do agente, e é aditivo + flag-protected por design.
 - **Meio = lista estruturada** (`experience`), pontas = texto corrido (`who`/`goals`): formato de edição segue o conteúdo — lista para experiências, texto para resumo/objetivos.
 - **Contexto best-effort**: perfil esparso = bloco vazio no prompt (mesma política do persona — sem ruído de tokens).
-- **Edição manual validada**: `validateUserInput` + limites de tamanho antes de persistir; itens sem título são descartados.
+- **Edição manual validada**: `validateUserInput` + limites de tamanho antes de persistir; itens sem título são descartados; edição manual seta a flag de bloqueio.
 
 ## Open Questions
 
-- Voltar a ter geração agêntica (botão ou tool-calling no chat coach)? Se sim, reativar guardrails de proteção do conteúdo editado pelo usuário.
+- Mostrar ao usuário o que o agente adicionou (ex.: notificação após o insight)? Por ora o enriquecimento é silencioso — o usuário vê os dados novos na própria página de perfil.
 
 ## Evidence
 

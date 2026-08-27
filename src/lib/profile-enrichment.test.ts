@@ -4,8 +4,10 @@ import { parseEnrichmentResponse, buildEnrichmentUpdate } from "@/lib/profile-en
 
 const currentProfile = {
   who: "Desenvolvedor com 5 anos de experiência.",
+  whoEditedByUser: false,
   experience: [{ title: "Dev na Acme", period: "2020-2022", description: "Backend em Node." }],
   goals: "",
+  goalsEditedByUser: false,
 };
 
 describe("parseEnrichmentResponse", () => {
@@ -52,13 +54,37 @@ describe("parseEnrichmentResponse", () => {
 });
 
 describe("buildEnrichmentUpdate", () => {
-  it("fills empty goals but never overwrites a non-empty who", () => {
+  it("overwrites who/goals with the complete updated version when not user-edited", () => {
     const { $set } = buildEnrichmentUpdate(currentProfile, {
-      who: "Novo who (ignorado)",
+      who: "Desenvolvedor com 5 anos de experiência. Especialista em Node e AWS.",
       goals: "Objetivo novo",
     });
-    assert.equal($set.who, undefined);
+    assert.equal($set.who, "Desenvolvedor com 5 anos de experiência. Especialista em Node e AWS.");
     assert.equal($set.goals, "Objetivo novo");
+  });
+
+  it("blocks who entirely when user-edited", () => {
+    const { $set } = buildEnrichmentUpdate(
+      { ...currentProfile, whoEditedByUser: true },
+      { who: "tentativa de sobrescrita" }
+    );
+    assert.equal($set.who, undefined);
+  });
+
+  it("blocks goals entirely when user-edited", () => {
+    const { $set } = buildEnrichmentUpdate(
+      { ...currentProfile, goals: "Objetivo do usuário", goalsEditedByUser: true },
+      { goals: "tentativa de sobrescrita" }
+    );
+    assert.equal($set.goals, undefined);
+  });
+
+  it("skips identical text instead of rewriting it", () => {
+    const { $set } = buildEnrichmentUpdate(
+      { ...currentProfile, goals: "Mesmo texto" },
+      { goals: "Mesmo texto" }
+    );
+    assert.equal($set.goals, undefined);
   });
 
   it("appends only experience items whose title is new", () => {
@@ -74,7 +100,10 @@ describe("buildEnrichmentUpdate", () => {
   });
 
   it("returns empty $set when there is nothing to change", () => {
-    const { $set, $push } = buildEnrichmentUpdate(currentProfile, { who: "ignorado" });
+    const { $set, $push } = buildEnrichmentUpdate(
+      { ...currentProfile, whoEditedByUser: true },
+      { who: "ignorado" }
+    );
     assert.deepEqual($set, {});
     assert.equal($push, undefined);
   });

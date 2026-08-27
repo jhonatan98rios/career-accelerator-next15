@@ -27,7 +27,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - Email notifications via AWS SES
 - Datadog-structured logging (Vercel → DD HTTP intake)
 - Career roadmap CRUD with step-level status tracking
-- Professional profile section (perfil-profissional): user-edited "Quem sou eu" / "O que eu fiz" (experience list) / "O que eu pretendo fazer", injected as LLM context into insight, resume, and chat generation; a parallel additive enrichment pass during insight generation extracts missing profile data from the questionnaire inputs + persona (best-effort, never overwrites user text)
+- Professional profile section (perfil-profissional): user-edited "Quem sou eu" / "O que eu fiz" (experience list) / "O que eu pretendo fazer", injected as LLM context into insight, resume, and chat generation; a parallel additive enrichment pass during insight generation extracts missing profile data from the questionnaire inputs + persona — who/goals are overwrite-blocked by whoEditedByUser/goalsEditedByUser flags (set on manual save), otherwise the agent returns the complete updated text, experience appended deduped by title (best-effort)
 
 ## Runtime Topology
 
@@ -84,7 +84,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - `src/app/gateway/page.tsx` — Registration orchestration (profile + subscription + email + consent)
 - `src/pages/profile/[profile_id]/output/[output_id]/index.tsx` — Pages Router output page
 - `src/lib/ai-generation-guardrails.ts` — Shared eligibility logic for insight cooldown and roadmap retry rules
-- `src/lib/profile-enrichment.ts` — Parallel additive enrichment during insight generation: extra LLM request (JSON mode) finds profile data missing from the questionnaire/persona and appends it (who/goals only if empty, experience deduped by title; best-effort)
+- `src/lib/profile-enrichment.ts` — Parallel additive enrichment during insight generation: extra LLM request (JSON mode) finds profile data missing from the questionnaire/persona and applies it — who/goals blocked by editedByUser flags, else complete-version overwrite; experience appended deduped by title; best-effort
 - `src/lib/professional-profile.ts` — Formats the professional profile as LLM context (who/experience/goals), empty sections skipped; shared edit limits
 - `src/app/actions/professional_profile.ts` — Server action for manual profile edits (validated, upsert)
 - `src/app/profile/[profile_id]/perfil-profissional/` — Server page + client component (textareas + experience list editor)
