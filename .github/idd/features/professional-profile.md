@@ -36,6 +36,12 @@ O conteúdo alimenta os fluxos de geração como contexto: `POST /api/insight`, 
       Verify: `rg -n "profileContext" src/app/api/chat/route.ts src/lib/chat-service.ts src/lib/prompt-builder.ts` ✓
 - [x] AC-10: `next build` passa (gate real do repo; `tsc --noEmit` isolado falha pré-existente em testes por `expect` global).
       Verify: `next build` → `✓ Compiled successfully` + rota ƒ /profile/[profile_id]/perfil-profissional ✓
+- [x] AC-11: `enrichProfessionalProfile()` em `src/lib/profile-enrichment.ts` roda em **requisição paralela separada** durante a geração de insight (`Promise.all` na rota), nunca dentro da requisição de insight já existente.
+      Verify: `rg -n "Promise.all|enrichProfessionalProfile" src/app/api/insight/route.ts` ✓
+- [x] AC-12: A requisição paralela envia todos os dados (respostas do questionário, descrição manual, persona, perfil atual) e pergunta ao modelo quais dados relevantes ao `ProfessionalProfile` ainda não estão nele; resposta em JSON mode.
+      Verify: `rg -n "SYSTEM_PROMPT|response_format|profileContext" src/lib/profile-enrichment.ts` ✓
+- [x] AC-13: A escrita é **aditiva e segura**: `who`/`goals` só preenchidos se vazios, itens de experiência só anexados se o título não existir, tudo com os mesmos limites de edição + `validateUserInput`; falha do enriquecimento nunca afeta o insight (best-effort).
+      Verify: `node --import tsx --require ./test-setup.ts --test src/lib/profile-enrichment.test.ts` — 8 testes passam ✓
 
 ## TDD
 
@@ -54,7 +60,7 @@ O conteúdo alimenta os fluxos de geração como contexto: `POST /api/insight`, 
 
 ### Out of Scope
 
-- Escrita agêntica (botão "Gerar com IA", tool-calling no chat) — removida por decisão do produto; reabrir via `git history` se voltar
+- Escrita agêntica interativa (botão "Gerar com IA" na página, tool-calling no chat) — não faz parte desta iteração; o enriquecimento automático durante o insight é aditivo e não substitui a edição manual
 - Histórico de versões por seção
 - Limites de uso para edições (edição manual não custa LLM)
 
@@ -123,28 +129,34 @@ Modelo ProfessionalProfile (Mongoose)
 
 ## Glossary
 
-| Location                                                                      | Type       | Description                                          |
-| ----------------------------------------------------------------------------- | ---------- | ---------------------------------------------------- |
-| `feature::professional-profile::ac-1`                                         | acceptance | Modelo ProfessionalProfile (who/experience/goals).   |
-| `feature::professional-profile::ac-2`                                         | acceptance | Formatter para prompts.                              |
-| `feature::professional-profile::ac-3`                                         | acceptance | Testes do formatter.                                 |
-| `feature::professional-profile::ac-4`                                         | acceptance | Server action de edição manual.                      |
-| `feature::professional-profile::ac-5`                                         | acceptance | Página + UI de edição (lista de experiências).       |
-| `feature::professional-profile::ac-6`                                         | acceptance | Botão na navbar.                                     |
-| `feature::professional-profile::ac-7`                                         | acceptance | Contexto injetado no insight.                        |
-| `feature::professional-profile::ac-8`                                         | acceptance | Contexto injetado no currículo.                      |
-| `feature::professional-profile::ac-9`                                         | acceptance | Contexto injetado no chat.                           |
-| `feature::professional-profile::ac-10`                                        | acceptance | next build passa.                                    |
-| `code::src/models/ProfessionalProfile.ts::IProfessionalProfile`               | source     | Interface do modelo.                                 |
-| `code::src/models/ProfessionalProfile.ts::IExperienceItem`                    | source     | Item de experiência (title/period/description).      |
-| `code::src/models/ProfessionalProfile.ts::ProfessionalProfile`                | source     | Modelo Mongoose exportado.                           |
-| `code::src/lib/professional-profile.ts::formatProfessionalProfileForPrompt`   | source     | Formata perfil → contexto LLM.                       |
-| `code::src/lib/professional-profile.ts::MAX_SECTION_CHARS`                    | source     | Limite de caracteres who/goals.                      |
-| `code::src/app/actions/professional_profile.ts::saveProfessionalProfile`      | source     | Edição manual validada + persistida.                 |
-| `code::src/app/api/insight/route.ts::POST`                                    | source     | Injeta profileContext na geração de insight.         |
-| `code::src/app/api/resume/route.ts::POST`                                     | source     | Injeta profileContext na geração de currículo.       |
-| `code::src/app/api/chat/route.ts::POST`                                       | source     | Injeta profileContext no chat coach.                 |
-| `code::src/lib/prompt-builder.ts::PromptBuilder.buildCareerCoachSystemPrompt` | source     | System prompt do chat com seção de perfil.           |
-| `code::src/resume/prompts.ts::getResumeSystemPrompt`                          | source     | System prompt do currículo com perfil como contexto. |
-| `code::src/components/sideBar.tsx::SideBar`                                   | source     | Sidebar com item de menu para a seção.               |
-| `wiki::professional-profile::mental-model`                                    | wiki       | Modelo mental da seção e integração.                 |
+| Location                                                                      | Type       | Description                                                    |
+| ----------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------- |
+| `feature::professional-profile::ac-1`                                         | acceptance | Modelo ProfessionalProfile (who/experience/goals).             |
+| `feature::professional-profile::ac-2`                                         | acceptance | Formatter para prompts.                                        |
+| `feature::professional-profile::ac-3`                                         | acceptance | Testes do formatter.                                           |
+| `feature::professional-profile::ac-4`                                         | acceptance | Server action de edição manual.                                |
+| `feature::professional-profile::ac-5`                                         | acceptance | Página + UI de edição (lista de experiências).                 |
+| `feature::professional-profile::ac-6`                                         | acceptance | Botão na navbar.                                               |
+| `feature::professional-profile::ac-7`                                         | acceptance | Contexto injetado no insight.                                  |
+| `feature::professional-profile::ac-8`                                         | acceptance | Contexto injetado no currículo.                                |
+| `feature::professional-profile::ac-9`                                         | acceptance | Contexto injetado no chat.                                     |
+| `feature::professional-profile::ac-10`                                        | acceptance | next build passa.                                              |
+| `feature::professional-profile::ac-11`                                        | acceptance | Enriquecimento paralelo durante o insight.                     |
+| `feature::professional-profile::ac-12`                                        | acceptance | Request paralela com todos os dados + JSON mode.               |
+| `feature::professional-profile::ac-13`                                        | acceptance | Escrita aditiva segura (best-effort).                          |
+| `code::src/models/ProfessionalProfile.ts::IProfessionalProfile`               | source     | Interface do modelo.                                           |
+| `code::src/models/ProfessionalProfile.ts::IExperienceItem`                    | source     | Item de experiência (title/period/description).                |
+| `code::src/models/ProfessionalProfile.ts::ProfessionalProfile`                | source     | Modelo Mongoose exportado.                                     |
+| `code::src/lib/professional-profile.ts::formatProfessionalProfileForPrompt`   | source     | Formata perfil → contexto LLM.                                 |
+| `code::src/lib/professional-profile.ts::MAX_SECTION_CHARS`                    | source     | Limite de caracteres who/goals.                                |
+| `code::src/app/actions/professional_profile.ts::saveProfessionalProfile`      | source     | Edição manual validada + persistida.                           |
+| `code::src/app/api/insight/route.ts::POST`                                    | source     | Injeta profileContext na geração de insight.                   |
+| `code::src/app/api/resume/route.ts::POST`                                     | source     | Injeta profileContext na geração de currículo.                 |
+| `code::src/app/api/chat/route.ts::POST`                                       | source     | Injeta profileContext no chat coach.                           |
+| `code::src/lib/prompt-builder.ts::PromptBuilder.buildCareerCoachSystemPrompt` | source     | System prompt do chat com seção de perfil.                     |
+| `code::src/resume/prompts.ts::getResumeSystemPrompt`                          | source     | System prompt do currículo com perfil como contexto.           |
+| `code::src/lib/profile-enrichment.ts::enrichProfessionalProfile`              | source     | Passo paralelo: extrai dados faltantes, aplica update aditivo. |
+| `code::src/lib/profile-enrichment.ts::parseEnrichmentResponse`                | source     | Parser/validador da resposta JSON do modelo.                   |
+| `code::src/lib/profile-enrichment.ts::buildEnrichmentUpdate`                  | source     | Merge aditivo (who/goals vazios, experiência dedupada).        |
+| `code::src/components/sideBar.tsx::SideBar`                                   | source     | Sidebar com item de menu para a seção.                         |
+| `wiki::professional-profile::mental-model`                                    | wiki       | Modelo mental da seção e integração.                           |

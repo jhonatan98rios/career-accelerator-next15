@@ -14,6 +14,7 @@ import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { IProfile, Profile } from "@/models/Profile";
 import { getInsightGuardrailState } from "@/lib/ai-generation-guardrails";
 import { deriveJobSearchKeyword } from "@/lib/job-search-keyword";
+import { enrichProfessionalProfile } from "@/lib/profile-enrichment";
 
 type RouteBody = {
   answers: Record<string, string>;
@@ -91,13 +92,25 @@ export async function POST(req: Request) {
       });
     }
 
-    const json = await generateInsight({
-      answers,
-      manualDescription,
-      persona,
-      notes: notesContext || undefined,
-      profileContext: profileContext || undefined,
-    });
+    // Main insight generation + parallel profile enrichment. The enrichment
+    // is a separate LLM request (same inputs + persona + current profile) that
+    // asks which data relevant to the professional profile is missing from it
+    // and applies an additive update — it never fails the insight.
+    const [json] = await Promise.all([
+      generateInsight({
+        answers,
+        manualDescription,
+        persona,
+        notes: notesContext || undefined,
+        profileContext: profileContext || undefined,
+      }),
+      enrichProfessionalProfile({
+        profileId: user._id,
+        answers,
+        manualDescription,
+        persona,
+      }),
+    ]);
 
     if (!json) {
       await log(LogLevel.ERROR, "POST /insight: Failed to generate insight", { payload });

@@ -37,7 +37,8 @@ O perfil é **dado do usuário**: entra nos prompts como contexto ("use como con
 - `code::src/components/sideBar.tsx::SideBar` — item de menu na sidebar
 - `code::src/app/profile/[profile_id]/perfil-profissional/page.tsx::Page` — página servidora
 - `code::src/app/profile/[profile_id]/perfil-profissional/ProfileSections.tsx::ProfileSections` — UI das 3 seções
-- `code::src/app/api/insight/route.ts::POST` — injeta profileContext no insight
+- `code::src/app/api/insight/route.ts::POST` — injeta profileContext no insight e dispara o enriquecimento paralelo
+- `code::src/lib/profile-enrichment.ts::enrichProfessionalProfile` — requisição paralela: extrai dados faltantes, aplica update aditivo
 - `code::src/app/api/resume/route.ts::POST` — injeta profileContext no currículo
 - `code::src/app/api/chat/route.ts::POST` — injeta profileContext no chat
 - `code::src/lib/prompt-builder.ts::PromptBuilder.buildCareerCoachSystemPrompt` — system prompt do chat com seção de perfil
@@ -60,5 +61,6 @@ O perfil é **dado do usuário**: entra nos prompts como contexto ("use como con
 - `src/app/actions/professional_profile.ts` — action de edição manual
 - `src/app/profile/[profile_id]/perfil-profissional/` — página + componente cliente
 - `src/components/sideBar.tsx` — item de menu na sidebar
-- `src/app/api/insight/route.ts`, `src/app/api/resume/route.ts`, `src/app/api/chat/route.ts` — injeção de contexto
+- `src/app/api/insight/route.ts` — injeção de contexto + `Promise.all` com o enriquecimento
+- `src/lib/profile-enrichment.ts` — passo paralelo de enriquecimento (extração + escrita aditiva)
 - `src/lib/prompt-builder.ts`, `src/resume/prompts.ts`, `src/lib/prompts.ts` — templates com a seção de perfil
