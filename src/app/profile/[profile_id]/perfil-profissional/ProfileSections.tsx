@@ -111,23 +111,24 @@ export default function ProfileSections({ initial }: ProfileSectionsProps) {
             <div className="space-y-4">
               {experience.map((item, i) => (
                 <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-3">
-                  <div className="flex gap-3">
+                  {/* ponytail: stack on mobile — fixed-width period input + button squeezed the title input to ~0, iOS scrolls it and typing looks reversed */}
+                  <div className="flex flex-col md:flex-row gap-3">
                     <input
                       value={item.title}
                       onChange={(e) => setItem(i, "title", e.target.value)}
                       placeholder="Título (ex: Desenvolvedor na Acme)"
-                      className={`${inputClass} flex-1`}
+                      className={`${inputClass} flex-1 min-w-0`}
                     />
                     <input
                       value={item.period}
                       onChange={(e) => setItem(i, "period", e.target.value)}
                       placeholder="Período (ex: 2020-2022)"
-                      className={`${inputClass} w-44`}
+                      className={`${inputClass} w-full md:w-44`}
                     />
                     <button
                       type="button"
                       onClick={() => setExperience((prev) => prev.filter((_, idx) => idx !== i))}
-                      className="px-4 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition"
+                      className="px-4 py-3 self-start md:self-auto rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition"
                       aria-label="Remover item"
                     >
                       Remover
