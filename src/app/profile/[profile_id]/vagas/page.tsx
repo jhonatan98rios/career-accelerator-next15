@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import { getSessionCached } from "@/lib/auth0";
 import { Profile, IProfile } from "@/models/Profile";
-import { Persona, IPersona } from "@/models/Persona";
+import { IProfessionalProfile, ProfessionalProfile } from "@/models/ProfessionalProfile";
 import VagaSearch from "@/components/vagaSearch";
 
 export default async function Page() {
@@ -17,7 +17,9 @@ export default async function Page() {
     redirect("/auth/login?returnTo=/gateway");
   }
 
-  const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
+  const professionalProfile = (await ProfessionalProfile.findOne({
+    profile_id: user._id,
+  })) as IProfessionalProfile | null;
 
-  return <VagaSearch initialKeyword={persona?.jobSearchKeyword ?? null} />;
+  return <VagaSearch initialKeyword={professionalProfile?.jobSearchKeyword ?? null} />;
 }

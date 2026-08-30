@@ -8,12 +8,12 @@ import {
   insightExample,
 } from "./prompts";
 import { IStep } from "@/models/CareerRoadmap";
-import { IPersona } from "@/models/Persona";
+import type { IProfessionalProfile } from "@/models/ProfessionalProfile";
 
 type InsightRequestInput = {
   answers: Record<string, string>;
   manualDescription: string;
-  persona?: IPersona | null;
+  persona?: IProfessionalProfile | null;
   profileContext?: string;
 };
 
@@ -76,8 +76,10 @@ export const generateRoadmap = async (
 };
 
 // ── persona → prompt formatter ─────────────────────────────────────────
+// Reads the structured career fields from the unified professional profile
+// doc (previously the Persona model; data now lives here).
 
-export function formatPersonaForPrompt(persona?: IPersona | null): string {
+export function formatPersonaForPrompt(persona?: IProfessionalProfile | null): string {
   if (!persona) return "";
 
   const lines: string[] = [];

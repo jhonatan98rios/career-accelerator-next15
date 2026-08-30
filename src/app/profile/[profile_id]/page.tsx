@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
 import { CareerInsight } from "@/models/CarrerInsight";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
-import { Persona } from "@/models/Persona";
+import { ProfessionalProfile } from "@/models/ProfessionalProfile";
 import { Plan, RoadmapStatus } from "@/lib/enums";
 import { getTodayUsage } from "@/lib/usage-service";
 import { getPlanLimits, getPlanLabel, isChatAvailable } from "@/lib/plan-service";
@@ -30,7 +30,7 @@ export default async function Page() {
     { "hero.title": 1, "hero.subtitle": 1, createdAt: 1, _id: 1 }
   ).sort({ createdAt: -1 });
 
-  const persona = (await Persona.findOne(
+  const professionalProfile = (await ProfessionalProfile.findOne(
     { profile_id: user._id },
     { resume: 1, resumeGeneratedAt: 1 }
   ).lean()) as { resume?: Record<string, unknown>; resumeGeneratedAt?: Date } | null;
@@ -120,12 +120,12 @@ export default async function Page() {
           title="Currículo"
           icon="📝"
           href={`/profile/${user.id}/resume`}
-          hrefLabel={persona?.resume ? "Gerar novo currículo" : "Gerar currículo"}
+          hrefLabel={professionalProfile?.resume ? "Gerar novo currículo" : "Gerar currículo"}
         >
-          {persona?.resume ? (
+          {professionalProfile?.resume ? (
             <ResumeCardBody
-              resume={persona.resume as Record<string, unknown>}
-              date={persona.resumeGeneratedAt as Date | undefined}
+              resume={professionalProfile.resume as Record<string, unknown>}
+              date={professionalProfile.resumeGeneratedAt as Date | undefined}
               jwtToken={session.tokenSet.accessToken!}
             />
           ) : (

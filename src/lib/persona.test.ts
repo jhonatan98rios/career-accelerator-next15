@@ -1,16 +1,16 @@
 import { describe, it } from "node:test";
 import { formatPersonaForPrompt } from "@/lib/llm";
-import type { IPersona } from "@/models/Persona";
+import type { IProfessionalProfile } from "@/models/ProfessionalProfile";
 // expect is global from test-setup.ts (chai + @vitest/expect)
 import { Types } from "mongoose";
 
 // ---- helpers ----
 
-function persona(overrides: Partial<IPersona> = {}): IPersona {
+function persona(overrides: Partial<IProfessionalProfile> = {}): IProfessionalProfile {
   return {
     profile_id: new Types.ObjectId(),
     ...overrides,
-  } as IPersona;
+  } as IProfessionalProfile;
 }
 
 // ---- formatPersonaForPrompt tests ----

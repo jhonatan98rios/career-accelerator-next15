@@ -11,7 +11,6 @@ import {
   type IProfessionalProfile,
   type IExperienceItem,
 } from "@/models/ProfessionalProfile";
-import type { IPersona } from "@/models/Persona";
 import {
   MAX_SECTION_CHARS,
   MAX_EXPERIENCE_ITEMS,
@@ -28,7 +27,7 @@ export type EnrichmentInput = {
   profileId: string | import("mongoose").Types.ObjectId;
   answers: Record<string, string>;
   manualDescription: string;
-  persona?: IPersona | null;
+  persona?: IProfessionalProfile | null;
 };
 
 export type EnrichmentExtraction = {

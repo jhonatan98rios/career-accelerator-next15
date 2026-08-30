@@ -71,7 +71,7 @@ O conteúdo alimenta os fluxos de geração como contexto: `POST /api/insight`, 
 
 ### Feature Dependencies
 
-- `code::src/models/Persona.ts::Persona` — modelo vizinho usado como contexto nas gerações
+- `code::src/models/ProfessionalProfile.ts::IProfessionalProfile` — modelo unificado (prosa + dados estruturados de carreira + telemetria + resume; ex-Persona removida em `feature::professional-profile-unification`)
 - `code::src/lib/chat-notes.ts::getRecentNotesContext` — padrão de contexto best-effort replicado para o perfil
 - `code::src/lib/prompt-guard.ts::validateUserInput` — scan de prompt injection na edição manual
 - `code::src/lib/prompt-guard.ts::PROMPT_SECURITY_GUARD` — guarda de segurança nos system prompts
@@ -118,12 +118,21 @@ Fluxos de contexto (leitura):
   - POST /api/resume   → generate(..., profileContext)     → getResumeSystemPrompt → buildContext
   - POST /api/chat     → generateChatResponse(..., profile) → buildCareerCoachSystemPrompt(persona, notes, profile)
 
-Modelo ProfessionalProfile (Mongoose)
+Modelo ProfessionalProfile (Mongoose) — coleção `professionalprofiles`, fonte única de verdade
   profile_id: ObjectId ref Profile, unique, required, indexed
   who: string (default "")
   experience: [{ title: string, period: string, description: string }] (default [])
   goals: string (default "")
+  + campos estruturados de carreira (ex-Persona): currentRole, targetRole, yearsOfExperience,
+    careerStage, industries, employmentStatus, educationLevel, fieldOfStudy, certifications,
+    currentlyStudying, preferredLearningStyle, hardSkills, softSkills, languages, tools,
+    weeklyStudyHours, studySchedule, preferredContentFormat, shortTermGoal, mediumTermGoal,
+    longTermGoal, careerMotivation, targetSalary, willingToRelocate, remotePreference,
+    jobSearchKeyword
+  + telemetria: completedRoadmaps, insightsGenerated, skillsGained
+  + artefato: resume (Mixed), resumeGeneratedAt
   timestamps: true
+  (ver `feature::professional-profile-unification::api-contract` para o contrato completo)
 ```
 
 ---

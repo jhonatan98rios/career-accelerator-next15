@@ -2,7 +2,7 @@
 
 import { connectDB } from "@/lib/db";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
-import { Persona } from "@/models/Persona";
+import { ProfessionalProfile } from "@/models/ProfessionalProfile";
 import { RoadmapStatus } from "@/lib/enums";
 import { Types } from "mongoose";
 import { auth0 } from "@/lib/auth0";
@@ -36,9 +36,9 @@ export async function toggleStepStatus(roadmapId: string, stepId: string, checke
     { $set: { "steps.$.status": checked ? RoadmapStatus.DONE : RoadmapStatus.PENDING } }
   );
 
-  // CP-3: when marking DONE, add step title to persona skillsGained
+  // CP-3: when marking DONE, add step title to skillsGained on the unified profile
   if (checked && step) {
-    await Persona.findOneAndUpdate(
+    await ProfessionalProfile.findOneAndUpdate(
       { profile_id: roadmap.user_id },
       { $addToSet: { skillsGained: step.title } },
       { upsert: true }

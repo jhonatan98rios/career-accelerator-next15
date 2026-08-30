@@ -59,9 +59,8 @@ describe("POST /register — dev mode", () => {
     expect(sendEmailInDev === -1 || sendEmailInDev > devBranchReturn).toBe(true);
   });
 
-  it("creates Persona in dev branch", () => {
-    expect(registerRoute).toContain("Persona.create");
-    // Persona appears twice (dev + prod), both ok
+  it("does not create Persona (removed — unified ProfessionalProfile)", () => {
+    expect(registerRoute).not.toContain("Persona");
   });
 
   it("prod branch still creates INACTIVE profile", () => {

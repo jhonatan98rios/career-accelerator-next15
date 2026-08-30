@@ -1,6 +1,6 @@
 # Feature: Persona Profile
 
-> **Status**: `implemented` — Phase 1 (model), Phase 2 (checkpoints CP-1 to CP-4), Phase 3 (prompt injection)
+> **Status**: `superseded` — o modelo `Persona` foi **removido** em 2026-08-30 por `feature::professional-profile-unification` (sem usuários reais, sem migração). Todos os campos e checkpoints CP-1 a CP-4 foram re-hospedados no modelo unificado `ProfessionalProfile` (coleção `professionalprofiles`): CP-1 (seed de registro) foi removido (upsert cobre), CP-2/CP-3/CP-4 agora escrevem no `ProfessionalProfile`. `formatPersonaForPrompt()` permanece em `src/lib/llm.ts` tipado contra `IProfessionalProfile`. Os ACs abaixo descrevem o estado histórico; seus comandos `Verify` apontam para `src/models/Persona.ts`, que não existe mais.
 
 Data model and integration pipeline for a persistent, non-PII career persona that the system builds and evolves across sessions. The persona feeds into LLM prompt generation so insight quality reflects the user's accumulated career context, not just one-shot form answers.
 

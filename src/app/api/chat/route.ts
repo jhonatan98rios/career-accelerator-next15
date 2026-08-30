@@ -8,8 +8,7 @@ import {
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile, IProfile } from "@/models/Profile";
-import { Persona, IPersona } from "@/models/Persona";
-import { ProfessionalProfile } from "@/models/ProfessionalProfile";
+import { IProfessionalProfile, ProfessionalProfile } from "@/models/ProfessionalProfile";
 import { formatProfessionalProfileForPrompt } from "@/lib/professional-profile";
 import { ChatSession } from "@/models/ChatSession";
 import { ChatNotes } from "@/models/ChatNotes";
@@ -148,47 +147,42 @@ export async function POST(req: Request) {
       });
     }
 
+    // Fetch the unified professional profile once — builds both the coach
+    // persona snapshot and the prose profile context (best-effort).
     try {
-      const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
-      if (persona) {
+      const professionalProfile = (await ProfessionalProfile.findOne({
+        profile_id: user._id,
+      })) as IProfessionalProfile | null;
+      if (professionalProfile) {
         personaSnapshot = {
-          currentRole: persona.currentRole,
-          targetRole: persona.targetRole,
-          yearsOfExperience: persona.yearsOfExperience,
-          careerStage: persona.careerStage,
-          industries: persona.industries,
-          employmentStatus: persona.employmentStatus,
-          educationLevel: persona.educationLevel,
-          fieldOfStudy: persona.fieldOfStudy,
-          certifications: persona.certifications,
-          hardSkills: persona.hardSkills,
-          softSkills: persona.softSkills,
-          languages: persona.languages?.map((l) => ({
+          currentRole: professionalProfile.currentRole,
+          targetRole: professionalProfile.targetRole,
+          yearsOfExperience: professionalProfile.yearsOfExperience,
+          careerStage: professionalProfile.careerStage,
+          industries: professionalProfile.industries,
+          employmentStatus: professionalProfile.employmentStatus,
+          educationLevel: professionalProfile.educationLevel,
+          fieldOfStudy: professionalProfile.fieldOfStudy,
+          certifications: professionalProfile.certifications,
+          hardSkills: professionalProfile.hardSkills,
+          softSkills: professionalProfile.softSkills,
+          languages: professionalProfile.languages?.map((l) => ({
             language: l.language,
             proficiency: l.proficiency,
           })),
-          tools: persona.tools,
-          weeklyStudyHours: persona.weeklyStudyHours,
-          studySchedule: persona.studySchedule,
-          preferredContentFormat: persona.preferredContentFormat,
-          shortTermGoal: persona.shortTermGoal,
-          mediumTermGoal: persona.mediumTermGoal,
-          longTermGoal: persona.longTermGoal,
-          careerMotivation: persona.careerMotivation,
-          willingToRelocate: persona.willingToRelocate,
-          remotePreference: persona.remotePreference,
+          tools: professionalProfile.tools,
+          weeklyStudyHours: professionalProfile.weeklyStudyHours,
+          studySchedule: professionalProfile.studySchedule,
+          preferredContentFormat: professionalProfile.preferredContentFormat,
+          shortTermGoal: professionalProfile.shortTermGoal,
+          mediumTermGoal: professionalProfile.mediumTermGoal,
+          longTermGoal: professionalProfile.longTermGoal,
+          careerMotivation: professionalProfile.careerMotivation,
+          willingToRelocate: professionalProfile.willingToRelocate,
+          remotePreference: professionalProfile.remotePreference,
         };
+        profileContext = formatProfessionalProfileForPrompt(professionalProfile);
       }
-    } catch (dbErr) {
-      // ponytail: persona fetch is best-effort — chat still works without it
-      await log(LogLevel.WARN, "POST /api/chat: Failed to fetch persona, continuing without", {
-        error: dbErr instanceof Error ? dbErr.message : String(dbErr),
-      });
-    }
-
-    try {
-      const professionalProfile = await ProfessionalProfile.findOne({ profile_id: user._id });
-      profileContext = formatProfessionalProfileForPrompt(professionalProfile);
     } catch (dbErr) {
       // ponytail: profile fetch is best-effort — chat still works without it
       await log(LogLevel.WARN, "POST /api/chat: Failed to fetch professional profile, continuing", {

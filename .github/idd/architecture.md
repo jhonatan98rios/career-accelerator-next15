@@ -18,7 +18,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 
 ## Capabilities
 
-- Career insight generation (LLM-powered market analysis, compensation, roadmap, persona-enriched prompts)
+- Career insight generation (LLM-powered market analysis, compensation, roadmap, structured-profile-enriched prompts)
 - AI generation guardrails (24-hour insight cooldown, roadmap completion gate, one corrective retry, developer bypass flag)
 - User registration + Auth0 authentication
 - Stripe Checkout subscription lifecycle (create, activate, cancel via webhook)
@@ -27,7 +27,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - Email notifications via AWS SES
 - Datadog-structured logging (Vercel → DD HTTP intake)
 - Career roadmap CRUD with step-level status tracking
-- Professional profile section (perfil-profissional): user-edited "Quem sou eu" / "O que eu fiz" (experience list) / "O que eu pretendo fazer", injected as LLM context into insight, resume, and chat generation; a parallel additive enrichment pass during insight generation extracts missing profile data from the questionnaire inputs + persona — who/goals are overwrite-blocked by whoEditedByUser/goalsEditedByUser flags (set on manual save), otherwise the agent returns the complete updated text, experience appended deduped by title (best-effort)
+- Professional profile section (perfil-profissional): user-edited "Quem sou eu" / "O que eu fiz" (experience list) / "O que eu pretendo fazer", injected as LLM context into insight, resume, and chat generation; a parallel additive enrichment pass during insight generation extracts missing profile data from the questionnaire inputs + structured profile — who/goals are overwrite-blocked by whoEditedByUser/goalsEditedByUser flags (set on manual save), otherwise the agent returns the complete updated text, experience appended deduped by title (best-effort); single source of truth for all user career data (the former Persona model was removed — structured fields, telemetry and the resume artifact now live here)
 
 ## Runtime Topology
 
@@ -45,16 +45,15 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 
 ## Data Stores
 
-| Name                | Type             | Used By                                  | Notes                                                                                                                                                                   |
-| ------------------- | ---------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Profile             | MongoDB/Mongoose | Auth, registration, user config          | Email-indexed, linked to Auth0 `externalAuthId`                                                                                                                         |
-| CareerInsight       | MongoDB/Mongoose | LLM output, insight display              | Nested sections (hero, market snapshot, compensation, etc.)                                                                                                             |
-| CareerRoadmap       | MongoDB/Mongoose | LLM output, step tracking                | Embedded steps array with status per step                                                                                                                               |
-| Persona             | MongoDB/Mongoose | LLM prompt enrichment, progress tracking | Career profile with zero PII, populated at 4 checkpoints (registration, insight generation, step completion, roadmap extension); upsert-on-first-write for legacy users |
-| ProfessionalProfile | MongoDB/Mongoose | Profile section (who/experience/goals)   | One doc per user: running-text who/goals + experience item list; injected as LLM context into insight/resume/chat; upsert-on-first-write                                |
-| Subscription        | MongoDB/Mongoose | Payment webhook, billing                 | Mirror of Stripe subscription state                                                                                                                                     |
-| Consent             | MongoDB/Mongoose | Legal compliance                         | Versioned event log per user                                                                                                                                            |
-| Term                | MongoDB/Mongoose | Legal compliance                         | Version registry of data-usage PDFs                                                                                                                                     |
+| Name                | Type             | Used By                                                  | Notes                                                                                                                                                                                                                                                                                  |
+| ------------------- | ---------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile             | MongoDB/Mongoose | Auth, registration, user config                          | Email-indexed, linked to Auth0 `externalAuthId`                                                                                                                                                                                                                                        |
+| CareerInsight       | MongoDB/Mongoose | LLM output, insight display                              | Nested sections (hero, market snapshot, compensation, etc.)                                                                                                                                                                                                                            |
+| CareerRoadmap       | MongoDB/Mongoose | LLM output, step tracking                                | Embedded steps array with status per step                                                                                                                                                                                                                                              |
+| ProfessionalProfile | MongoDB/Mongoose | Profile section (who/experience/goals) + all career data | One doc per user — the single source of truth: prose who/goals + experience list, structured career fields (role, skills, education, goals, job search), telemetry counters and the generated resume artifact; injected as LLM context into insight/resume/chat; upsert-on-first-write |
+| Subscription        | MongoDB/Mongoose | Payment webhook, billing                                 | Mirror of Stripe subscription state                                                                                                                                                                                                                                                    |
+| Consent             | MongoDB/Mongoose | Legal compliance                                         | Versioned event log per user                                                                                                                                                                                                                                                           |
+| Term                | MongoDB/Mongoose | Legal compliance                                         | Version registry of data-usage PDFs                                                                                                                                                                                                                                                    |
 
 ## Integrations
 
@@ -84,7 +83,7 @@ Next.js 15 monolith bootstrapped with create-next-app, deployed on Vercel. Serve
 - `src/app/gateway/page.tsx` — Registration orchestration (profile + subscription + email + consent)
 - `src/pages/profile/[profile_id]/output/[output_id]/index.tsx` — Pages Router output page
 - `src/lib/ai-generation-guardrails.ts` — Shared eligibility logic for insight cooldown and roadmap retry rules
-- `src/lib/profile-enrichment.ts` — Parallel additive enrichment during insight generation: extra LLM request (JSON mode) finds profile data missing from the questionnaire/persona and applies it — who/goals blocked by editedByUser flags, else complete-version overwrite; experience appended deduped by title; best-effort
+- `src/lib/profile-enrichment.ts` — Parallel additive enrichment during insight generation: extra LLM request (JSON mode) finds profile data missing from the questionnaire/structured profile and applies it — who/goals blocked by editedByUser flags, else complete-version overwrite; experience appended deduped by title; best-effort
 - `src/lib/professional-profile.ts` — Formats the professional profile as LLM context (who/experience/goals), empty sections skipped; shared edit limits
 - `src/app/actions/professional_profile.ts` — Server action for manual profile edits (validated, upsert)
 - `src/app/profile/[profile_id]/perfil-profissional/` — Server page + client component (textareas + experience list editor)

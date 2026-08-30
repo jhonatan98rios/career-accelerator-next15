@@ -1,6 +1,6 @@
 # Feature: Chat UI (Career Coach)
 
-> **Status**: `etapa-2` (persona enrichment active)
+> **Status**: `etapa-2` (profile enrichment active — dados do perfil unificado `ProfessionalProfile`)
 
 Chat interface for the Career Coach with real AI integration via LangChain/OpenAI. No persistence — all conversation history is in-memory only, lost on page refresh.
 
@@ -20,8 +20,8 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
       Verify: `grep "sessionMessagesRef\|useRef" src/app/profile/\[profile_id\]/chat/page.tsx` — sessionMessagesRef stores messages per session
 - [x] Atualizar página reinicia conversa.
       Verify: manual — all state is useState/useRef, no persistence
-- [x] Backend utiliza LangChain para construir prompt com dados da Persona.
-      Verify: `grep "SystemMessage\|HumanMessage\|AIMessage\|ChatOpenAI" src/lib/chat-service.ts` — uses LangChain messages + ChatOpenAI; `grep "Persona\|PersonaSnapshot" src/app/api/chat/route.ts` — fetches persona, passes to chat service
+- [x] Backend utiliza LangChain para construir prompt com dados do perfil (ex-Persona, agora no doc unificado `ProfessionalProfile`).
+      Verify: `grep "SystemMessage\|HumanMessage\|AIMessage\|ChatOpenAI" src/lib/chat-service.ts` — uses LangChain messages + ChatOpenAI; `grep "ProfessionalProfile\|PersonaSnapshot" src/app/api/chat/route.ts` — fetches the unified profile, passes to chat service
 - [x] System Prompt enviado em todas as requisições.
       Verify: `grep "SystemMessage" src/lib/chat-service.ts` — always first in invoke array
 - [x] Histórico completo enviado ao modelo.
@@ -50,8 +50,8 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
       Verify: manual — desktop shows fixed sidebar; mobile shows hamburger + drawer
 - [x] Código organizado em componentes reutilizáveis.
       Verify: `ls src/components/Chat*.tsx src/components/TypingIndicator.tsx` — ChatComposer.tsx, ChatMessage.tsx, ChatSidebar.tsx, TypingIndicator.tsx exist
-- [x] Sem persistência de chat (mensagens não salvas em MongoDB). Persona é apenas lida.
-      Verify: chat route reads Persona via `Persona.findOne`, no `.create` or `.save` on chat-related models
+- [x] Sem persistência de chat (mensagens não salvas em MongoDB). Perfil é apenas lido.
+      Verify: chat route reads the unified profile via `ProfessionalProfile.findOne`, no `.create` or `.save` on chat-related models
 - [x] Arquitetura preparada para sessões persistidas.
       Verify: chat-api.ts is an abstraction layer; sessionMessagesRef is a drop-in target for future session store
 
@@ -61,7 +61,7 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
 
 - All chat state is local (useState + useRef), no Context or global stores
 - Chat messages are NOT persisted (no chat history in MongoDB)
-- Persona is READ from MongoDB to enrich the system prompt — no writes to persona from chat
+- Perfil é READ from MongoDB (doc unificado `ProfessionalProfile`) to enrich the system prompt — no writes to the profile from chat
 - No streaming — full response returned at once via POST
 - Must use existing Tailwind v4 design system (purple-to-indigo brand gradient)
 - Components follow existing conventions: flat `src/components/`, PascalCase filenames
@@ -73,7 +73,7 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
 - MongoDB / chat persistence (persona is only read, not written)
 - Sessões persistidas
 - Histórico salvo
-- Escrita na Persona
+- Escrita no perfil (chat não escreve no `ProfessionalProfile`)
 - Notas da Persona
 - Recuperação de conversas anteriores
 - Sumarização
@@ -120,18 +120,18 @@ Implement a ChatGPT-like chat interface adapted to the AcelerAi design system, w
 
 ## Glossary
 
-| Location | Type | Description |
-|----------|------|-------------|
-| `code::src/app/profile/[profile_id]/chat/page.tsx::ChatPage` | source | Main chat page with all local state, wired to real API |
-| `code::src/components/ChatSidebar.tsx::ChatSidebar` | source | Conversation list sidebar with mobile drawer toggle and usage-aware new-session gating |
-| `code::src/components/ChatMessage.tsx::ChatMessage` | source | Reusable message bubble (user/assistant) |
-| `code::src/components/ChatComposer.tsx::ChatComposer` | source | Textarea, character counter, send button with maxLength |
-| `code::src/components/TypingIndicator.tsx::TypingIndicator` | source | Animated loading dots indicator |
-| `code::src/lib/chat-api.ts::sendChatMessage` | source | Frontend API client — POST /api/chat (non-streaming, legacy) |
-| `code::src/lib/chat-api.ts::streamChatMessage` | source | Frontend API client — SSE streaming POST /api/chat |
-| `code::src/lib/chat-api.ts::fetchChatUsage` | source | Frontend API client — GET /api/chat/usage |
-| `code::src/lib/chat-api.ts::ChatApiError` | source | Custom error class for API failures |
-| `code::src/lib/chat-api.ts::ChatUsage` | source | Response type for usage endpoint |
-| `code::src/lib/chat-service.ts::generateChatResponse` | source | LangChain chat service — builds prompt with persona data, invokes LLM, truncates output |
-| `code::src/lib/chat-service.ts::PersonaSnapshot` | source | Flat persona fields passed into the system prompt |
-| `code::src/app/api/chat/route.ts::POST` | source | API endpoint — auth, profile+persona fetch, daily session limit enforcement, delegates to chat-service |
+| Location                                                     | Type   | Description                                                                                            |
+| ------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------ |
+| `code::src/app/profile/[profile_id]/chat/page.tsx::ChatPage` | source | Main chat page with all local state, wired to real API                                                 |
+| `code::src/components/ChatSidebar.tsx::ChatSidebar`          | source | Conversation list sidebar with mobile drawer toggle and usage-aware new-session gating                 |
+| `code::src/components/ChatMessage.tsx::ChatMessage`          | source | Reusable message bubble (user/assistant)                                                               |
+| `code::src/components/ChatComposer.tsx::ChatComposer`        | source | Textarea, character counter, send button with maxLength                                                |
+| `code::src/components/TypingIndicator.tsx::TypingIndicator`  | source | Animated loading dots indicator                                                                        |
+| `code::src/lib/chat-api.ts::sendChatMessage`                 | source | Frontend API client — POST /api/chat (non-streaming, legacy)                                           |
+| `code::src/lib/chat-api.ts::streamChatMessage`               | source | Frontend API client — SSE streaming POST /api/chat                                                     |
+| `code::src/lib/chat-api.ts::fetchChatUsage`                  | source | Frontend API client — GET /api/chat/usage                                                              |
+| `code::src/lib/chat-api.ts::ChatApiError`                    | source | Custom error class for API failures                                                                    |
+| `code::src/lib/chat-api.ts::ChatUsage`                       | source | Response type for usage endpoint                                                                       |
+| `code::src/lib/chat-service.ts::generateChatResponse`        | source | LangChain chat service — builds prompt with profile data, invokes LLM, truncates output                |
+| `code::src/lib/chat-service.ts::PersonaSnapshot`             | source | Flat subset of the unified profile passed into the system prompt                                       |
+| `code::src/app/api/chat/route.ts::POST`                      | source | API endpoint — auth, unified profile fetch, daily session limit enforcement, delegates to chat-service |

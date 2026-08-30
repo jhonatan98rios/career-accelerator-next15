@@ -3,13 +3,12 @@ import { generate, type UserData } from "@/resume";
 import { isAuthenticated, AuthError } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/Profile";
-import { Persona, type IPersona } from "@/models/Persona";
 import { UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
 import { MAX_RESUME_INPUT_CHARS } from "@/lib/resume-constants";
 import { getRecentNotesContext } from "@/lib/chat-notes";
-import { ProfessionalProfile } from "@/models/ProfessionalProfile";
+import { ProfessionalProfile, type IProfessionalProfile } from "@/models/ProfessionalProfile";
 import { formatProfessionalProfileForPrompt } from "@/lib/professional-profile";
 import { canGenerateResume, registerResumeGeneration } from "@/lib/usage-service";
 import { getPlanLimits } from "@/lib/plan-service";
@@ -25,26 +24,31 @@ export async function POST(req: Request) {
       return NextResponse.json({}, { status: HttpStatus.UNAUTHORIZED });
     }
 
-    const persona = (await Persona.findOne({ profile_id: user._id }).lean()) as IPersona | null;
+    const professionalProfile = (await ProfessionalProfile.findOne({
+      profile_id: user._id,
+    }).lean()) as IProfessionalProfile | null;
 
     const userData: UserData = {
       name: user.name ?? undefined,
       email: user.email ?? undefined,
-      currentRole: persona?.currentRole,
-      targetRole: persona?.targetRole,
-      yearsOfExperience: persona?.yearsOfExperience,
-      careerStage: persona?.careerStage,
-      industries: persona?.industries,
-      employmentStatus: persona?.employmentStatus,
-      educationLevel: persona?.educationLevel,
-      fieldOfStudy: persona?.fieldOfStudy,
-      certifications: persona?.certifications,
-      hardSkills: persona?.hardSkills,
-      softSkills: persona?.softSkills,
-      languages: persona?.languages?.map((l) => ({ name: l.language, proficiency: l.proficiency })),
-      shortTermGoal: persona?.shortTermGoal,
-      mediumTermGoal: persona?.mediumTermGoal,
-      longTermGoal: persona?.longTermGoal,
+      currentRole: professionalProfile?.currentRole,
+      targetRole: professionalProfile?.targetRole,
+      yearsOfExperience: professionalProfile?.yearsOfExperience,
+      careerStage: professionalProfile?.careerStage,
+      industries: professionalProfile?.industries,
+      employmentStatus: professionalProfile?.employmentStatus,
+      educationLevel: professionalProfile?.educationLevel,
+      fieldOfStudy: professionalProfile?.fieldOfStudy,
+      certifications: professionalProfile?.certifications,
+      hardSkills: professionalProfile?.hardSkills,
+      softSkills: professionalProfile?.softSkills,
+      languages: professionalProfile?.languages?.map((l) => ({
+        name: l.language,
+        proficiency: l.proficiency,
+      })),
+      shortTermGoal: professionalProfile?.shortTermGoal,
+      mediumTermGoal: professionalProfile?.mediumTermGoal,
+      longTermGoal: professionalProfile?.longTermGoal,
     };
 
     // Guardrail: max resume generations per day
@@ -95,13 +99,12 @@ export async function POST(req: Request) {
       });
     }
 
-    // Fetch professional profile for context
+    // Fetch prose profile context from the same unified doc (best-effort)
     let profileContext = "";
     try {
-      const professionalProfile = await ProfessionalProfile.findOne({ profile_id: user._id });
       profileContext = formatProfessionalProfileForPrompt(professionalProfile);
     } catch (profileErr) {
-      await log(LogLevel.WARN, "POST /resume: Failed to fetch professional profile, continuing", {
+      await log(LogLevel.WARN, "POST /resume: Failed to build professional profile context", {
         error: profileErr instanceof Error ? profileErr.message : String(profileErr),
       });
     }
@@ -118,8 +121,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
-    // Persist structured resume on persona
-    await Persona.findOneAndUpdate(
+    // Persist structured resume on the unified professional profile
+    await ProfessionalProfile.findOneAndUpdate(
       { profile_id: user._id },
       { $set: { resume: result.data, resumeGeneratedAt: new Date() } },
       { upsert: true }

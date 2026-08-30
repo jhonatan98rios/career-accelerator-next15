@@ -39,16 +39,16 @@ Red / Green TDD suspenso para esta alteração (mesma decisão do `stripe-subscr
 
 ### Estratégia de Planos
 
-| Feature                  | Básico (R$29,90/mês) | Acelera.ai Plus (R$49,90/mês) | Acelera.ai Ultra (R$99,90/mês) |
-| ------------------------ | -------------------- | ----------------------------- | ------------------------------ |
-| **Insights de carreira** | 1 a cada 7 dias      | 1 a cada 48h                  | 1/dia                          |
-| **Roadmap**              | Sim (com extensão)   | Sim (com extensão)            | Sim (com extensão)             |
-| **Chat Coach**           | ❌                   | 3 sessões/dia                 | 10 sessões/dia                 |
-| **Currículos**           | 3/dia                | 10/dia                        | 30/dia                         |
-| **Persona profile**      | Sim                  | Sim                           | Sim                            |
-| **NFS-e tax profile**    | Sim                  | Sim                           | Sim                            |
-| **Suporte**              | Email (48h)          | Email (24h)                   | Prioritário (chat/email 4h)    |
-| **Trial**                | 7 dias               | 7 dias                        | 7 dias                         |
+| Feature                           | Básico (R$29,90/mês) | Acelera.ai Plus (R$49,90/mês) | Acelera.ai Ultra (R$99,90/mês) |
+| --------------------------------- | -------------------- | ----------------------------- | ------------------------------ |
+| **Insights de carreira**          | 1 a cada 7 dias      | 1 a cada 48h                  | 1/dia                          |
+| **Roadmap**                       | Sim (com extensão)   | Sim (com extensão)            | Sim (com extensão)             |
+| **Chat Coach**                    | ❌                   | 3 sessões/dia                 | 10 sessões/dia                 |
+| **Currículos**                    | 3/dia                | 10/dia                        | 30/dia                         |
+| **Perfil profissional unificado** | Sim                  | Sim                           | Sim                            |
+| **NFS-e tax profile**             | Sim                  | Sim                           | Sim                            |
+| **Suporte**                       | Email (48h)          | Email (24h)                   | Prioritário (chat/email 4h)    |
+| **Trial**                         | 7 dias               | 7 dias                        | 7 dias                         |
 
 **Por que Chat só a partir do Plus**: Chat com IA é o maior diferencial competitivo e o maior custo de API. Reservá-lo para planos acima do básico cria incentivo de upgrade. O Básico entrega valor real (insight + roadmap + 3 currículos/dia) sem frustrar.
 

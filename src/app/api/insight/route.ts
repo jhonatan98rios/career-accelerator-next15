@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { generateInsight } from "@/lib/llm";
 import { getRecentNotesContext } from "@/lib/chat-notes";
-import { ProfessionalProfile } from "@/models/ProfessionalProfile";
+import { IProfessionalProfile, ProfessionalProfile } from "@/models/ProfessionalProfile";
 import { formatProfessionalProfileForPrompt } from "@/lib/professional-profile";
 import { connectDB } from "@/lib/db";
 import { CareerInsight, ICareerInsight } from "@/models/CarrerInsight";
 import { CareerRoadmap } from "@/models/CareerRoadmap";
-import { IPersona, Persona } from "@/models/Persona";
 import { RoadmapStatus, UserStatus } from "@/lib/enums";
 import { log, LogLevel } from "@/lib/logger";
 import { HttpStatus } from "@/types/httpStatus";
@@ -69,12 +68,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const persona = (await Persona.findOne({ profile_id: user._id })) as IPersona | null;
-
-    // Fetch professional profile for context
+    // Fetch the unified professional profile once — feeds the structured
+    // "User Profile" block ({personaContext}), the prose profile block
+    // ({profileContext}) and the enrichment input.
+    let professionalProfile: IProfessionalProfile | null = null;
     let profileContext = "";
     try {
-      const professionalProfile = await ProfessionalProfile.findOne({ profile_id: user._id });
+      professionalProfile = (await ProfessionalProfile.findOne({
+        profile_id: user._id,
+      })) as IProfessionalProfile | null;
       profileContext = formatProfessionalProfileForPrompt(professionalProfile);
     } catch (profileErr) {
       await log(LogLevel.WARN, "POST /insight: Failed to fetch professional profile, continuing", {
@@ -100,7 +102,7 @@ export async function POST(req: Request) {
       generateInsight({
         answers,
         manualDescription,
-        persona,
+        persona: professionalProfile,
         notes: notesContext || undefined,
         profileContext: profileContext || undefined,
       }),
@@ -108,7 +110,7 @@ export async function POST(req: Request) {
         profileId: user._id,
         answers,
         manualDescription,
-        persona,
+        persona: professionalProfile,
       }),
     ]);
 
@@ -154,14 +156,14 @@ export async function POST(req: Request) {
     user.lastInsightGeneratedAt = new Date();
     await user.save();
 
-    // CP-2: populate persona from form answers + increment counters
+    // CP-2: populate the unified professional profile from form answers + counters
     const jobSearchKeyword = deriveJobSearchKeyword(
       answers.dreamJob,
       splitCsv(answers.hardSkills),
       answers.currentRole
     );
 
-    await Persona.findOneAndUpdate(
+    await ProfessionalProfile.findOneAndUpdate(
       { profile_id: user._id },
       {
         $set: {
