@@ -78,7 +78,7 @@ export default function Home() {
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
-                <li>✅ 60 tokens mensais</li>
+                <li>✅ 3 currículos/dia</li>
                 <li>✅ 7 dias grátis para testar </li>
               </ul>
               <TrackedLink
@@ -101,6 +101,7 @@ export default function Home() {
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
+                <li>✅ Insight de carreira a cada 48h</li>
                 <li>✅ Chat Coach com IA (3 sessões/dia)</li>
                 <li>✅ 10 currículos/dia</li>
                 <li>✅ 7 dias grátis para testar </li>
@@ -125,6 +126,7 @@ export default function Home() {
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
+                <li>✅ Insight de carreira diário</li>
                 <li>✅ Chat Coach com IA (10 sessões/dia)</li>
                 <li>✅ 30 currículos/dia</li>
                 <li>✅ 7 dias grátis para testar </li>
@@ -139,12 +141,6 @@ export default function Home() {
               </TrackedLink>
             </div>
           </div>
-        </div>
-        <div className="disclaimer text-center mt-12 text-gray-500 max-w-4/5 m-auto">
-          <p>
-            *Os tokens são utilizados somente para acessar as funcionalidades de IA. Os tokens são
-            renovados mensalmente.
-          </p>
         </div>
       </section>
 

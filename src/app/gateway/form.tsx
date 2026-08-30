@@ -326,7 +326,7 @@ export function GatewayForm({ email, sub, picture, jwtToken }: GatewayFormProps)
                 Acelera.ai Plus - R$49,90/mes - Chat com IA + 10 curriculos/dia
               </option>
               <option value={Plan.ULTRA}>
-                Acelera.ai Ultra - R$99,90/mes - Chat ilimitado + 30 curriculos/dia
+                Acelera.ai Ultra - R$99,90/mes - Chat com IA (10 sessoes/dia) + 30 curriculos/dia
               </option>
             </select>
           </div>
