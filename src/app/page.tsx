@@ -69,7 +69,7 @@ export default function Home() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Básico */}
-            <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[460px]">
+            <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[520px]">
               <h3 className="text-2xl font-bold text-purple-500">Básico</h3>
               <p className="mt-4 text-4xl font-extrabold">
                 R$29,90<span className="text-base font-normal">/mês</span>
@@ -78,6 +78,7 @@ export default function Home() {
                 <li>✅ Estatísticas de mercado</li>
                 <li>✅ Plano de carreira</li>
                 <li>✅ Roadmap de estudos</li>
+                <li>✅ Insight de carreira semanal</li>
                 <li>✅ 3 currículos/dia</li>
                 <li>✅ 7 dias grátis para testar </li>
               </ul>
@@ -92,7 +93,7 @@ export default function Home() {
             </div>
 
             {/* Plus */}
-            <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[460px]">
+            <div className="border-2 border-purple-500 rounded-xl shadow-xl p-8 flex flex-col items-center scale-105 min-h-[520px]">
               <h3 className="text-2xl font-bold text-purple-500">Acelera.ai Plus</h3>
               <p className="mt-4 text-4xl font-extrabold">
                 R$49,90<span className="text-base font-normal">/mês</span>
@@ -117,7 +118,7 @@ export default function Home() {
             </div>
 
             {/* Ultra */}
-            <div className="border rounded-xl shadow-lg p-8 flex flex-col items-center min-h-[460px]">
+            <div className="border rounded-xl shadow-lg p-8 flex flex-col items-center min-h-[520px]">
               <h3 className="text-2xl font-bold text-gray-800">Acelera.ai Ultra</h3>
               <p className="mt-4 text-4xl font-extrabold">
                 R$99,90<span className="text-base font-normal">/mês</span>
